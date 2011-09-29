@@ -21,8 +21,8 @@ function variable_product_type_options() {
 	
 	// See if any are set
 	$variation_attribute_found = false;
-	foreach($attributes as $attribute){
-		if ($attribute['is_variation']) :
+	if ($attributes) foreach($attributes as $attribute){
+		if (isset($attribute['is_variation'])) :
 			$variation_attribute_found = true;
 			break;
 		endif;
@@ -64,8 +64,6 @@ function variable_product_type_options() {
 
 								// Get current value for variation (if set)
 								$variation_selected_value = get_post_meta( $variation->ID, 'attribute_' . sanitize_title($attribute['name']), true );
-								
-								if (!is_array($options)) $options = explode(',', $options);
 								
 								// Name will be something like attribute_pa_color
 								echo '<select name="attribute_' . sanitize_title($attribute['name']).'['.$loop.']"><option value="">'.__('Any ', 'woothemes').$woocommerce->attribute_label($attribute['name']).'&hellip;</option>';
@@ -171,7 +169,7 @@ function variable_product_write_panel_js() {
 						<?php
 							if ($attributes) foreach ($attributes as $attribute) :
 								
-								if ( !$attribute['is_variation'] ) continue;
+								if ( !isset($attribute['is_variation']) || !$attribute['is_variation'] ) continue;
 								
 								echo '<select name="attribute_' . sanitize_title($attribute['name']).'[\' + loop + \']"><option value="">'.__('Any ', 'woothemes').$woocommerce->attribute_label($attribute['name']).'&hellip;</option>';
 								
@@ -352,7 +350,8 @@ function woocommerce_remove_variation() {
 	
 	check_ajax_referer( 'delete-variation', 'security' );
 	$variation_id = intval( $_POST['variation_id'] );
-	wp_delete_post( $variation_id );
+	$variation = get_post($variation_id);
+	if ($variation && $variation->post_type=="product_variation") wp_delete_post( $variation_id );
 	die();
 	
 }
@@ -577,7 +576,7 @@ function process_product_meta_variable( $post_id ) {
 			
 			foreach ($attributes as $attribute) :
 				if ( $attribute['is_variation'] ) :
-					$value = trim($_POST[ 'attribute_' . sanitize_title($attribute['name']) ][$i]);
+					$value = esc_attr(trim($_POST[ 'attribute_' . sanitize_title($attribute['name']) ][$i]));
 					if ($value) :
 						$title[] = $woocommerce->attribute_label($attribute['name']).': '.$value;
 					endif;
@@ -620,7 +619,7 @@ function process_product_meta_variable( $post_id ) {
 							
 				if ( $attribute['is_variation'] ) :
 				
-					$value = trim($_POST[ 'attribute_' . sanitize_title($attribute['name']) ][$i]);
+					$value = esc_attr(trim($_POST[ 'attribute_' . sanitize_title($attribute['name']) ][$i]));
 					
 					update_post_meta( $variation_id, 'attribute_' . sanitize_title($attribute['name']), $value );
 				

@@ -1,9 +1,9 @@
-=== WooCommerce ===
+=== WooCommerce - eCommerce plugin for WordPress ===
 Contributors: woothemes
-Tags: ecommerce, woothemes, wordpress ecommerce, store, shop, shopping, cart, checkout, widgets, reports, shipping, tax, paypal, inventory
+Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, store, shop, shopping, cart, checkout, widgets, reports, shipping, tax, paypal, inventory
 Requires at least: 3.1
 Tested up to: 3.2
-Stable tag: 1.0
+Stable tag: 1.0.1
 
 An e-commerce toolkit that helps you sell anything. Beautifully.
 
@@ -52,6 +52,14 @@ The manual installation involves downloading the plugin and uploading it to your
 3. Activate the plugin from the Plugins menu within the WordPress admin.
 
 == Changelog ==
+
+= 1.0.1 = 
+* Fixed notices on product page
+* Variation formatting uses item_meta when showing order items
+* Javascript fixes in admin + correct enqueuing of scripts
+* Added en_GB po file
+* Used dbDelta for installation of tables for better table upgrades/installs
+* Fix for reviews form when fancybox is turned off
 
 = 1.0 = 
 * Initial Release. Woo!

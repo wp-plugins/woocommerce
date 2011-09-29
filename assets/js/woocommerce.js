@@ -304,7 +304,11 @@ jQuery(document).ready(function($) {
                 var attr_val = attributes[attr_name];
                 
                 if(attr_name == current_attr_name) {
-                    current_attr_select.find('option[value="'+attr_val+'"]').removeAttr('disabled');
+                    if (attr_val) {
+                    	current_attr_select.find('option[value="'+attr_val+'"]').removeAttr('disabled');
+                    } else {
+                    	current_attr_select.find('option').removeAttr('disabled');
+                    }
                 }
             }
         }
@@ -355,7 +359,12 @@ jQuery(document).ready(function($) {
 			if ($(this).val().length == 0) {
                 all_set = false;
             }
-            current_settings[$(this).attr('name')] = $(this).val();
+            // Get value
+            value = $(this).val();
+            value = value.replace('"', '&quot;');
+			
+			// Add to settings array
+			current_settings[$(this).attr('name')] = value;
 		});
         
         var matching_variations = find_matching_variations(current_settings);
@@ -364,6 +373,7 @@ jQuery(document).ready(function($) {
             var variation = matching_variations.pop();
             
             $('form input[name=variation_id]').val(variation.variation_id);
+            
             show_variation(variation);
         } else {
             update_variation_values(matching_variations);
@@ -538,20 +548,20 @@ jQuery(document).ready(function($) {
 					url: 		woocommerce_params.checkout_url,
 					data: 		$(form).serialize(),
 					success: 	function( code ) {
-									$('.woocommerce_error, .woocommerce_message').remove();
-									try {
-										success = $.parseJSON( code );					
-										window.location = decodeURI(success.redirect);
-									}
-									catch(err) {
-									  	$(form).prepend( code );
-										$(form).unblock(); 
-										
-										$('html, body').animate({
-										    scrollTop: ($('form.checkout').offset().top - 100)
-										}, 1000);
-									}
-								},
+						$('.woocommerce_error, .woocommerce_message').remove();
+							try {
+								success = $.parseJSON( code );					
+								window.location = decodeURI(success.redirect);
+							}
+							catch(err) {
+							  	$(form).prepend( code );
+								$(form).unblock(); 
+								
+								$('html, body').animate({
+								    scrollTop: ($('form.checkout').offset().top - 100)
+								}, 1000);
+							}
+						},
 					dataType: 	"html"
 				});
 				return false;
