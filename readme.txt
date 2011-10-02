@@ -3,9 +3,9 @@ Contributors: woothemes
 Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, store, shop, shopping, cart, checkout, widgets, reports, shipping, tax, paypal, inventory
 Requires at least: 3.1
 Tested up to: 3.2
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 
-An e-commerce toolkit that helps you sell anything. Beautifully. 
+An e-commerce toolkit that helps you sell anything. Beautifully.
 
 == Description ==
 
@@ -53,7 +53,26 @@ The manual installation involves downloading the plugin and uploading it to your
 
 == Changelog ==
 
-= 1.0.1 = 
+= 1.0.2 - 02/10/2011 =
+* Fix in woocommerce_templates for when a shop is the front-page
+* Added esc_html/esc_attribute in review-order.php
+* Tweaked localised strings in shortcode-thankyou.php
+* Filter added to get_downloadable_products so more advanced rules can be applied. 
+* Fixed required fields in edit shipping address
+* Fixed login link 'jump' on checkout
+* Added Turkish lira currency
+* Active menu state fix
+* Few minor typos/case changes
+* Tweaked install script so it only redirects after activation
+* Removing attributes fix
+* only style mails of WooCommerce - not all mails. This is to prevent conflicts with other plugins.
+* unique sku check only checks products
+* More security audit tweaks thanks to Mark Jaquith
+* cart totals update when adding cross-sells to cart
+* Removed the 'resave permalinks message' due to it being done automatically
+* Added support to exclude images from product page
+
+= 1.0.1 - 29/09/2011 = 
 * Fixed notices on product page
 * Variation formatting uses item_meta when showing order items
 * Javascript fixes in admin + correct enqueuing of scripts
@@ -61,5 +80,5 @@ The manual installation involves downloading the plugin and uploading it to your
 * Used dbDelta for installation of tables for better table upgrades/installs
 * Fix for reviews form when fancybox is turned off
 
-= 1.0 = 
+= 1.0 - 27/09/2011 = 
 * Initial Release. Woo!

@@ -89,15 +89,7 @@ $woocommerce_settings['general'] = apply_filters('woocommerce_general_settings',
 		'std' 		=> 'no',
 		'type' 		=> 'checkbox'
 	),
-	
-	array(  
-		'name' => __( 'Email template', 'woothemes' ),
-		'desc' 		=> __( 'Enable the WooCommerce email template for <strong>all</strong> WordPress emails.', 'woothemes' ),
-		'id' 		=> 'woocommerce_enable_sitewide_mail_template',
-		'std' 		=> 'yes',
-		'type' 		=> 'checkbox'
-	),
-	
+		
 	array(  
 		'name' => __( 'ShareThis Publisher ID', 'woothemes' ),
 		'desc' 		=> sprintf( __( 'Enter your %1$sShareThis publisher ID%2$s to show ShareThis on product pages.', 'woothemes' ), '<a href="http://sharethis.com/account/">', '</a>' ),
@@ -138,7 +130,7 @@ $woocommerce_settings['pages'] = apply_filters('woocommerce_page_settings', arra
 	
 	array(  
 		'name' => __( 'Shop Base Page', 'woothemes' ),
-		'desc' 		=> sprintf( __( 'This sets the base page of your shop. IMPORTANT: You must %1$sre-save your permalinks%2$s for this change to take effect.', 'woothemes' ), '<a target="_blank" href="options-permalink.php">', '</a>' ),
+		'desc' 		=> sprintf( __( 'This sets the base page of your shop.', 'woothemes' ), '<a target="_blank" href="options-permalink.php">', '</a>' ),
 		'id' 		=> 'woocommerce_shop_page_id',
 		'css' 		=> 'min-width:175px;',
 		'type' 		=> 'single_select_page',
@@ -353,7 +345,8 @@ $woocommerce_settings['catalog'] = apply_filters('woocommerce_catalog_settings',
 			'SEK' => __( 'Swedish Krona', 'woothemes' ),
 			'CHF' => __( 'Swiss Franc', 'woothemes' ),
 			'TWD' => __( 'Taiwan New Dollars', 'woothemes' ),
-			'THB' => __( 'Thai Baht', 'woothemes' ) 
+			'THB' => __( 'Thai Baht', 'woothemes' ), 
+			'TRY' => __( 'Turkish Lira (TL)', 'woothemes' )
 			)
 		)
 	),

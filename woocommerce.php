@@ -1,9 +1,9 @@
 <?php
 /*
 Plugin Name: WooCommerce
-Plugin URI: http://woocommerce.com
+Plugin URI: http://www.woothemes.com/woocommerce/
 Description: An eCommerce plugin for wordpress.
-Version: 1.0.1
+Version: 1.0.2
 Author: WooThemes
 Author URI: http://woothemes.com
 Requires at least: 3.1
@@ -21,7 +21,7 @@ load_plugin_textdomain('woothemes', false, dirname( plugin_basename( __FILE__ ) 
  * Constants
  **/
 if (!defined('WOOCOMMERCE_TEMPLATE_URL')) define('WOOCOMMERCE_TEMPLATE_URL', 'woocommerce/');
-if (!defined("WOOCOMMERCE_VERSION")) define("WOOCOMMERCE_VERSION", "1.0.1");	
+if (!defined("WOOCOMMERCE_VERSION")) define("WOOCOMMERCE_VERSION", "1.0.2");	
 if (!defined("PHP_EOL")) define("PHP_EOL", "\r\n");
 
 /**
@@ -33,7 +33,7 @@ if (is_admin()) :
 	/**
 	 * Installs and upgrades
 	 **/
-	register_activation_hook( __FILE__, 'install_woocommerce' );
+	register_activation_hook( __FILE__, 'activate_woocommerce' );
 	
 	if (get_site_option('woocommerce_db_version') != WOOCOMMERCE_VERSION) add_action('init', 'install_woocommerce', 0);
 	
@@ -329,6 +329,7 @@ function get_woocommerce_currency_symbol() {
 		case 'USD' : $currency_symbol = '&#36;'; break;
 		case 'EUR' : $currency_symbol = '&euro;'; break;
 		case 'JPY' : $currency_symbol = '&yen;'; break;
+		case 'TRY' : $currency_symbol = 'TL'; break;
 		
 		case 'CZK' :
 		case 'DKK' :
