@@ -322,8 +322,13 @@ function variable_product_write_panel_js() {
 
 		window.send_to_cproduct = function(html) {
 			
-			imgurl = jQuery('img', html).attr('src');
-			imgclass = jQuery('img', html).attr('class');
+			var img = jQuery(html).find('img');
+			
+			imgurl = jQuery(img).attr('src');
+			imgclass = jQuery(img).attr('class');
+			
+			alert(imgclass);
+			
 			imgid = parseInt(imgclass.replace(/\D/g, ''), 10);
 			
 			jQuery('.upload_image_id', current_field_wrapper).val(imgid);
@@ -634,21 +639,39 @@ function process_product_meta_variable( $post_id ) {
 	// Update parent if variable so price sorting works and stays in sync with the cheapest child
 	$post_parent = $post_id;
 	
-	$children_by_price = get_posts( array(
+	$children = get_posts( array(
 		'post_parent' 	=> $post_parent,
-		'orderby' 	=> 'meta_value_num',
-		'order'		=> 'asc',
-		'meta_key'	=> 'price',
-		'posts_per_page' => 1,
+		'posts_per_page'=> -1,
 		'post_type' 	=> 'product_variation',
 		'fields' 		=> 'ids'
 	));
-	if ($children_by_price) :
-		foreach ($children_by_price as $child) :
+	$lowest_price = '';
+	$highest_price = '';
+	if ($children) :
+		foreach ($children as $child) :
 			$child_price = get_post_meta($child, 'price', true);
-			update_post_meta( $post_parent, 'price', $child_price );
+			$child_sale_price = get_post_meta($child, 'sale_price', true);
+			
+			// Low price
+			if (!is_numeric($lowest_price) || $child_price<$lowest_price) $lowest_price = $child_price;
+			if (!empty($child_sale_price) && $child_sale_price<$lowest_price) $lowest_price = $child_sale_price;
+			
+			// High price
+			if (!empty($child_sale_price)) :
+				if ($child_sale_price>$highest_price) :
+					$highest_price = $child_sale_price;
+				endif;	
+			else :
+				if ($child_price>$highest_price) :
+					$highest_price = $child_price;
+				endif;
+			endif;
+			
 		endforeach;
 	endif;
+	update_post_meta( $post_parent, 'price', $lowest_price );
+	update_post_meta( $post_parent, 'min_variation_price', $lowest_price );
+	update_post_meta( $post_parent, 'max_variation_price', $highest_price );
 
 }
 add_action('woocommerce_process_product_meta_variable', 'process_product_meta_variable');

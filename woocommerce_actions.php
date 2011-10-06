@@ -33,7 +33,7 @@
 add_action('init', 'woocommerce_update_catalog_ordering');
 
 function woocommerce_update_catalog_ordering() {
-	if (isset($_POST['orderby']) && $_POST['orderby'] != '') $_SESSION['orderby'] = $_POST['orderby'];
+	if (isset($_POST['catalog_orderby']) && $_POST['catalog_orderby'] != '') $_SESSION['orderby'] = $_POST['catalog_orderby'];
 }
 
 /**
@@ -726,10 +726,10 @@ function woocommerce_download_product() {
 		$downloads_remaining = $wpdb->get_var( $wpdb->prepare("
 			SELECT downloads_remaining 
 			FROM ".$wpdb->prefix."woocommerce_downloadable_product_permissions
-			WHERE user_email = '$email'
-			AND order_key = '$order'
-			AND product_id = '$download_file'
-		;") );
+			WHERE user_email = %s
+			AND order_key = %s
+			AND product_id = %s
+		;", $email, $order, $download_file ) );
 		
 		if ($downloads_remaining=='0') :
 			wp_die( sprintf(__('Sorry, you have reached your download limit for this file. <a href="%s">Go to homepage &rarr;</a>', 'woothemes'), home_url()) );
@@ -780,7 +780,9 @@ function woocommerce_download_product() {
             @ini_set('zlib.output_compression', 'Off');
 			@set_time_limit(0);
 			@set_magic_quotes_runtime(0);
+			
 			@ob_end_clean();
+			if (ob_get_level()) @ob_end_clean(); // Zip corruption fix
 			
 			header("Pragma: no-cache");
 			header("Expires: 0");
@@ -800,7 +802,7 @@ function woocommerce_download_product() {
 			header("Content-Transfer-Encoding: binary");
 							
             if ($size = @filesize($file_path)) header("Content-Length: ".$size);
-            
+
             // Serve it
             if ($remote_file) :
             	

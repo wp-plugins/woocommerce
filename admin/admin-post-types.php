@@ -37,7 +37,7 @@ function woocommerce_edit_coupon_columns($columns){
 add_action('manage_shop_coupon_posts_custom_column', 'woocommerce_custom_coupon_columns', 2);
 
 function woocommerce_custom_coupon_columns($column) {
-	global $post;
+	global $post, $woocommerce;
 	
 	$type 			= get_post_meta($post->ID, 'discount_type', true);
 	$amount 		= get_post_meta($post->ID, 'coupon_amount', true);
@@ -49,7 +49,7 @@ function woocommerce_custom_coupon_columns($column) {
 
 	switch ($column) {
 		case "type" :
-			echo $type;
+			echo $woocommerce->get_coupon_discount_type($type);			
 		break;
 		case "amount" :
 			echo $amount;
@@ -343,11 +343,11 @@ add_filter('attachment_fields_to_save', 'woocommerce_exclude_image_from_product_
 
 function woocommerce_exclude_image_from_product_page_field( $fields, $object ) {
 	
-	if (!$object->post_parent) return;
+	if (!$object->post_parent) return $fields;
 	
 	$parent = get_post( $object->post_parent );
 	
-	if ($parent->post_type!=='product') return;
+	if ($parent->post_type!=='product') return $fields;
 	
 	$exclude_image = (int) get_post_meta($object->ID, '_woocommerce_exclude_image', true);
 	

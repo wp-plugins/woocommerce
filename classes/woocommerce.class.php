@@ -200,12 +200,38 @@ class woocommerce {
 		function attribute_label( $name ) { 
 			global $wpdb;
 			
-			$name = $wpdb->prepare(str_replace('pa_', '', sanitize_title($name)));
+			$name = str_replace( 'pa_', '', sanitize_title( $name ) );
 	
-			$label = $wpdb->get_var("SELECT attribute_label FROM ".$wpdb->prefix."woocommerce_attribute_taxonomies WHERE attribute_name = '$name';");
+			$label = $wpdb->get_var( $wpdb->prepare( "SELECT attribute_label FROM ".$wpdb->prefix."woocommerce_attribute_taxonomies WHERE attribute_name = %s;", $name ) );
 	
 			if ($label) return $label; else return ucfirst($name);
 		}
+		
+    /*-----------------------------------------------------------------------------------*/
+	/* Coupons */
+	/*-----------------------------------------------------------------------------------*/ 
+		
+		/**
+		 * Get coupon types
+		 */
+		function get_coupon_discount_types() { 
+			if (!isset($this->coupon_discount_types)) :
+				$this->coupon_discount_types = apply_filters('woocommerce_coupon_discount_types', array(
+	    			'fixed_cart' 	=> __('Cart Discount', 'woothemes'),
+	    			'percent' 		=> __('Cart % Discount', 'woothemes'),
+	    			'fixed_product'	=> __('Product Discount', 'woothemes')
+	    		));
+    		endif;
+    		return $this->coupon_discount_types;
+    	}
+    	
+    	/**
+		 * Get a coupon type's name
+		 */
+		function get_coupon_discount_type( $type = '' ) { 
+			$types = (array) $this->get_coupon_discount_types();
+			if (isset($types[$type])) return $types[$type];
+    	}
 	
     /*-----------------------------------------------------------------------------------*/
 	/* Nonce Field Helpers */

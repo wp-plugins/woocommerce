@@ -430,6 +430,9 @@ class woocommerce_cart {
 			$this->shipping_tax_total = 0;
 			$this->tax_total = 0;
 		endif;
+		
+		// Allow plugins to hook and alter totals before final total is calculated
+		do_action('woocommerce_calculate_totals', $this);
 				
 		// Total
 		if (get_option('woocommerce_prices_include_tax')=='yes') :
@@ -565,13 +568,13 @@ class woocommerce_cart {
 			endif;
 			
 			// If its individual use then remove other coupons
-			if ($the_coupon->individual_use==1) :
+			if ($the_coupon->individual_use=='yes') :
 				$this->applied_coupons = array();
 			endif;
 			
 			foreach ($this->applied_coupons as $code) :
 				$coupon = &new woocommerce_coupon($code);
-				if ($coupon->individual_use==1) :
+				if ($coupon->individual_use=='yes') :
 					$this->applied_coupons = array();
 				endif;
 			endforeach;

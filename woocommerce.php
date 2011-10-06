@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce
 Plugin URI: http://www.woothemes.com/woocommerce/
 Description: An eCommerce plugin for wordpress.
-Version: 1.0.2
+Version: 1.0.3
 Author: WooThemes
 Author URI: http://woothemes.com
 Requires at least: 3.1
@@ -21,7 +21,7 @@ load_plugin_textdomain('woothemes', false, dirname( plugin_basename( __FILE__ ) 
  * Constants
  **/
 if (!defined('WOOCOMMERCE_TEMPLATE_URL')) define('WOOCOMMERCE_TEMPLATE_URL', 'woocommerce/');
-if (!defined("WOOCOMMERCE_VERSION")) define("WOOCOMMERCE_VERSION", "1.0.2");	
+if (!defined("WOOCOMMERCE_VERSION")) define("WOOCOMMERCE_VERSION", "1.0.3");	
 if (!defined("PHP_EOL")) define("PHP_EOL", "\r\n");
 
 /**
@@ -234,31 +234,45 @@ function is_woocommerce() {
 	// Returns true if on a page which uses WooCommerce templates (cart and checkout are standard pages with shortcodes and thus are not included)
 	if (is_shop() || is_product_category() || is_product_tag() || is_product()) return true; else return false;
 }
-function is_shop() {
-	if (is_post_type_archive( 'product' ) || is_page(get_option('woocommerce_shop_page_id'))) return true; else return false;
+if (!function_exists('is_shop')) {
+	function is_shop() {
+		if (is_post_type_archive( 'product' ) || is_page(get_option('woocommerce_shop_page_id'))) return true; else return false;
+	}
 }
-function is_product_category() {
-	return is_tax( 'product_cat' );
+if (!function_exists('is_product_category')) {
+	function is_product_category() {
+		return is_tax( 'product_cat' );
+	}
 }
-function is_product_tag() {
-	return is_tax( 'product_tag' );
+if (!function_exists('is_product_tag')) {
+	function is_product_tag() {
+		return is_tax( 'product_tag' );
+	}
 }
-function is_product() {
-	return is_singular( array('product') );
+if (!function_exists('is_product')) {
+	function is_product() {
+		return is_singular( array('product') );
+	}
 }
-function is_cart() {
-	return is_page(get_option('woocommerce_cart_page_id'));
+if (!function_exists('is_cart')) {
+	function is_cart() {
+		return is_page(get_option('woocommerce_cart_page_id'));
+	}
 }
-function is_checkout() {
-	return is_page(get_option('woocommerce_checkout_page_id'));
+if (!function_exists('is_checkout')) {
+	function is_checkout() {
+		return is_page(get_option('woocommerce_checkout_page_id'));
+	}
 }
-function is_account_page() {
-	if ( is_page(get_option('woocommerce_myaccount_page_id')) || is_page(get_option('woocommerce_edit_address_page_id')) || is_page(get_option('woocommerce_view_order_page_id')) || is_page(get_option('woocommerce_change_password_page_id')) ) return true; else return false;
-	return is_page(get_option('woocommerce_myaccount_page_id'));
-}
-if (!function_exists('is_ajax')) {
-	function is_ajax() {
-		if ( isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest' ) return true; else return false;
+if (!function_exists('is_account_page')) {
+	function is_account_page() {
+		if ( is_page(get_option('woocommerce_myaccount_page_id')) || is_page(get_option('woocommerce_edit_address_page_id')) || is_page(get_option('woocommerce_view_order_page_id')) || is_page(get_option('woocommerce_change_password_page_id')) ) return true; else return false;
+		return is_page(get_option('woocommerce_myaccount_page_id'));
+	}
+	if (!function_exists('is_ajax')) {
+		function is_ajax() {
+			if ( isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest' ) return true; else return false;
+		}
 	}
 }
 
@@ -530,27 +544,27 @@ if (!is_admin()) add_filter('comments_clauses', 'woocommerce_exclude_order_comme
 if ( ! function_exists('readfile_chunked')) {
     function readfile_chunked($file, $retbytes=TRUE) {
     
-       $chunksize = 1 * (1024 * 1024);
-       $buffer = '';
-       $cnt = 0;
-
-       $handle = fopen($file, 'r');
-       if ($handle === FALSE) return FALSE;
-
-       while (!feof($handle)) :
-           $buffer = fread($handle, $chunksize);
-           echo $buffer;
-           ob_flush();
-           flush();
-
-           if ($retbytes) $cnt += strlen($buffer);
-       endwhile;
-
-       $status = fclose($handle);
-
-       if ($retbytes AND $status) return $cnt;
-
-       return $status;
+		$chunksize = 1 * (1024 * 1024);
+		$buffer = '';
+		$cnt = 0;
+		
+		$handle = fopen($file, 'r');
+		if ($handle === FALSE) return FALSE;
+				
+		while (!feof($handle)) :
+		   $buffer = fread($handle, $chunksize);
+		   echo $buffer;
+		   ob_flush();
+		   flush();
+		
+		   if ($retbytes) $cnt += strlen($buffer);
+		endwhile;
+		
+		$status = fclose($handle);
+		
+		if ($retbytes AND $status) return $cnt;
+		
+		return $status;
     }
 }
 

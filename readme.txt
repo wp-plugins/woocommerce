@@ -3,9 +3,9 @@ Contributors: woothemes
 Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, store, shop, shopping, cart, checkout, widgets, reports, shipping, tax, paypal, inventory
 Requires at least: 3.1
 Tested up to: 3.2
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 
-An e-commerce toolkit that helps you sell anything. Beautifully. 
+An e-commerce toolkit that helps you sell anything. Beautifully.
 
 == Description ==
 
@@ -51,7 +51,33 @@ The manual installation involves downloading the plugin and uploading it to your
 2. Using an FTP program, or your hosting control panel, upload the unzipped plugin folder to your WordPress installation’s wp-content/plugins/ directory.
 3. Activate the plugin from the Plugins menu within the WordPress admin.
 
+== FAQ ==
+
+For further documentation on using WooCommerce, please sign up for free at http://www.woothemes.com/. This will provide access to extensive WooCommerce Codex, documentation and tips.
+
 == Changelog ==
+
+= 1.0.3 - 06/10/2011 =
+* Several minor fixes/tweaks
+* Conditionals check for existing function names
+* Made image size settings clearer
+* Cleaned up coupon code settings/write panel and added a few more hooks
+* Fixed 'product ids' setting in coupons
+* Fixed notices on shop pages due to WP_QUERY
+* Cleaned up discount types and made some helper functions for getting them
+* woocommerce_coupon_is_valid hook
+* Fixed order tracking completed time
+* Sale price affects variable product 'from:' price
+* Variation options (frontend) no longer lose your selections when changing an option
+* Gallery image field fix
+* Image 'insert into' fix
+* variable products store min and max variation price, so if they match the 'from' text is not displayed
+* Email items list fix
+* Reports chart fix
+* Fixed category ordering in widgets
+* Labels to taxonomies updated
+* Query tweak to fix tags/cats
+* Order tracking localisation
 
 = 1.0.2 - 02/10/2011 =
 * Fix in woocommerce_templates for when a shop is the front-page

@@ -26,11 +26,22 @@ class woocommerce_query {
 	 * Query the products, applying sorting/ordering etc. This applies to the main wordpress loop
 	 */
 	function parse_query( $q ) {
-		
+
 		if (is_admin()) return;
-		    
+		      
 		// Only apply to product categories, the product post archive, the shop page, and product tags
-	    if ( ( isset( $q->query_vars['suppress_filters'] ) && true == $q->query_vars['suppress_filters'] ) || (!$q->is_tax( 'product_cat' ) && !$q->is_post_type_archive( 'product' ) && !$q->is_page( get_option('woocommerce_shop_page_id') ) && !$q->is_tax( 'product_tag' ))) return;
+	    if 	( 
+	    		(
+	    			isset( $q->query_vars['suppress_filters'] ) 
+	    			&& true == $q->query_vars['suppress_filters']
+	    		) || (
+	    			!$q->is_tax( 'product_cat' ) 
+	    			&& !$q->is_tax( 'product_tag' ) 
+	    			&& !$q->is_post_type_archive( 'product' ) 
+	    			// this rule should be covered by the above && !$q->is_page(get_option('woocommerce_shop_page_id')) 
+	    		)
+	    	) 
+	    return;
 		
 		// Meta query
 		$meta_query = (array) $q->get( 'meta_query' );
@@ -49,7 +60,7 @@ class woocommerce_query {
 		if (isset($ordering['meta_key'])) $q->set( 'meta_key', $ordering['meta_key'] );
 	
 		// Query vars that affect posts shown
-		$q->set( 'post_type', 'product' );
+		if (!$q->is_tax( 'product_cat' ) && !$q->is_tax( 'product_tag' )) $q->set( 'post_type', 'product' );
 		$q->set( 'meta_query', $meta_query );
 	    $q->set( 'post__in', $post__in );
 	    $q->set( 'posts_per_page', apply_filters('loop_shop_per_page', get_option('posts_per_page')) );
