@@ -117,7 +117,7 @@ function woocommerce_edit_attribute() {
 							<div class="form-field">
 								<label for="attribute_label"><?php _e('Attribute Label', 'woothemes'); ?></label>
 								<input name="attribute_label" id="attribute_label" type="text" value="<?php echo esc_attr( $att_label ); ?>" />
-								<p class="description"><?php _e('Label for the attribute (shown on the front-end).', 'woocommerce'); ?></p>
+								<p class="description"><?php _e('Label for the attribute (shown on the front-end).', 'woothemes'); ?></p>
 							</div>
 							<div class="form-field">
 								<label for="attribute_type"><?php _e('Attribute type', 'woothemes'); ?></label>
@@ -160,7 +160,7 @@ function woocommerce_add_attribute() {
 				                <th scope="col"><?php _e('Name', 'woothemes') ?></th>
 				                <th scope="col"><?php _e('Label', 'woothemes') ?></th>
 				                <th scope="col"><?php _e('Type', 'woothemes') ?></th>
-				                <th scope="col"><?php _e('Terms', 'woothemes') ?></th>
+				                <th scope="col" colspan="2"><?php _e('Terms', 'woothemes') ?></th>
 				            </tr>
 				        </thead>
 				        <tbody>
@@ -194,10 +194,11 @@ function woocommerce_add_attribute() {
 													echo '<span class="na">&ndash;</span>';
 												endif;
 				        					?></td>
+				        					<td><a href="edit-tags.php?taxonomy=<?php echo $woocommerce->attribute_taxonomy_name($tax->attribute_name); ?>&amp;post_type=product" class="button alignright"><?php _e('Configure&nbsp;terms', 'woothemes'); ?></a></td>
 				        				</tr><?php
 				        			endforeach;
 				        		else :
-				        			?><tr><td colspan="4"><?php _e('No attributes currently exist.', 'woothemes') ?></td></tr><?php
+				        			?><tr><td colspan="5"><?php _e('No attributes currently exist.', 'woothemes') ?></td></tr><?php
 				        		endif;
 				        	?>
 				        </tbody>
@@ -213,12 +214,12 @@ function woocommerce_add_attribute() {
 							<div class="form-field">
 								<label for="attribute_name"><?php _e('Attribute Name', 'woothemes'); ?></label>
 								<input name="attribute_name" id="attribute_name" type="text" value="" maxlength="29" />
-								<p class="description"><?php _e('Unique name/reference for the attribute; must be shorter than 28 characters.', 'woocommerce'); ?></p>
+								<p class="description"><?php _e('Unique name/reference for the attribute; must be shorter than 28 characters.', 'woothemes'); ?></p>
 							</div>
 							<div class="form-field">
 								<label for="attribute_label"><?php _e('Attribute Label', 'woothemes'); ?></label>
 								<input name="attribute_label" id="attribute_label" type="text" value="" />
-								<p class="description"><?php _e('Label for the attribute (shown on the front-end).', 'woocommerce'); ?></p>
+								<p class="description"><?php _e('Label for the attribute (shown on the front-end).', 'woothemes'); ?></p>
 							</div>
 							<div class="form-field">
 								<label for="attribute_type"><?php _e('Attribute type', 'woothemes'); ?></label>
@@ -226,7 +227,7 @@ function woocommerce_add_attribute() {
 									<option value="select"><?php _e('Select', 'woothemes') ?></option>
 									<option value="text"><?php _e('Text', 'woothemes') ?></option>										
 								</select>
-								<p class="description"><?php _e('Determines how you select attributes for products. <strong>Text</strong> allows manual entry via the product page, whereas <strong>select</strong> attribute terms can be defined from this section. If you plan on using an attribute for variations use <strong>select</strong>.', 'woocommerce'); ?></p>
+								<p class="description"><?php _e('Determines how you select attributes for products. <strong>Text</strong> allows manual entry via the product page, whereas <strong>select</strong> attribute terms can be defined from this section. If you plan on using an attribute for variations use <strong>select</strong>.', 'woothemes'); ?></p>
 							</div>
 							
 							<p class="submit"><input type="submit" name="add_new_attribute" id="submit" class="button" value="<?php _e('Add Attribute', 'woothemes'); ?>"></p>

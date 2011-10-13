@@ -2,10 +2,10 @@
 Contributors: woothemes
 Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, store, shop, shopping, cart, checkout, widgets, reports, shipping, tax, paypal, inventory
 Requires at least: 3.1
-Tested up to: 3.2
-Stable tag: 1.0.3
+Tested up to: 3.3
+Stable tag: 1.1
 
-An e-commerce toolkit that helps you sell anything. Beautifully. 
+An e-commerce toolkit that helps you sell anything. Beautifully.
 
 == Description ==
 
@@ -56,6 +56,31 @@ The manual installation involves downloading the plugin and uploading it to your
 For further documentation on using WooCommerce, please sign up for free at http://www.woothemes.com/. This will provide access to extensive WooCommerce Codex, documentation and tips.
 
 == Changelog ==
+
+= 1.1 - 12/10/2011 =
+* Tested and working with WordPress 3.3 beta-1
+* Added a hook for payment complete order status
+* Added woocommerce term meta api
+* Added ability to upload category thumbnails
+* Added option to show sub-categories when browing categories/the shop page
+* Zero tax rate fix
+* Filters for tax rates
+* Fixes to find rate function
+* Product dimension fields
+* Fixed archives being displayed by woocommerce_show_product_images
+* Added 'configure terms' button to attributes page to make it clearer
+* Fix for variations when an attribute has been removed
+* Fixed some localisation strings
+* Hard crop option for images (use regenerate thumbnails after toggling to redo all images)
+* Password field type for gateways API
+* Front page shop improvements/correct title tags
+* Added option for controlling product permalinks
+* Shop page title option
+* Load admin css only where needed
+* Admin JS cleanup
+* Removed error message when clicking buttons to view variations/grouped
+* Drag and drop term ordering (so variation options can be sorted)
+* Pay page after invoicing fix
 
 = 1.0.3 - 06/10/2011 =
 * Several minor fixes/tweaks

@@ -5,7 +5,6 @@
  * Actions/functions/hooks for WooCommerce related events.
  *
  *		- Update catalog ordering if posted
- *		- Add a table to $wpdb to benefit from the WordPress Metadata API
  *		- AJAX update shipping method on cart page
  *		- AJAX update order review on checkout
  *		- AJAX add to cart
@@ -35,25 +34,6 @@ add_action('init', 'woocommerce_update_catalog_ordering');
 function woocommerce_update_catalog_ordering() {
 	if (isset($_POST['catalog_orderby']) && $_POST['catalog_orderby'] != '') $_SESSION['orderby'] = $_POST['catalog_orderby'];
 }
-
-/**
- * woocommerce_taxonomy_metadata_wpdbfix()
- *
- * Add a table to $wpdb to benefit from the WordPress Metadata API
- *
- * @since 1.0.0
- * @uses $wpdb global
- */
-add_action( 'init', 'woocommerce_taxonomy_metadata_wpdbfix', 0 );
-add_action( 'switch_blog', 'woocommerce_taxonomy_metadata_wpdbfix', 0 );
-
-function woocommerce_taxonomy_metadata_wpdbfix() {
-	global $wpdb;
-	
-	$variable_name = 'woocommerce_termmeta';
-	$wpdb->$variable_name = $wpdb->prefix . $variable_name;	
-	$wpdb->tables[] = $variable_name;
-} // End woocommerce_taxonomy_metadata_wpdbfix()
 
 /**
  * AJAX update shipping method on cart page
@@ -235,7 +215,7 @@ function woocommerce_add_order_item() {
 		<td class="center">
 			<input type="hidden" name="item_id[<?php echo $index; ?>]" value="<?php echo esc_attr( $_product->id ); ?>" />
 			<input type="hidden" name="item_name[<?php echo $index; ?>]" value="<?php echo esc_attr( $_product->get_title() ); ?>" />
-			<input type="hidden" name="item_variation[<?php echo $loop; ?>]" value="<?php if (isset($_product->variation_id)) echo $_product->variation_id; ?>" />
+			<input type="hidden" name="item_variation[<?php echo $index; ?>]" value="<?php if (isset($_product->variation_id)) echo $_product->variation_id; ?>" />
 			<button type="button" class="remove_row button">&times;</button>
 		</td>
 	</tr>
@@ -347,7 +327,7 @@ function woocommerce_upsell_crosssell_search_products() {
 						
 	endforeach; else : 
 	
-		?><li><?php _e('No products found', 'woocommerce'); ?></li><?php 
+		?><li><?php _e('No products found', 'woothemes'); ?></li><?php 
 		
 	endif; 
 	

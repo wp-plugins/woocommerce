@@ -247,6 +247,8 @@ class woocommerce_checkout {
 			'label' => __('Order Notes', 'woothemes'), 
 			'placeholder' => __('Notes about your order, e.g. special notes for delivery.', 'woothemes') 
 			));
+		
+		do_action('woocommerce_after_order_notes', $this);
 	}
 
 	/**
@@ -630,7 +632,7 @@ class woocommerce_checkout {
 						// Calc item tax to store
 						$rate = '';
 						if ( $_product->is_taxable()) :
-							$rate = $_tax->get_rate( $_product->tax_class );
+							$rate = $_tax->get_rate( $_product->get_tax_class() );
 						endif;
 						
 						// Store any item meta data
@@ -698,7 +700,7 @@ class woocommerce_checkout {
 							do_action('woocommerce_new_order', $order_id);
 						endif;
 					endif;
-					
+
 					// Get better formatted shipping method (title/label)
 					$shipping_method = $this->posted['shipping_method'];
 					if (isset($available_methods) && isset($available_methods[$this->posted['shipping_method']])) :
@@ -746,8 +748,12 @@ class woocommerce_checkout {
 					// Discount code meta
 					if ($woocommerce->cart->applied_coupons) update_post_meta($order_id, 'coupons', implode(', ', $woocommerce->cart->applied_coupons));
 					
+					// Order is saved
+					do_action('woocommerce_checkout_order_processed', $order_id, $this->posted);
+					
+					// Process payment
 					$order = &new woocommerce_order($order_id);
-
+					
 					if ($woocommerce->cart->needs_payment()) :
 						
 						// Store Order ID in session so it can be re-used after payment failure

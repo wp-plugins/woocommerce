@@ -3,11 +3,11 @@
 Plugin Name: WooCommerce
 Plugin URI: http://www.woothemes.com/woocommerce/
 Description: An eCommerce plugin for wordpress.
-Version: 1.0.3
+Version: 1.1
 Author: WooThemes
 Author URI: http://woothemes.com
 Requires at least: 3.1
-Tested up to: 3.2
+Tested up to: 3.3
 */
 
 if (!session_id()) session_start();
@@ -15,13 +15,13 @@ if (!session_id()) session_start();
 /**
  * Localisation
  **/
-load_plugin_textdomain('woothemes', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/');
+load_plugin_textdomain('woothemes', false, dirname( plugin_basename( __FILE__ ) ) . '/languages');
 
 /**
  * Constants
- **/
+ **/ 
 if (!defined('WOOCOMMERCE_TEMPLATE_URL')) define('WOOCOMMERCE_TEMPLATE_URL', 'woocommerce/');
-if (!defined("WOOCOMMERCE_VERSION")) define("WOOCOMMERCE_VERSION", "1.0.3");	
+if (!defined("WOOCOMMERCE_VERSION")) define("WOOCOMMERCE_VERSION", "1.1");	
 if (!defined("PHP_EOL")) define("PHP_EOL", "\r\n");
 
 /**
@@ -100,19 +100,21 @@ function woocommerce_init() {
 	woocommerce_post_type();
 
 	// Image sizes
-	add_image_size( 'shop_thumbnail', $woocommerce->get_image_size('shop_thumbnail_image_width'), $woocommerce->get_image_size('shop_thumbnail_image_height'), 'true' );
-	add_image_size( 'shop_catalog', $woocommerce->get_image_size('shop_catalog_image_width'), $woocommerce->get_image_size('shop_catalog_image_height'), 'true' );
-	add_image_size( 'shop_single', $woocommerce->get_image_size('shop_single_image_width'), $woocommerce->get_image_size('shop_single_image_height'), 'true' );
+	$shop_thumbnail_crop 	= (get_option('shop_thumbnail_image_crop')==1) ? true : false;
+	$shop_catalog_crop 		= (get_option('shop_catalog_image_crop')==1) ? true : false;
+	$shop_single_crop 		= (get_option('shop_single_image_crop')==1) ? true : false;
+
+	add_image_size( 'shop_thumbnail', $woocommerce->get_image_size('shop_thumbnail_image_width'), $woocommerce->get_image_size('shop_thumbnail_image_height'), $shop_thumbnail_crop );
+	add_image_size( 'shop_catalog', $woocommerce->get_image_size('shop_catalog_image_width'), $woocommerce->get_image_size('shop_catalog_image_height'), $shop_catalog_crop );
+	add_image_size( 'shop_single', $woocommerce->get_image_size('shop_single_image_width'), $woocommerce->get_image_size('shop_single_image_height'), $shop_single_crop );
 
 	// Include template functions here so they are pluggable by themes
 	include_once( 'woocommerce_template_functions.php' );
 	
 	$suffix = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ? '' : '.min';
 	
-    if (is_admin()) :
-    	wp_enqueue_style( 'woocommerce_admin_styles', $woocommerce->plugin_url() . '/assets/css/admin.css' );
-    	wp_enqueue_style( 'jquery-ui-style', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/themes/smoothness/jquery-ui.css' );
-    else :
+    if (!is_admin()) :
+
     	// Optional front end css	
 		if ((defined('WOOCOMMERCE_USE_CSS') && WOOCOMMERCE_USE_CSS) || (!defined('WOOCOMMERCE_USE_CSS') && get_option('woocommerce_frontend_css')=='yes')) :
 			$css = file_exists(get_stylesheet_directory() . '/woocommerce/style.css') ? get_stylesheet_directory_uri() . '/woocommerce/style.css' : $woocommerce->plugin_url() . '/assets/css/woocommerce.css';

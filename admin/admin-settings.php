@@ -125,14 +125,16 @@ $woocommerce_settings['general'] = apply_filters('woocommerce_general_settings',
 
 )); // End general settings
 
-
+$shop_page_id = get_option('woocommerce_shop_page_id');
+$base_slug = ($shop_page_id > 0 && get_page( $shop_page_id )) ? get_page_uri( $shop_page_id ) : 'shop';	
+	
 $woocommerce_settings['pages'] = apply_filters('woocommerce_page_settings', array(
 
 	array( 'name' => __( 'Page Setup', 'woothemes' ), 'type' => 'title', 'desc' => '', 'id' => 'page_options' ),
 	
 	array(  
 		'name' => __( 'Shop Base Page', 'woothemes' ),
-		'desc' 		=> sprintf( __( 'This sets the base page of your shop.', 'woothemes' ), '<a target="_blank" href="options-permalink.php">', '</a>' ),
+		'desc' 		=> sprintf( __( 'This sets the base page of your shop. Leave blank to use page title.', 'woothemes' ), '<a target="_blank" href="options-permalink.php">', '</a>' ),
 		'id' 		=> 'woocommerce_shop_page_id',
 		'css' 		=> 'min-width:175px;',
 		'type' 		=> 'single_select_page',
@@ -140,11 +142,11 @@ $woocommerce_settings['pages'] = apply_filters('woocommerce_page_settings', arra
 	),
 	
 	array(  
-		'name' => __( 'Prepend base page', 'woothemes' ),
-		'desc' 		=> __( 'Prepend shop categories/tags with shop base page', 'woothemes' ),
-		'id' 		=> 'woocommerce_prepend_shop_page_to_urls',
-		'std' 		=> 'no',
-		'type' 		=> 'checkbox',
+		'name' => __( 'Base Page Title', 'woothemes' ),
+		'desc' 		=> __( 'This title to show on the shop base page.', 'woothemes' ),
+		'id' 		=> 'woocommerce_shop_page_title',
+		'type' 		=> 'text',
+		'std' 		=> __('All Products', 'woothemes')
 	),
 
 	array(  
@@ -158,7 +160,37 @@ $woocommerce_settings['pages'] = apply_filters('woocommerce_page_settings', arra
 		'args'		=> 'show_option_none=' . __('None', 'woothemes'),
 	),
 	
-	array( 'type' => 'sectionend' ),
+	array( 'type' => 'sectionend', 'id' => 'page_options' ),
+	
+	array( 'name' => __( 'Permalinks', 'woothemes' ), 'type' => 'title', 'desc' => '', 'id' => 'permalink_options' ),
+	
+	array(  
+		'name' => __( 'Taxonomy base page', 'woothemes' ),
+		'desc' 		=> sprintf(__( 'Prepend shop categories/tags with shop base page (<code>%s</code>)', 'woothemes' ), $base_slug),
+		'id' 		=> 'woocommerce_prepend_shop_page_to_urls',
+		'std' 		=> 'no',
+		'type' 		=> 'checkbox',
+	),
+	
+	array(  
+		'name' => __( 'Product base page', 'woothemes' ),
+		'desc' 		=> sprintf(__( 'Prepend product permalinks with shop base page (<code>%s</code>)', 'woothemes' ), $base_slug),
+		'id' 		=> 'woocommerce_prepend_shop_page_to_products',
+		'std' 		=> 'yes',
+		'type' 		=> 'checkbox',
+		'checkboxgroup'		=> 'start'
+	),
+	
+	array(  
+		'name' => __( 'Product base category', 'woothemes' ),
+		'desc' 		=> __( 'Prepend product permalinks with product category', 'woothemes' ),
+		'id' 		=> 'woocommerce_prepend_category_to_products',
+		'std' 		=> 'no',
+		'type' 		=> 'checkbox',
+		'checkboxgroup'		=> 'end'
+	),
+	
+	array( 'type' => 'sectionend', 'id' => 'permalink_options' ),
 	
 	array( 'name' => __( 'Shop Pages', 'woothemes' ), 'type' => 'title', 'desc' => __( 'The following pages need selecting so that WooCommerce knows which are which. These pages should have been created upon installation of the plugin.', 'woothemes' ) ),
 	
@@ -244,6 +276,23 @@ $woocommerce_settings['catalog'] = apply_filters('woocommerce_catalog_settings',
 	array(	'name' => __( 'Catalog Options', 'woothemes' ), 'type' => 'title','desc' => '', 'id' => 'catalog_options' ),
 
 	array(  
+		'name' => __( 'Sub-categories', 'woothemes' ),
+		'desc' 		=> __( 'Show sub-categories on category pages', 'woothemes' ),
+		'id' 		=> 'woocommerce_show_subcategories',
+		'std' 		=> 'no',
+		'type' 		=> 'checkbox',
+		'checkboxgroup'		=> 'start'
+	),
+	
+	array(  
+		'desc' 		=> __( 'Show sub-categories on the shop page', 'woothemes' ),
+		'id' 		=> 'woocommerce_shop_show_subcategories',
+		'std' 		=> 'no',
+		'type' 		=> 'checkbox',
+		'checkboxgroup'		=> 'end'
+	),
+	
+	array(  
 		'name' => __( 'Product fields', 'woothemes' ),
 		'desc' 		=> __( 'Enable the SKU field for products', 'woothemes' ),
 		'id' 		=> 'woocommerce_enable_sku',
@@ -255,6 +304,14 @@ $woocommerce_settings['catalog'] = apply_filters('woocommerce_catalog_settings',
 	array(  
 		'desc' 		=> __( 'Enable the weight field for products', 'woothemes' ),
 		'id' 		=> 'woocommerce_enable_weight',
+		'std' 		=> 'yes',
+		'type' 		=> 'checkbox',
+		'checkboxgroup'		=> ''
+	),
+
+	array(  
+		'desc' 		=> __( 'Enable the dimension fields for products', 'woothemes' ),
+		'id' 		=> 'woocommerce_enable_dimensions',
 		'std' 		=> 'yes',
 		'type' 		=> 'checkbox',
 		'checkboxgroup'		=> 'end'
@@ -270,6 +327,19 @@ $woocommerce_settings['catalog'] = apply_filters('woocommerce_catalog_settings',
 		'options' => array( 
 			'kg' => __( 'kg', 'woothemes' ),
 			'lbs' => __( 'lbs', 'woothemes' )
+		)
+	),
+
+	array(  
+		'name' => __( 'Dimensions Unit', 'woothemes' ),
+		'desc' 		=> __( 'This controls what unit you will define lengths in.', 'woothemes' ),
+		'id' 		=> 'woocommerce_dimension_unit',
+		'css' 		=> 'min-width:175px;',
+		'std' 		=> 'GBP',
+		'type' 		=> 'select',
+		'options' => array( 
+			'cm' => __( 'cm', 'woothemes' ),
+			'in' => __( 'in', 'woothemes' )
 		)
 	),
 	

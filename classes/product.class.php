@@ -26,6 +26,9 @@ class woocommerce_product {
 	var $sale_price;
 	var $regular_price;
 	var $weight;
+	var $length;
+	var $width;
+	var $height;
 	var $tax_status;
 	var $tax_class;
 	var $upsell_ids;
@@ -60,6 +63,9 @@ class woocommerce_product {
 			'sale_price'	=> '',
 			'regular_price' => '',
 			'weight'		=> '',
+			'length'		=> '',
+			'width'		=> '',
+			'height'		=> '',
 			'tax_status'	=> 'taxable',
 			'tax_class'		=> '',
 			'upsell_ids'	=> array(),
@@ -429,7 +435,7 @@ class woocommerce_product {
 		return $this->price;
 	}
 	
-	/** Returns the price (excluding tax) */
+	/** Returns the price (excluding tax) - ignores tax_class filters since the price may *include* tax and thus needs subtracting */
 	function get_price_excluding_tax() {
 		
 		$price = $this->price;
@@ -461,13 +467,18 @@ class woocommerce_product {
 		return $price;
 	}
 	
+	/** Returns the tax class */
+	function get_tax_class() {
+		return apply_filters('woocommerce_product_tax_class', $this->tax_class, $this);
+	}
+	
 	/** Returns the base tax rate */
 	function get_tax_base_rate() {
 		
 		if ( $this->is_taxable() && get_option('woocommerce_calc_taxes')=='yes') :
 			
 			$_tax = &new woocommerce_tax();
-			$rate = $_tax->get_shop_base_rate( $this->tax_class );
+			$rate = $_tax->get_shop_base_rate( $this->tax_class ); // Get tax class directly - ignore filters
 			
 			return $rate;
 			
@@ -751,7 +762,7 @@ class woocommerce_product {
                 
                 $values = $options;
             }
-              
+            
             $available_attributes[$attribute['name']] = array_unique($values);
         }
 

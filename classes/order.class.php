@@ -272,6 +272,23 @@ class woocommerce_order {
 		
 	}
 	
+	/**  Returns true if the order contains a downloadable product */
+	function has_downloadable_item() {
+		$has_downloadable_item = false;
+		
+		foreach($this->items as $item) : 
+			
+			$_product = $this->get_product_from_item( $item );
+
+			if ($_product->exists && $_product->is_type('downloadable')) :
+				$has_downloadable_item = true;
+			endif;
+			
+		endforeach;	
+		
+		return $has_downloadable_item;
+	}
+	
 	/**  Generates a URL so that a customer can checkout/pay for their (unpaid - pending) order via a link */
 	function get_checkout_payment_url() {
 		
@@ -411,10 +428,14 @@ class woocommerce_order {
 		endforeach;
 		
 		if ($downloadable_order) :
-			$this->update_status('completed');
+			$new_order_status = 'completed';
 		else :
-			$this->update_status('processing');
+			$new_order_status = 'processing';
 		endif;
+		
+		$new_order_status = apply_filters('woocommerce_payment_complete_order_status', $new_order_status, $this->id);
+		
+		$this->update_status($new_order_status);
 		
 		// Payment is complete so reduce stock levels
 		$this->reduce_order_stock();

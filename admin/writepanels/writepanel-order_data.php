@@ -138,7 +138,7 @@ function woocommerce_order_items_meta_box($post) {
 			<tbody id="order_items_list">	
 				
 				<?php $loop = 0; if (sizeof($order_items)>0 && isset($order_items[0]['id'])) foreach ($order_items as $item) : 
-					
+				
 					if (isset($item['variation_id']) && $item['variation_id'] > 0) :
 						$_product = &new woocommerce_product_variation( $item['variation_id'] );
 					else :
@@ -339,8 +339,9 @@ function woocommerce_process_shop_order_meta( $post_id, $post ) {
 	
 	$woocommerce_errors = array();
 	
-	$order = &new woocommerce_order($post_id);
-	
+	// Add key
+		add_post_meta( $post_id, '_order_key', uniqid('order_') );
+
 	// Update post data
 		update_post_meta( $post_id, '_billing_first_name', stripslashes( $_POST['_billing_first_name'] ));
 		update_post_meta( $post_id, '_billing_last_name', stripslashes( $_POST['_billing_last_name'] ));
@@ -371,9 +372,6 @@ function woocommerce_process_shop_order_meta( $post_id, $post ) {
 		update_post_meta( $post_id, '_order_shipping_tax', stripslashes( $_POST['_order_shipping_tax'] ));
 		update_post_meta( $post_id, '_order_total', stripslashes( $_POST['_order_total'] ));
 		update_post_meta( $post_id, '_customer_user', (int) $_POST['customer_user'] );
-	
-	// Order status
-		$order->update_status( $_POST['order_status'] );
 	
 	// Order items
 		$order_items = array();
@@ -424,6 +422,11 @@ function woocommerce_process_shop_order_meta( $post_id, $post ) {
 	
 		update_post_meta( $post_id, '_order_items', $order_items );
 	
+	// Order data saved, now get it so we can manipulate status
+		$order = &new woocommerce_order( $post_id );
+		
+	// Order status
+		$order->update_status( $_POST['order_status'] );
 	
 	// Handle button actions
 	

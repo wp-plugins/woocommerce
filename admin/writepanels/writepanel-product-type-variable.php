@@ -29,7 +29,7 @@ function variable_product_type_options() {
 	}
 	?>
 	<div id="variable_product_options" class="panel">
-		<p class="bulk_edit"><strong><?php _e('Bulk edit:', 'woothemes'); ?></strong> <a class="button set_all_prices" href="#"><?php _e('Set all prices', 'woocommerce'); ?></a> <a class="button set_all_sale_prices" href="#"><?php _e('Set all sale prices', 'woocommerce'); ?></a> <a class="button set_all_stock" href="#"><?php _e('Set all stock', 'woocommerce'); ?></a></p>
+		<p class="bulk_edit"><strong><?php _e('Bulk edit:', 'woothemes'); ?></strong> <a class="button set_all_prices" href="#"><?php _e('Set all prices', 'woothemes'); ?></a> <a class="button set_all_sale_prices" href="#"><?php _e('Set all sale prices', 'woothemes'); ?></a> <a class="button set_all_stock" href="#"><?php _e('Set all stock', 'woothemes'); ?></a></p>
 		<div class="woocommerce_variations">
 			<?php
 			$args = array(
@@ -326,9 +326,7 @@ function variable_product_write_panel_js() {
 			
 			imgurl = jQuery(img).attr('src');
 			imgclass = jQuery(img).attr('class');
-			
-			alert(imgclass);
-			
+
 			imgid = parseInt(imgclass.replace(/\D/g, ''), 10);
 			
 			jQuery('.upload_image_id', current_field_wrapper).val(imgid);
@@ -619,6 +617,14 @@ function process_product_meta_variable( $post_id ) {
 			update_post_meta( $variation_id, 'stock', $variable_stock[$i] );
 			update_post_meta( $variation_id, '_thumbnail_id', $upload_image_id[$i] );
 			
+			// Remove old taxnomies attributes so data is kept up to date
+			$variation_custom_fields = get_post_custom( $variation_id );
+			
+			foreach ($variation_custom_fields as $name => $value) :
+				if (!strstr($name, 'attribute_')) continue;
+				delete_post_meta( $variation_id, $name );
+			endforeach;
+		
 			// Update taxonomies
 			foreach ($attributes as $attribute) :
 							

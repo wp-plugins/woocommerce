@@ -20,11 +20,22 @@ function woocommerce_post_type() {
 	
 	$base_slug = ($shop_page_id > 0 && get_page( $shop_page_id )) ? get_page_uri( $shop_page_id ) : 'shop';	
 	
+	$product_base 	= '';
+	$category_base 	= '';
+	
 	if (get_option('woocommerce_prepend_shop_page_to_urls')=="yes") :
 		$category_base = trailingslashit($base_slug);
-	else :
-		$category_base = '';
 	endif;
+	
+	if (get_option('woocommerce_prepend_shop_page_to_products')=='yes') :
+		$product_base = trailingslashit($base_slug);
+	endif;
+	
+	if (get_option('woocommerce_prepend_category_to_products')=='yes') :
+		$product_base .= trailingslashit('%product_cat%');
+	endif;
+	
+	$product_base = untrailingslashit($product_base);
 	
 	register_taxonomy( 'product_cat',
         array('product'),
@@ -134,7 +145,7 @@ function woocommerce_post_type() {
 			'publicly_queryable' => true,
 			'exclude_from_search' => false,
 			'hierarchical' => true,
-			'rewrite' => array( 'slug' => $base_slug, 'with_front' => false ),
+			'rewrite' => array( 'slug' => $product_base, 'with_front' => false ),
 			'query_var' => true,			
 			'supports' => array( 'title', 'editor', 'excerpt', 'thumbnail', 'comments'/*, 'page-attributes'*/ ),
 			'has_archive' => $base_slug,
@@ -273,8 +284,43 @@ function woocommerce_post_type() {
 	);
 } 
 
+
 /**
- * Add product_cat ordering to get_terms
+ * Filter to allow product_cat in the permalinks for products.
+ *
+ * @since 1.1
+ *
+ * @param string $permalink The existing permalink URL.
+ */
+function woocommerce_product_cat_filter_post_link( $permalink, $post, $leavename, $sample ) {
+    // Abort if post is not a product
+    if ($post->post_type!=='product') return $permalink;
+    
+    // Abort early if the placeholder rewrite tag isn't in the generated URL
+    if ( false === strpos( $permalink, '%product_cat%' ) ) return $permalink;
+    
+    // Sample aborts
+    if ($sample) return $permalink;
+
+    // Get the custom taxonomy terms in use by this post
+    $terms = get_the_terms( $post->ID, 'product_cat' );
+
+    if ( empty( $terms ) ) :
+    	// If no terms are assigned to this post, use a string instead (can't leave the placeholder there)
+        $permalink = str_replace( '%product_cat%', __('product', 'woothemes'), $permalink );
+    else :
+    	// Replace the placeholder rewrite tag with the first term's slug
+        $first_term = array_shift( $terms );
+        $permalink = str_replace( '%product_cat%', $first_term->slug, $permalink );
+    endif;
+
+    return $permalink;
+}
+add_filter( 'post_type_link', 'woocommerce_product_cat_filter_post_link', 10, 4 );
+
+
+/**
+ * Add term ordering to get_terms
  * 
  * It enables the support a 'menu_order' parameter to get_terms for the product_cat taxonomy.
  * By default it is 'ASC'. It accepts 'DESC' too
@@ -285,11 +331,18 @@ function woocommerce_post_type() {
 add_filter( 'terms_clauses', 'woocommerce_terms_clauses', 10, 3);
 
 function woocommerce_terms_clauses($clauses, $taxonomies, $args ) {
-	global $wpdb;
+	global $wpdb, $woocommerce;
 	
-	// wordpress should give us the taxonomies asked when calling the get_terms function
-	if( !in_array('product_cat', (array)$taxonomies) ) return $clauses;
-	
+	// wordpress should give us the taxonomies asked when calling the get_terms function. Only apply to categories and pa_ attributes
+	$found = false;
+	foreach ((array) $taxonomies as $taxonomy) :
+		if ($taxonomy=='product_cat' || strstr($taxonomy, 'pa_')) :
+			$found = true;
+			break;
+		endif;
+	endforeach;
+	if (!$found) return $clauses;
+		
 	// query order
 	if( isset($args['menu_order']) && !$args['menu_order']) return $clauses; // menu_order is false so we do not add order clause
 	
@@ -311,4 +364,37 @@ function woocommerce_terms_clauses($clauses, $taxonomies, $args ) {
 	endif;
 	
 	return $clauses;
+}
+
+/**
+ * WooCommerce Term Meta API
+ * 
+ * API for working with term meta data. Adapted from 'Term meta API' by Nikolay Karev
+ * 
+ */
+add_action( 'init', 'woocommerce_taxonomy_metadata_wpdbfix', 0 );
+add_action( 'switch_blog', 'woocommerce_taxonomy_metadata_wpdbfix', 0 );
+
+function woocommerce_taxonomy_metadata_wpdbfix() {
+	global $wpdb;
+
+	$variable_name = 'woocommerce_termmeta';
+	$wpdb->$variable_name = $wpdb->prefix . $variable_name;	
+	$wpdb->tables[] = $variable_name;
+} 
+
+function update_woocommerce_term_meta($term_id, $meta_key, $meta_value, $prev_value = ''){
+	return update_metadata('woocommerce_term', $term_id, $meta_key, $meta_value, $prev_value);
+}
+
+function add_woocommerce_term_meta($term_id, $meta_key, $meta_value, $unique = false){
+	return add_metadata('woocommerce_term', $term_id, $meta_key, $meta_value, $unique);
+}
+
+function delete_woocommerce_term_meta($term_id, $meta_key, $meta_value = '', $delete_all = false){
+	return delete_metadata('woocommerce_term', $term_id, $meta_key, $meta_value, $delete_all);
+}
+
+function get_woocommerce_term_meta($term_id, $key, $single = true){
+	return get_metadata('woocommerce_term', $term_id, $key, $single);
 }
