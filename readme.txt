@@ -3,7 +3,7 @@ Contributors: woothemes
 Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, store, shop, shopping, cart, checkout, widgets, reports, shipping, tax, paypal, inventory
 Requires at least: 3.1
 Tested up to: 3.3
-Stable tag: 1.0.3
+Stable tag: 1.1
 
 An e-commerce toolkit that helps you sell anything. Beautifully. 
 
