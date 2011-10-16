@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce
 Plugin URI: http://www.woothemes.com/woocommerce/
 Description: An eCommerce plugin for wordpress.
-Version: 1.1
+Version: 1.1.1
 Author: WooThemes
 Author URI: http://woothemes.com
 Requires at least: 3.1
@@ -21,7 +21,7 @@ load_plugin_textdomain('woothemes', false, dirname( plugin_basename( __FILE__ ) 
  * Constants
  **/ 
 if (!defined('WOOCOMMERCE_TEMPLATE_URL')) define('WOOCOMMERCE_TEMPLATE_URL', 'woocommerce/');
-if (!defined("WOOCOMMERCE_VERSION")) define("WOOCOMMERCE_VERSION", "1.1");	
+if (!defined("WOOCOMMERCE_VERSION")) define("WOOCOMMERCE_VERSION", "1.1.1");	
 if (!defined("PHP_EOL")) define("PHP_EOL", "\r\n");
 
 /**
@@ -100,9 +100,9 @@ function woocommerce_init() {
 	woocommerce_post_type();
 
 	// Image sizes
-	$shop_thumbnail_crop 	= (get_option('shop_thumbnail_image_crop')==1) ? true : false;
-	$shop_catalog_crop 		= (get_option('shop_catalog_image_crop')==1) ? true : false;
-	$shop_single_crop 		= (get_option('shop_single_image_crop')==1) ? true : false;
+	$shop_thumbnail_crop 	= (get_option('woocommerce_thumbnail_image_crop')==1) ? true : false;
+	$shop_catalog_crop 		= (get_option('woocommerce_catalog_image_crop')==1) ? true : false;
+	$shop_single_crop 		= (get_option('woocommerce_single_image_crop')==1) ? true : false;
 
 	add_image_size( 'shop_thumbnail', $woocommerce->get_image_size('shop_thumbnail_image_width'), $woocommerce->get_image_size('shop_thumbnail_image_height'), $shop_thumbnail_crop );
 	add_image_size( 'shop_catalog', $woocommerce->get_image_size('shop_catalog_image_width'), $woocommerce->get_image_size('shop_catalog_image_height'), $shop_catalog_crop );
@@ -474,7 +474,7 @@ function woocommerce_check_comment_rating($comment_data) {
 		wp_die( __('You have taken too long. Please go back and refresh the page.', 'woothemes') );
 		
 	elseif ( isset($_POST['rating']) && empty($_POST['rating']) && $comment_data['comment_type']== '' ) {
-		wp_die( __('Please rate the product.',"woocommerce") );
+		wp_die( __('Please rate the product.',"woothemes") );
 		exit;
 	}
 	return $comment_data;

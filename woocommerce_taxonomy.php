@@ -29,6 +29,8 @@ function woocommerce_post_type() {
 	
 	if (get_option('woocommerce_prepend_shop_page_to_products')=='yes') :
 		$product_base = trailingslashit($base_slug);
+	else :
+		$product_base = trailingslashit(__('product', 'woothemes'));
 	endif;
 	
 	if (get_option('woocommerce_prepend_category_to_products')=='yes') :
@@ -298,9 +300,6 @@ function woocommerce_product_cat_filter_post_link( $permalink, $post, $leavename
     
     // Abort early if the placeholder rewrite tag isn't in the generated URL
     if ( false === strpos( $permalink, '%product_cat%' ) ) return $permalink;
-    
-    // Sample aborts
-    if ($sample) return $permalink;
 
     // Get the custom taxonomy terms in use by this post
     $terms = get_the_terms( $post->ID, 'product_cat' );

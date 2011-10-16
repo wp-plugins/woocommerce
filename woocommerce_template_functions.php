@@ -1112,7 +1112,7 @@ function woocommerce_product_subcategories() {
 	if ($categories) foreach ($categories as $category) : $loop++;
 			
 		?>
-		<li class="product <?php if ($loop%$columns==0) echo 'last'; if (($loop-1)%$columns==0) echo 'first'; ?>">
+		<li class="product sub-category <?php if ($loop%$columns==0) echo 'last'; if (($loop-1)%$columns==0) echo 'first'; ?>">
 			
 			<?php do_action('woocommerce_before_subcategory', $category); ?>
 			
@@ -1120,7 +1120,7 @@ function woocommerce_product_subcategories() {
 				
 				<?php do_action('woocommerce_before_subcategory_title', $category); ?>
 				
-				<h3><?php echo $category->name; ?> (<?php echo $category->count; ?>)</h3>
+				<h3><?php echo $category->name; ?> <mark class="count">(<?php echo $category->count; ?>)</mark></h3>
 				
 				<?php do_action('woocommerce_after_subcategory_title', $category); ?>
 			
