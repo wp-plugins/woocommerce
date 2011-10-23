@@ -218,7 +218,7 @@ if (!function_exists('woocommerce_template_single_meta')) {
 	function woocommerce_template_single_meta( $post, $_product ) {
 		
 		?>
-		<div class="product_meta"><?php if ($_product->is_type('simple') && get_option('woocommerce_enable_sku')=='yes') : ?><span class="sku">SKU: <?php echo $_product->sku; ?>.</span><?php endif; ?><?php echo $_product->get_categories( ', ', ' <span class="posted_in">Posted in ', '.</span>'); ?><?php echo $_product->get_tags( ', ', ' <span class="tagged_as">Tagged as ', '.</span>'); ?></div>
+		<div class="product_meta"><?php if ($_product->is_type('simple') && get_option('woocommerce_enable_sku')=='yes') : ?><span class="sku"><?php _e('SKU:', 'woothemes'); ?> <?php echo $_product->sku; ?>.</span><?php endif; ?><?php echo $_product->get_categories( ', ', ' <span class="posted_in">'.__('Posted in', 'woothemes').' ', '.</span>'); ?><?php echo $_product->get_tags( ', ', ' <span class="tagged_as">'.__('Tagged as', 'woothemes').' ', '.</span>'); ?></div>
 		<?php
 		
 	}
@@ -576,10 +576,10 @@ if (!function_exists('woocommerce_output_related_products')) {
 if (!function_exists('woocommerce_related_products')) {
 	function woocommerce_related_products( $posts_per_page = 4, $post_columns = 4, $orderby = 'rand' ) {
 		
-		global $_product, $columns;
+		global $_product, $woocommerce_loop;
 		
 		// Pass vars to loop
-		$columns = $post_columns;
+		$woocommerce_loop['columns'] = $post_columns;
 		
 		$related = $_product->get_related();
 		if (sizeof($related)>0) :
@@ -1040,8 +1040,8 @@ function woocommerce_upsell_display() {
  * Display Cross Sells
  **/
 function woocommerce_cross_sell_display() {
-	global $columns, $woocommerce;
-	$columns = 2;
+	global $woocommerce_loop, $woocommerce;
+	$woocommerce_loop['columns'] = 2;
 	$crosssells = $woocommerce->cart->get_cross_sells();
 	
 	if (sizeof($crosssells)>0) :
@@ -1082,7 +1082,7 @@ function woocommerce_demo_store() {
  * display product sub categories as thumbnails
  **/
 function woocommerce_product_subcategories() {
-	global $woocommerce, $columns, $loop, $wp_query, $wp_the_query;
+	global $woocommerce, $woocommerce_loop, $wp_query, $wp_the_query;
 	
 	if ($wp_query !== $wp_the_query) return; // Detect main query
 	
@@ -1100,37 +1100,57 @@ function woocommerce_product_subcategories() {
 		$parent = 0;
 	endif;
 	
+	// NOTE: using child_of instead of parent - this is not ideal but due to a WP bug (http://core.trac.wordpress.org/ticket/15626) pad_counts won't work
 	$args = array(
-	    'parent'                   => $parent,
-	    'orderby'                  => 'menu_order',
-	    'order'                    => 'ASC',
-	    'hide_empty'               => 1,
-	    'hierarchical'             => 0,
-	    'taxonomy'                 => 'product_cat',
+	    'child_of'                  => $parent,
+	    'orderby'                  	=> 'menu_order',
+	    'order'                    	=> 'ASC',
+	    'hide_empty'               	=> 1,
+	    'hierarchical'             	=> 1,
+	    'taxonomy'                  => 'product_cat',
+	    'pad_counts'				=> 1
 	    );
 	$categories = get_categories( $args );
-	if ($categories) foreach ($categories as $category) : $loop++;
-			
-		?>
-		<li class="product sub-category <?php if ($loop%$columns==0) echo 'last'; if (($loop-1)%$columns==0) echo 'first'; ?>">
-			
-			<?php do_action('woocommerce_before_subcategory', $category); ?>
-			
-			<a href="<?php echo get_term_link($category->slug, 'product_cat'); ?>">
-				
-				<?php do_action('woocommerce_before_subcategory_title', $category); ?>
-				
-				<h3><?php echo $category->name; ?> <mark class="count">(<?php echo $category->count; ?>)</mark></h3>
-				
-				<?php do_action('woocommerce_after_subcategory_title', $category); ?>
-			
-			</a>
+	if ($categories) :
 	
-			<?php do_action('woocommerce_after_subcategory', $category); ?>
+		$found = false;
+
+		foreach ($categories as $category) : 
 			
-		</li><?php 
+			if ($category->parent != $parent) continue;
+			
+			$found = true;
+			
+			$woocommerce_loop['loop']++;
+			
+			?>
+			<li class="product sub-category <?php if ($woocommerce_loop['loop']%$woocommerce_loop['columns']==0) echo 'last'; if (($woocommerce_loop['loop']-1)%$woocommerce_loop['columns']==0) echo 'first'; ?>">
+				
+				<?php do_action('woocommerce_before_subcategory', $category); ?>
+				
+				<a href="<?php echo get_term_link($category->slug, 'product_cat'); ?>">
+					
+					<?php do_action('woocommerce_before_subcategory_title', $category); ?>
+					
+					<h3><?php echo $category->name; ?> <?php if ($category->count>0) : ?><mark class="count">(<?php echo $category->count; ?>)</mark><?php endif; ?></h3>
+					
+					<?php do_action('woocommerce_after_subcategory_title', $category); ?>
+				
+				</a>
 		
-	endforeach;
+				<?php do_action('woocommerce_after_subcategory', $category); ?>
+				
+			</li><?php 
+			
+		endforeach;
+		
+		if ($found==true && get_option('woocommerce_hide_products_when_showing_subcategories')=='yes') :
+			// We are hiding products - disable the loop and pagination
+			$woocommerce_loop['show_products'] = false;
+			$wp_query->max_num_pages = 0;
+		endif;
+		
+	endif;
 	
 }
 

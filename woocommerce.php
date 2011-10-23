@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce
 Plugin URI: http://www.woothemes.com/woocommerce/
 Description: An eCommerce plugin for wordpress.
-Version: 1.1.1
+Version: 1.1.2
 Author: WooThemes
 Author URI: http://woothemes.com
 Requires at least: 3.1
@@ -21,7 +21,7 @@ load_plugin_textdomain('woothemes', false, dirname( plugin_basename( __FILE__ ) 
  * Constants
  **/ 
 if (!defined('WOOCOMMERCE_TEMPLATE_URL')) define('WOOCOMMERCE_TEMPLATE_URL', 'woocommerce/');
-if (!defined("WOOCOMMERCE_VERSION")) define("WOOCOMMERCE_VERSION", "1.1.1");	
+if (!defined("WOOCOMMERCE_VERSION")) define("WOOCOMMERCE_VERSION", "1.1.2");	
 if (!defined("PHP_EOL")) define("PHP_EOL", "\r\n");
 
 /**
@@ -424,10 +424,20 @@ function woocommerce_get_formatted_variation( $variation = '', $flat = false ) {
 			
 			if (!$value) continue;
 			
+			// If this is a term slug, get the term's nice name
+            if (taxonomy_exists(esc_attr(str_replace('attribute_', '', $name)))) :
+            	$term = get_term_by('slug', $value, esc_attr(str_replace('attribute_', '', $name)));
+            	if (!is_wp_error($term) && $term->name) :
+            		$value = $term->name;
+            	endif;
+            else :
+            	$value = ucfirst($value);
+            endif;
+			
 			if ($flat) :
-				$variation_list[] = $woocommerce->attribute_label(str_replace('attribute_', '', $name)).': '.ucfirst($value);
+				$variation_list[] = $woocommerce->attribute_label(str_replace('attribute_', '', $name)).': '.$value;
 			else :
-				$variation_list[] = '<dt>'.$woocommerce->attribute_label(str_replace('attribute_', '', $name)).':</dt><dd>'.ucfirst($value).'</dd>';
+				$variation_list[] = '<dt>'.$woocommerce->attribute_label(str_replace('attribute_', '', $name)).':</dt><dd>'.$value.'</dd>';
 			endif;
 			
 		endforeach;

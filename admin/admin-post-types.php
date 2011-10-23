@@ -301,18 +301,21 @@ add_action('restrict_manage_posts','woocommerce_products_by_category');
 function woocommerce_products_by_category() {
     global $typenow, $wp_query;
     if ($typenow=='product') :
-		$terms = get_terms('product_cat');
+		$terms = get_terms('product_cat', 'pad_counts=1&hierarchal=1');
 		$output = "<select name='product_cat' id='dropdown_product_cat'>";
 		$output .= '<option value="">'.__('Show all categories', 'woothemes').'</option>';
 		foreach($terms as $term) :
 			if ( isset( $wp_query->query['product_cat'] ) ) :
 				$output .="<option value='$term->slug' ".selected($term->slug, $wp_query->query['product_cat'], false).">$term->name ($term->count)</option>";
+			else :
+				$output .="<option value='$term->slug'>$term->name ($term->count)</option>";
 			endif;
 		endforeach;
 		$output .="</select>";
 		echo $output;
     endif;
 }
+
 
 /**
  * Filter products by type
@@ -369,9 +372,9 @@ function woocommerce_exclude_image_from_product_page_field( $fields, $object ) {
 function woocommerce_exclude_image_from_product_page_field_save( $post, $attachment ) {
 
 	if (isset($_REQUEST['attachments'][$post['ID']]['woocommerce_exclude_image'])) 
-		update_post_meta($post['ID'], '_woocommerce_exclude_image', 1);
+		update_post_meta( (int) $post['ID'], '_woocommerce_exclude_image', 1);
 	else 
-		update_post_meta($post['ID'], '_woocommerce_exclude_image', 0);
+		update_post_meta( (int) $post['ID'], '_woocommerce_exclude_image', 0);
 				
 	return $post;
 				

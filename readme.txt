@@ -3,9 +3,9 @@ Contributors: woothemes
 Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, store, shop, shopping, cart, checkout, widgets, reports, shipping, tax, paypal, inventory
 Requires at least: 3.1
 Tested up to: 3.3
-Stable tag: 1.1.1
+Stable tag: 1.1.2
 
-An e-commerce toolkit that helps you sell anything. Beautifully. 
+An e-commerce toolkit that helps you sell anything. Beautifully.
 
 == Description ==
 
@@ -56,6 +56,18 @@ The manual installation involves downloading the plugin and uploading it to your
 For further documentation on using WooCommerce, please sign up for free at http://www.woothemes.com/. This will provide access to extensive WooCommerce Codex, documentation and tips.
 
 == Changelog ==
+
+= 1.1.2 - 23/10/2011 =
+* Coupons can be applied to variations (by ID)
+* Fixed up/cross-sell removal
+* Fixed image (zoom) URL after variation selection
+* Fixed category filter in admin
+* Fixed billing/shipping address on my account page
+* Tax fix for prices excluding tax - issue was in the 1.1.1 update
+* Option to hide products when sub-cats are shown, and empty cats are shown
+* Renamed $columns global for compatibility with certain themes
+* Made variation slugs display as term name
+* Added a helper function to get the return url (for gateways) - fixes https return url
 
 = 1.1.1 - 16/10/2011 =
 * Products need a base, regardless of category settings - added base to prevent pages breaking
