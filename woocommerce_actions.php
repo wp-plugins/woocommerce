@@ -190,6 +190,7 @@ function woocommerce_add_order_item() {
 				echo '<br/><strong>'.__('Product SKU:', 'woothemes').'</strong> '; if ($_product->sku) echo $_product->sku; else echo '-';
 			?>" src="<?php echo $woocommerce->plugin_url(); ?>/assets/images/tip.png" />
 		</td>
+		<td class="sku"><?php if ($_product->sku) echo $_product->sku; else echo '-'; ?></td>
 		<td class="name">
 			<a href="<?php echo esc_url( admin_url('post.php?post='. $_product->id .'&action=edit') ); ?>"><?php echo $_product->get_title(); ?></a>
 			<?php
@@ -618,10 +619,10 @@ function woocommerce_process_login() {
 			if ( is_wp_error($user) ) :
 				$woocommerce->add_error( $user->get_error_message() );
 			else :
-				if ( isset($_SERVER['HTTP_REFERER'])) {
+				if ( isset($_SERVER['HTTP_REFERER'])) :
 					wp_safe_redirect($_SERVER['HTTP_REFERER']);
 					exit;
-				}
+				endif;
 				wp_redirect(get_permalink(get_option('woocommerce_myaccount_page_id')));
 				exit;
 			endif;

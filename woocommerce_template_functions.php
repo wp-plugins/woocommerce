@@ -157,7 +157,7 @@ if (!function_exists('woocommerce_show_product_thumbnails')) {
 		$attachments = get_posts($args);
 		if ($attachments) :
 			$loop = 0;
-			$columns = 3;
+			$columns = apply_filters('woocommerce_product_thumbnails_columns', 3);
 			foreach ( $attachments as $attachment ) : 
 				
 				$loop++;
@@ -361,7 +361,7 @@ if (!function_exists('woocommerce_variable_add_to_cart')) {
             
             if($variation instanceof woocommerce_product_variation) {
                         	
-            	if ($variation->variation->post_status != 'publish') continue; // Disabled
+            	if (get_post_status( $variation->get_variation_id() ) != 'publish') continue; // Disabled
             
                 $variation_attributes = $variation->get_variation_attributes();
                 $availability = $variation->get_availability();
@@ -677,7 +677,7 @@ if (!function_exists('woocommerce_cart_totals')) {
 		?>
 		<div class="cart_totals">
 		<?php
-		if ($available_methods || !$woocommerce->customer->get_shipping_country() || !$woocommerce->shipping->enabled ) : 
+		if ($available_methods || !$woocommerce->customer->get_shipping_country() || !$woocommerce->customer->get_shipping_state() || !$woocommerce->customer->get_shipping_postcode() || !$woocommerce->shipping->enabled ) : 
 			// Hide totals if customer has set location and there are no methods going there
 			?>
 			<h2><?php _e('Cart Totals', 'woothemes'); ?></h2>
@@ -984,7 +984,7 @@ if (!function_exists('woocommerce_breadcrumb')) {
 			elseif ( is_author() ) :
 			
 				$userdata = get_userdata($author);
-				echo $before . __('Author: ', 'woothemes') . $userdata->display_name . $after;
+				echo $before . __('Author:', 'woothemes') . ' ' . $userdata->display_name . $after;
 	     	
 		    endif;
 	 
@@ -1082,9 +1082,11 @@ function woocommerce_demo_store() {
  * display product sub categories as thumbnails
  **/
 function woocommerce_product_subcategories() {
-	global $woocommerce, $woocommerce_loop, $wp_query, $wp_the_query;
+	global $woocommerce, $woocommerce_loop, $wp_query, $wp_the_query, $_chosen_attributes;
 	
 	if ($wp_query !== $wp_the_query) return; // Detect main query
+	
+	if (sizeof($_chosen_attributes)>0 || (isset($_GET['max_price']) && isset($_GET['min_price']))) return; // Don't show when filtering
 	
 	if (is_search()) return;
 	if (!is_product_category() && !is_shop()) return;

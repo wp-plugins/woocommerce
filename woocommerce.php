@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce
 Plugin URI: http://www.woothemes.com/woocommerce/
 Description: An eCommerce plugin for wordpress.
-Version: 1.1.2
+Version: 1.1.3
 Author: WooThemes
 Author URI: http://woothemes.com
 Requires at least: 3.1
@@ -16,12 +16,13 @@ if (!session_id()) session_start();
  * Localisation
  **/
 load_plugin_textdomain('woothemes', false, dirname( plugin_basename( __FILE__ ) ) . '/languages');
+load_plugin_textdomain('woothemes', false, dirname( plugin_basename( __FILE__ ) ) . '/../../languages/woocommerce');
 
 /**
  * Constants
  **/ 
 if (!defined('WOOCOMMERCE_TEMPLATE_URL')) define('WOOCOMMERCE_TEMPLATE_URL', 'woocommerce/');
-if (!defined("WOOCOMMERCE_VERSION")) define("WOOCOMMERCE_VERSION", "1.1.2");	
+if (!defined("WOOCOMMERCE_VERSION")) define("WOOCOMMERCE_VERSION", "1.1.3");	
 if (!defined("PHP_EOL")) define("PHP_EOL", "\r\n");
 
 /**
@@ -155,18 +156,43 @@ function woocommerce_init_roles() {
 		
 		// Customer role
 		add_role('customer', __('Customer', 'woothemes'), array(
-		    'read' => true,
-		    'edit_posts' => false,
-		    'delete_posts' => false
+		    'read' 						=> true,
+		    'edit_posts' 				=> false,
+		    'delete_posts' 				=> false
 		));
 	
 		// Shop manager role
 		add_role('shop_manager', __('Shop Manager', 'woothemes'), array(
-		    'read' 			=> true,
-		    'edit_posts' 	=> true,
-		    'delete_posts' 	=> true,
+		    'read' 						=> true,
+		    'read_private_pages'		=> true,
+		    'read_private_posts'		=> true,
+		    'edit_posts' 				=> true,
+		    'edit_pages' 				=> true,
+		    'edit_published_posts'		=> true,
+		    'edit_published_pages'		=> true,
+		    'edit_private_pages'		=> true,
+		    'edit_private_posts'		=> true,
+		    'edit_others_posts' 		=> true,
+		    'edit_others_pages' 		=> true,
+		    'publish_posts' 			=> true,
+		    'publish_pages'				=> true,
+		    'delete_posts' 				=> true,
+		    'delete_pages' 				=> true,
+		    'delete_private_pages'		=> true,
+		    'delete_private_posts'		=> true,
+		    'delete_published_pages'	=> true,
+		    'delete_published_posts'	=> true,
+		    'delete_others_posts' 		=> true,
+		    'delete_others_pages' 		=> true,
+		    'manage_categories' 		=> true,
+		    'manage_links'				=> true,
+		    'moderate_comments'			=> true,
+		    'unfiltered_html'			=> true,
+		    'upload_files'				=> true,
+		   	'export'					=> true,
+			'import'					=> true,
 		));
-
+		
 		// Main Shop capabilities
 		$wp_roles->add_cap( 'administrator', 'manage_woocommerce' );
 		$wp_roles->add_cap( 'shop_manager', 'manage_woocommerce' );
@@ -309,6 +335,26 @@ function woocommerce_force_ssl_images( $content ) {
 	endif;
 	return $content;
 }
+
+/**
+ * Force SSL for stylsheet/script urls etc. Modified code by Chris Black (http://cjbonline.org)
+ **/
+add_filter('option_siteurl', 'woocommerce_force_ssl_urls');
+add_filter('option_home', 'woocommerce_force_ssl_urls');
+add_filter('option_url', 'woocommerce_force_ssl_urls');
+add_filter('option_wpurl', 'woocommerce_force_ssl_urls');
+add_filter('option_stylesheet_url', 'woocommerce_force_ssl_urls');
+add_filter('option_template_url', 'woocommerce_force_ssl_urls');
+add_filter('script_loader_src', 'woocommerce_force_ssl_urls');
+add_filter('style_loader_src', 'woocommerce_force_ssl_urls');
+
+function woocommerce_force_ssl_urls( $url ) {
+	if (is_ssl()) :
+		$url = str_replace('http:', 'https:', $url);
+	endif;
+	return $url;
+}
+
 
 /**
  * IIS compatability fix/fallback
@@ -587,3 +633,63 @@ function woocommerce_prevent_sidebar_cache() {
 	echo '<!--mfunc get_sidebar() --><!--/mfunc-->';
 }
 add_action('get_sidebar', 'woocommerce_prevent_sidebar_cache');
+
+/**
+ * Hex darker/lighter/contrast functions for colours
+ **/
+if (!function_exists('woocommerce_hex_darker')) {
+	function woocommerce_hex_darker( $color, $factor = 30 ) {
+		$color = str_replace('#', '', $color);
+		
+		$base['R'] = hexdec($color{0}.$color{1});
+		$base['G'] = hexdec($color{2}.$color{3});
+		$base['B'] = hexdec($color{4}.$color{5});
+		
+		$color = '#';
+		
+		foreach ($base as $k => $v) :
+	        $amount = $v / 100;
+	        $amount = round($amount * $factor);
+	        $new_decimal = $v - $amount;
+	
+	        $new_hex_component = dechex($new_decimal);
+	        if(strlen($new_hex_component) < 2) :
+	        	$new_hex_component = "0".$new_hex_component;
+	        endif;
+	        $color .= $new_hex_component;
+		endforeach;
+		        
+		return $color;        
+	}
+}
+if (!function_exists('woocommerce_hex_lighter')) {
+	function woocommerce_hex_lighter( $color, $factor = 30 ) {
+		$color = str_replace('#', '', $color);
+		
+		$base['R'] = hexdec($color{0}.$color{1});
+		$base['G'] = hexdec($color{2}.$color{3});
+		$base['B'] = hexdec($color{4}.$color{5});
+		
+		$color = '#';
+	     
+	    foreach ($base as $k => $v) :
+	        $amount = 255 - $v; 
+	        $amount = $amount / 100; 
+	        $amount = round($amount * $factor); 
+	        $new_decimal = $v + $amount; 
+	     
+	        $new_hex_component = dechex($new_decimal); 
+	        if(strlen($new_hex_component) < 2) :
+	        	$new_hex_component = "0".$new_hex_component;
+	        endif;
+	        $color .= $new_hex_component; 
+	   	endforeach;
+	         
+	   	return $color;          
+	}
+}
+if (!function_exists('woocommerce_light_or_dark')) {
+	function woocommerce_light_or_dark( $color, $dark = '#000000', $light = '#FFFFFF' ) {
+	    return (hexdec($color) > 0xffffff/2) ? $dark : $light;
+	}
+}

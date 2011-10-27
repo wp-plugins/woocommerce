@@ -3,7 +3,7 @@ Contributors: woothemes
 Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, store, shop, shopping, cart, checkout, widgets, reports, shipping, tax, paypal, inventory
 Requires at least: 3.1
 Tested up to: 3.3
-Stable tag: 1.1.2
+Stable tag: 1.1.3
 
 An e-commerce toolkit that helps you sell anything. Beautifully.
 
@@ -56,6 +56,24 @@ The manual installation involves downloading the plugin and uploading it to your
 For further documentation on using WooCommerce, please sign up for free at http://www.woothemes.com/. This will provide access to extensive WooCommerce Codex, documentation and tips.
 
 == Changelog ==
+
+= 1.1.3 - 27/10/2011 =
+* Improved Force SSL Setting - now forces https urls for enqueued scripts and styles 
+* Updated some localisation strings in email subject lines
+* Fixed variation coupons
+* Fixed edit address via my account
+* Support for localisations in wp-content/languages/woocommerce
+* Added ability to change email template colors and from name/address from the settings panel
+* Added italian translation by Roberto Lioniello
+* Added swedish translation by Stefan Johansson
+* Made cart page hide the 'no shipping methods found' message unless the user has calculated shipping.
+* Given shop_manager role capabilities of an editor
+* Fixed menu order when logged in as a shop manager
+* Added SKU column to order data
+* Removed output buffering from loop
+* Add product % coupons
+* Filtering hides subcategories
+* Lots of other minor fixes
 
 = 1.1.2 - 23/10/2011 =
 * Coupons can be applied to variations (by ID)

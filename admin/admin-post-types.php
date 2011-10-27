@@ -371,11 +371,14 @@ function woocommerce_exclude_image_from_product_page_field( $fields, $object ) {
 
 function woocommerce_exclude_image_from_product_page_field_save( $post, $attachment ) {
 
-	if (isset($_REQUEST['attachments'][$post['ID']]['woocommerce_exclude_image'])) 
+	if (isset($_REQUEST['attachments'][$post['ID']]['woocommerce_exclude_image'])) :
+		delete_post_meta( (int) $post['ID'], '_woocommerce_exclude_image' );
 		update_post_meta( (int) $post['ID'], '_woocommerce_exclude_image', 1);
-	else 
+	else :
+		delete_post_meta( (int) $post['ID'], '_woocommerce_exclude_image' );
 		update_post_meta( (int) $post['ID'], '_woocommerce_exclude_image', 0);
-				
+	endif;
+		
 	return $post;
 				
 }
@@ -437,13 +440,13 @@ function woocommerce_custom_order_columns($column) {
            		$user = __('Guest', 'woothemes');
            	endif;
            	
-           	echo '<small class="meta">' . __('Customer: ', 'woothemes') . $user . '</small>';
+           	echo '<small class="meta">' . __('Customer:', 'woothemes') . ' ' . $user . '</small>';
            	
            	if ($order->billing_email) :
-        		echo '<small class="meta">'.__('Email: ', 'woothemes').'<a href="' . esc_url( 'mailto:'.$order->billing_email ).'">'.esc_html( $order->billing_email ).'</a></small>';
+        		echo '<small class="meta">'.__('Email:', 'woothemes') . ' ' . '<a href="' . esc_url( 'mailto:'.$order->billing_email ).'">'.esc_html( $order->billing_email ).'</a></small>';
         	endif;
         	if ($order->billing_phone) :
-        		echo '<small class="meta">'.__('Tel: ', 'woothemes'). esc_html( $order->billing_phone ) . '</small>';
+        		echo '<small class="meta">'.__('Tel:', 'woothemes') . ' ' . esc_html( $order->billing_phone ) . '</small>';
         	endif;
 						
 		break;
@@ -454,7 +457,7 @@ function woocommerce_custom_order_columns($column) {
         	echo '<a target="_blank" href="' . esc_url( 'http://maps.google.co.uk/maps?&q='.urlencode($order->formatted_billing_address).'&z=16' ) . '">'.esc_html( $order->formatted_billing_address ).'</a>';
         	
         	if ($order->payment_method) :
-        		echo '<small class="meta">' . __('Paid via ', 'woothemes') . esc_html( $order->payment_method ) . '</small>';
+        		echo '<small class="meta">' . __('Paid via', 'woothemes') . ' ' . esc_html( $order->payment_method ) . '</small>';
         	endif;
         	
 		break;
@@ -469,7 +472,7 @@ function woocommerce_custom_order_columns($column) {
         	endif;
         	
         	if ($order->shipping_method) :
-        		echo '<small class="meta">' . __('Shipped via ', 'woothemes') . esc_html( $order->shipping_method ) . '</small>';
+        		echo '<small class="meta">' . __('Shipped via', 'woothemes') . ' ' . esc_html( $order->shipping_method ) . '</small>';
         	endif;
 		break;
 		case "total_cost" :
