@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce
 Plugin URI: http://www.woothemes.com/woocommerce/
 Description: An eCommerce plugin for wordpress.
-Version: 1.1.3
+Version: 1.2
 Author: WooThemes
 Author URI: http://woothemes.com
 Requires at least: 3.1
@@ -22,7 +22,7 @@ load_plugin_textdomain('woothemes', false, dirname( plugin_basename( __FILE__ ) 
  * Constants
  **/ 
 if (!defined('WOOCOMMERCE_TEMPLATE_URL')) define('WOOCOMMERCE_TEMPLATE_URL', 'woocommerce/');
-if (!defined("WOOCOMMERCE_VERSION")) define("WOOCOMMERCE_VERSION", "1.1.3");	
+if (!defined("WOOCOMMERCE_VERSION")) define("WOOCOMMERCE_VERSION", "1.2");	
 if (!defined("PHP_EOL")) define("PHP_EOL", "\r\n");
 
 /**
@@ -36,7 +36,7 @@ if (is_admin()) :
 	 **/
 	register_activation_hook( __FILE__, 'activate_woocommerce' );
 	
-	if (get_site_option('woocommerce_db_version') != WOOCOMMERCE_VERSION) add_action('init', 'install_woocommerce', 0);
+	if (get_option('woocommerce_db_version') != WOOCOMMERCE_VERSION) add_action('init', 'install_woocommerce', 0);
 	
 endif;
 
@@ -191,12 +191,11 @@ function woocommerce_init_roles() {
 		    'upload_files'				=> true,
 		   	'export'					=> true,
 			'import'					=> true,
+			'manage_woocommerce'		=> true
 		));
 		
-		// Main Shop capabilities
+		// Main Shop capabilities for admin
 		$wp_roles->add_cap( 'administrator', 'manage_woocommerce' );
-		$wp_roles->add_cap( 'shop_manager', 'manage_woocommerce' );
-		
 	endif;
 }
 
@@ -238,10 +237,16 @@ function woocommerce_frontend_scripts() {
 	if (isset($_SESSION['min_price'])) $woocommerce_params['min_price'] = $_SESSION['min_price'];
 	if (isset($_SESSION['max_price'])) $woocommerce_params['max_price'] = $_SESSION['max_price'];
 		
-	if ( is_page(get_option('woocommerce_checkout_page_id')) || is_page(get_option('woocommerce_pay_page_id')) ) :
+	if ( is_page(get_option('woocommerce_checkout_page_id')) ) :
 		$woocommerce_params['is_checkout'] = 1;
 	else :
 		$woocommerce_params['is_checkout'] = 0;
+	endif;
+	
+	if (is_page(get_option('woocommerce_pay_page_id'))) :
+		$woocommerce_params['is_pay_page'] = 1;
+	else :
+		$woocommerce_params['is_pay_page'] = 0;
 	endif;
 	
 	if ( is_cart() ) :
@@ -289,7 +294,7 @@ if (!function_exists('is_cart')) {
 }
 if (!function_exists('is_checkout')) {
 	function is_checkout() {
-		return is_page(get_option('woocommerce_checkout_page_id'));
+		if (is_page(get_option('woocommerce_checkout_page_id')) || is_page(get_option('woocommerce_pay_page_id'))) return true; else return false;
 	}
 }
 if (!function_exists('is_account_page')) {
@@ -297,10 +302,10 @@ if (!function_exists('is_account_page')) {
 		if ( is_page(get_option('woocommerce_myaccount_page_id')) || is_page(get_option('woocommerce_edit_address_page_id')) || is_page(get_option('woocommerce_view_order_page_id')) || is_page(get_option('woocommerce_change_password_page_id')) ) return true; else return false;
 		return is_page(get_option('woocommerce_myaccount_page_id'));
 	}
-	if (!function_exists('is_ajax')) {
-		function is_ajax() {
-			if ( isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest' ) return true; else return false;
-		}
+}
+if (!function_exists('is_ajax')) {
+	function is_ajax() {
+		if ( isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest' ) return true; else return false;
 	}
 }
 
@@ -311,8 +316,12 @@ if (get_option('woocommerce_force_ssl_checkout')=='yes') add_action( 'wp', 'wooc
 
 function woocommerce_force_ssl() {
 	if (is_checkout() && !is_ssl()) :
-		wp_redirect( str_replace('http:', 'https:', get_permalink(get_option('woocommerce_checkout_page_id'))), 301 );
+		wp_safe_redirect( str_replace('http:', 'https:', get_permalink(get_option('woocommerce_checkout_page_id'))), 301 );
 		exit;
+	/*// Break out of SSL if we leave the checkout
+	elseif (is_ssl() && $_SERVER['REQUEST_URI'] && !is_checkout() && (is_cart() || is_single() || is_archive() || is_product() || is_shop() || is_home() || is_front_page() || is_tax() || is_404() || is_account_page())) :
+		wp_safe_redirect( str_replace('https:', 'http:', home_url($_SERVER['REQUEST_URI']) ) );
+		exit;*/
 	endif;
 }
 
@@ -416,6 +425,7 @@ function get_woocommerce_currency_symbol() {
  * Price Formatting
  **/
 function woocommerce_price( $price, $args = array() ) {
+	global $woocommerce;
 	
 	extract(shortcode_atts(array(
 		'ex_tax_label' 	=> '0'
@@ -442,7 +452,7 @@ function woocommerce_price( $price, $args = array() ) {
 		break;
 	endswitch;
 	
-	if ($ex_tax_label && get_option('woocommerce_calc_taxes')=='yes') $return .= __(' <small>(ex. tax)</small>', 'woothemes');
+	if ($ex_tax_label && get_option('woocommerce_calc_taxes')=='yes') $return .= ' <small>'.$woocommerce->countries->ex_tax_or_vat().'</small>';
 	
 	return $return;
 }
@@ -515,8 +525,10 @@ function woocommerce_clean( $var ) {
  **/
 function woocommerce_add_comment_rating($comment_id) {
 	if ( isset($_POST['rating']) ) :
+		global $post;
 		if (!$_POST['rating'] || $_POST['rating'] > 5 || $_POST['rating'] < 0) $_POST['rating'] = 5; 
-		add_comment_meta( $comment_id, 'rating', $_POST['rating'], true );
+		add_comment_meta( $comment_id, 'rating', esc_attr($_POST['rating']), true );
+		delete_transient( esc_attr($post->ID) . '_woocommerce_average_rating' );
 	endif;
 }
 add_action( 'comment_post', 'woocommerce_add_comment_rating', 1 );

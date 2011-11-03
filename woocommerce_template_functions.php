@@ -352,6 +352,7 @@ if (!function_exists('woocommerce_variable_add_to_cart')) {
 		global $post, $_product, $woocommerce;
 		
 		$attributes = $_product->get_available_attribute_variations();
+		$default_attributes = (array) maybe_unserialize(get_post_meta( $post->ID, '_default_attributes', true ));
 
 		// Put available variations into an array and put in a Javascript variable (JSON encoded)
         $available_variations = array();
@@ -402,6 +403,7 @@ if (!function_exists('woocommerce_variable_add_to_cart')) {
 							<option value=""><?php echo __('Choose an option', 'woothemes') ?>&hellip;</option>
 							<?php if(is_array($options)) : ?>
 								<?php
+									$selected_value = (isset($default_attributes[sanitize_title($name)])) ? $default_attributes[sanitize_title($name)] : '';
 									// Get terms if this is a taxonomy - ordered
 									if (taxonomy_exists(sanitize_title($name))) :
 										$args = array('menu_order' => 'ASC');
@@ -409,11 +411,11 @@ if (!function_exists('woocommerce_variable_add_to_cart')) {
 	
 										foreach ($terms as $term) : 
 											if (!in_array($term->slug, $options)) continue;
-											echo '<option value="'.$term->slug.'">'.$term->name.'</option>';
+											echo '<option value="'.$term->slug.'" '.selected($selected_value, $term->slug).'>'.$term->name.'</option>';
 										endforeach; 
 									else :
 										foreach ($options as $option) : 
-											echo '<option value="'.$option.'">'.$option.'</option>';
+											echo '<option value="'.$option.'" '.selected($selected_value, $option).'>'.$option.'</option>';
 										endforeach;
 									endif;
 								?>
@@ -677,7 +679,8 @@ if (!function_exists('woocommerce_cart_totals')) {
 		?>
 		<div class="cart_totals">
 		<?php
-		if ($available_methods || !$woocommerce->customer->get_shipping_country() || !$woocommerce->customer->get_shipping_state() || !$woocommerce->customer->get_shipping_postcode() || !$woocommerce->shipping->enabled ) : 
+		//if ( !$woocommerce->shipping->enabled || $available_methods || !$woocommerce->customer->get_shipping_country() || !$woocommerce->customer->get_shipping_state() || !$woocommerce->customer->get_shipping_postcode() ) : 
+		if ( !$woocommerce->shipping->enabled || $available_methods || !$woocommerce->customer->get_shipping_country() || !isset($_SESSION['calculated_shipping']) || !$_SESSION['calculated_shipping'] ) : 
 			// Hide totals if customer has set location and there are no methods going there
 			?>
 			<h2><?php _e('Cart Totals', 'woothemes'); ?></h2>
@@ -705,14 +708,14 @@ if (!function_exists('woocommerce_cart_totals')) {
 					
 												echo woocommerce_price($method->shipping_total);
 												if ($method->shipping_tax>0) :
-													_e(' (ex. tax)', 'woothemes');
+													echo ' ' . $woocommerce->countries->ex_tax_or_vat();
 												endif;
 												
 											else :
 												
 												echo woocommerce_price($method->shipping_total + $method->shipping_tax);
 												if ($method->shipping_tax>0) :
-													_e(' (inc. tax)', 'woothemes');
+													echo ' ' . $woocommerce->countries->inc_tax_or_vat();
 												endif;
 											
 											endif;
@@ -751,7 +754,12 @@ if (!function_exists('woocommerce_cart_totals')) {
 			<p><small><?php _e('Note: Tax and shipping totals are estimated and will be updated during checkout based on your billing information.', 'woothemes'); ?></small></p>
 			<?php
 		else :
-			echo '<p>'.__('Sorry, it seems that there are no available shipping methods to your location. Please contact us if you require assistance or wish to make alternate arrangements.', 'woothemes').'</p>';
+			?>
+			<div class="woocommerce_error">
+				<p><?php if (!$woocommerce->customer->get_shipping_state() || !$woocommerce->customer->get_shipping_postcode()) : ?><?php _e('No shipping methods were found; please recalculate your shipping and enter your state/county and zip/postcode to ensure their are no other available methods for your location.', 'woothemes'); ?><?php else : ?><?php printf(__('Sorry, it seems that there are no available shipping methods for your location (%s).', 'woothemes'), $woocommerce->countries->countries[ $woocommerce->customer->get_shipping_country() ]); ?><?php endif; ?></p>
+				<p><?php _e('If you require assistance or wish to make alternate arrangements please contact us.', 'woothemes'); ?></p>
+			</div>
+			<?php
 		endif;
 		?>
 		</div>
@@ -1156,6 +1164,9 @@ function woocommerce_product_subcategories() {
 	
 }
 
+/**
+ * Show subcategory thumbnail
+ **/
 function woocommerce_subcategory_thumbnail( $category ) {
 	global $woocommerce;
 	
@@ -1175,3 +1186,122 @@ function woocommerce_subcategory_thumbnail( $category ) {
 	echo '<img src="'.$image.'" alt="'.$category->slug.'" width="'.$image_width.'" height="'.$image_height.'" />';
 }
 
+/**
+ * Display an orders details in a table
+ **/
+function woocommerce_order_details_table( $order_id ) {
+	
+	if (!$order_id) return;
+	
+	$order = &new woocommerce_order( $order_id );
+	?>	
+	<h2><?php _e('Order Details', 'woothemes'); ?></h2>	
+	<table class="shop_table">
+		<thead>
+			<tr>
+				<th><?php _e('Product', 'woothemes'); ?></th>
+				<th><?php _e('Qty', 'woothemes'); ?></th>
+				<th><?php _e('Totals', 'woothemes'); ?></th>
+			</tr>
+		</thead>
+		<tfoot>
+			<tr>
+				<td colspan="2"><?php _e('Subtotal', 'woothemes'); ?></td>
+				<td><?php echo $order->get_subtotal_to_display(); ?></td>
+			</tr>
+			<?php if ($order->order_shipping>0) : ?><tr>
+				<td colspan="2"><?php _e('Shipping', 'woothemes'); ?></td>
+				<td><?php echo $order->get_shipping_to_display(); ?></small></td>
+			</tr><?php endif; ?>
+			<?php if ($order->get_total_tax()>0) : ?><tr>
+				<td colspan="2"><?php _e('Tax', 'woothemes'); ?></td>
+				<td><?php echo woocommerce_price($order->get_total_tax()); ?></td>
+			</tr><?php endif; ?>
+			<?php if ($order->order_discount>0) : ?><tr class="discount">
+				<td colspan="2"><?php _e('Discount', 'woothemes'); ?></td>
+				<td>-<?php echo woocommerce_price($order->order_discount); ?></td>
+			</tr><?php endif; ?>
+			<tr>
+				<td colspan="2"><strong><?php _e('Grand Total', 'woothemes'); ?></strong></td>
+				<td><strong><?php echo woocommerce_price($order->order_total); ?></strong></td>
+			</tr>
+			<?php if ($order->customer_note) : ?>
+			<tr>
+				<td><?php _e('Note:', 'woothemes'); ?></td>
+				<td colspan="2"><?php echo wpautop(wptexturize($order->customer_note)); ?></td>
+			</tr>
+			<?php endif; ?>
+		</tfoot>
+		<tbody>
+			<?php
+			if (sizeof($order->items)>0) : 
+			
+				foreach($order->items as $item) : 
+				
+					if (isset($item['variation_id']) && $item['variation_id'] > 0) :
+						$_product = &new woocommerce_product_variation( $item['variation_id'] );
+					else :
+						$_product = &new woocommerce_product( $item['id'] );
+					endif;
+				
+					echo '
+						<tr>
+							<td class="product-name">'.$item['name'];
+					
+					if (isset($item['item_meta'])) :
+						echo woocommerce_get_formatted_variation( $item['item_meta'] );
+					endif;
+					
+					echo '	</td>
+							<td>'.$item['qty'].'</td>
+							<td>'.woocommerce_price( $item['cost']*$item['qty'], array('ex_tax_label' => 1) ).'</td>
+						</tr>';
+				endforeach; 
+			endif;
+			?>
+		</tbody>
+	</table>
+	
+	<header>
+		<h2><?php _e('Customer details', 'woothemes'); ?></h2>
+	</header>
+	<dl>
+	<?php
+		if ($order->billing_email) echo '<dt>'.__('Email:', 'woothemes').'</dt><dd>'.$order->billing_email.'</dd>';
+		if ($order->billing_phone) echo '<dt>'.__('Telephone:', 'woothemes').'</dt><dd>'.$order->billing_phone.'</dd>';
+	?>
+	</dl>
+	
+	<div class="col2-set addresses">
+
+		<div class="col-1">
+		
+			<header class="title">
+				<h3><?php _e('Shipping Address', 'woothemes'); ?></h3>
+			</header>
+			<address><p>
+				<?php
+					if (!$order->formatted_shipping_address) _e('N/A', 'woothemes'); else echo $order->formatted_shipping_address;
+				?>
+			</p></address>
+		
+		</div><!-- /.col-1 -->
+		
+		<div class="col-2">
+		
+			<header class="title">				
+				<h3><?php _e('Billing Address', 'woothemes'); ?></h3>
+			</header>
+			<address><p>
+				<?php
+					if (!$order->formatted_billing_address) _e('N/A', 'woothemes'); else echo $order->formatted_billing_address;
+				?>
+			</p></address>
+		
+		</div><!-- /.col-2 -->
+	
+	</div><!-- /.col2-set -->
+	
+	<div class="clear"></div>
+	<?php
+}

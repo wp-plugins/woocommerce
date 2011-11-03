@@ -1,9 +1,10 @@
 === WooCommerce - eCommerce plugin for WordPress ===
 Contributors: woothemes
 Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, store, shop, shopping, cart, checkout, widgets, reports, shipping, tax, paypal, inventory
+Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.1
 Tested up to: 3.3
-Stable tag: 1.1.3
+Stable tag: 1.2
 
 An e-commerce toolkit that helps you sell anything. Beautifully.
 
@@ -51,11 +52,63 @@ The manual installation involves downloading the plugin and uploading it to your
 2. Using an FTP program, or your hosting control panel, upload the unzipped plugin folder to your WordPress installation’s wp-content/plugins/ directory.
 3. Activate the plugin from the Plugins menu within the WordPress admin.
 
-== FAQ ==
+== Frequently Asked Questions == 
 
-For further documentation on using WooCommerce, please sign up for free at http://www.woothemes.com/. This will provide access to extensive WooCommerce Codex, documentation and tips.
+= Where can I find WooCommerce documentation and user guides =
+
+For further documentation on using WooCommerce, please sign up for free at http://www.woothemes.com/. This will provide access to extensive WooCommerce Codex, documentation and tips. 
+
+The codex for WooCommerce can be found here: http://www.woothemes.com/woocommerce-codex/
+
+Clients and beginners will appreciate the user guide here: http://www.woothemes.com/woocommerce-codex/woocommerce-user-guide/
+
+= Where can I request new features and extensions? =
+
+You can vote on and request new features and extensions in our WooIdeas board - http://ideas.woothemes.com/forums/133476-woocommerce
+
+= Where can I report bugs or contribute to the project? =
+
+Bugs can be reported either in our support forum or preferably at the WooCommerce GitHub repository (https://github.com/woothemes/woocommerce/issues)
+
+= WooCommerce is awesome! Can I contribute? =
+
+Yes you can! Join in on our GitHub repository :) https://github.com/woothemes/woocommerce/
+
+== Screenshots ==
+
+1. The slick WooCommerce settings panel
+2. WooCommerce products admin
+3. WooCommerce sales reports
 
 == Changelog ==
+
+= 1.2 - 03/11/2011 =
+* Added quick status change buttons (processing/complete) to orders panel
+* Ability to preview email templates
+* Option to add logout link to my account menu
+* Added ability to show meta (custom fields) on order emails - useful for plugins
+* Added order details to thankyou page
+* Added basic rss feeds for products and product categories
+* Added functions which show tax/vat conditionally
+* Made use of transients to store average ratings and improve performance
+* Added page installer on installation to make it optional (you may want to import your pages)
+* BACS and Cheque gateways now contain payment instructions
+* Custom field for product total_sales when sold
+* Best sellers widget based on new total_sales field
+* Ability to exclude product ids
+* Option for the recipient of order/stock emails
+* Options to define default attribute selections in variations
+* Edit category - image fix
+* Order Complete email heading fix
+* 100% discount when price excludes tax logic fix
+* Download urls use site_url instead of home_url so installs in subdirectories are handled correctly
+* Fixed variations - Incorrectly used instead $product_custom_fields of $parent_custom_fields
+* Adding cart item resets shipping - so free shipping etc is selected when going over a threshold
+* Changes to shipping calc - if no rates are found, but the user did not enter a state/postcode, it asks them to do so. 
+* Fix for adding sites in multisite
+* Dashboard chart now ignores 'pending' orders
+* Fixed dashboard report range
+* Added hooks to gateway icons
 
 = 1.1.3 - 27/10/2011 =
 * Improved Force SSL Setting - now forces https urls for enqueued scripts and styles 
@@ -172,3 +225,8 @@ For further documentation on using WooCommerce, please sign up for free at http:
 
 = 1.0 - 27/09/2011 = 
 * Initial Release. Woo!
+
+== Upgrade Notice ==
+
+= 1.2 =
+New features, bug fixes and improvements to keep WooCommerce running smoothly.

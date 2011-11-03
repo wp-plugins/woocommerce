@@ -144,11 +144,12 @@ class woocommerce_order {
 	
 	/** Gets subtotal */
 	function get_subtotal_to_display() {
+		global $woocommerce;
 		
 		$subtotal = woocommerce_price($this->order_subtotal);
 		
 		if ($this->order_tax>0) :
-			$subtotal .= __(' <small>(ex. tax)</small>', 'woothemes');
+			$subtotal .= ' <small>'.$woocommerce->countries->ex_tax_or_vat().'</small>';
 		endif;
 		
 		return $subtotal;
@@ -156,12 +157,13 @@ class woocommerce_order {
 	
 	/** Gets shipping */
 	function get_shipping_to_display() {
+		global $woocommerce;
 		
 		if ($this->order_shipping > 0) :
 
 			$shipping = woocommerce_price($this->order_shipping);
 			if ($this->order_shipping_tax > 0) :
-				$tax_text = __('(ex. tax)', 'woothemes') . ' '; 
+				$tax_text = $woocommerce->countries->ex_tax_or_vat() . ' '; 
 			else :
 				$tax_text = '';
 			endif;
@@ -377,7 +379,15 @@ class woocommerce_order {
 				clean_term_cache( '', 'shop_order_status' );
 				
 				// Date
-				if ($new_status->slug=='completed') update_post_meta( $this->id, '_completed_date', current_time('mysql') );
+				if ($new_status->slug=='completed') :
+					update_post_meta( $this->id, '_completed_date', current_time('mysql') );
+				endif;
+				
+				// Sales
+				if ($this->status == 'on-hold' && ($new_status->slug=='processing' || $new_status->slug=='completed')) :
+					$this->record_product_sales();
+				endif;
+				
 			endif;
 		
 		endif;
@@ -403,6 +413,7 @@ class woocommerce_order {
 	 * Most of the time this should mark an order as 'processing' so that admin can process/post the items
 	 * If the cart contains only downloadable items then the order is 'complete' since the admin needs to take no action
 	 * Stock levels are reduced at this point
+	 * Sales are also recorded for products
 	 */
 	function payment_complete() {
 		
@@ -413,6 +424,7 @@ class woocommerce_order {
 		if (sizeof($this->items)>0) foreach ($this->items as $item) :
 		
 			if ($item['id']>0) :
+			
 				$_product = $this->get_product_from_item( $item );
 				
 				if ( $_product->exists && $_product->is_type('downloadable') ) :
@@ -437,8 +449,24 @@ class woocommerce_order {
 		
 		$this->update_status($new_order_status);
 		
-		// Payment is complete so reduce stock levels
+		// Payment is complete so reduce stock levels and record sales
+		$this->record_product_sales();
 		$this->reduce_order_stock();
+		
+	}
+	
+	/**
+	 * Record sales
+	 */
+	function record_product_sales() {
+	
+		if (sizeof($this->items)>0) foreach ($this->items as $item) :
+			if ($item['id']>0) :
+				$sales 	= (int) get_post_meta( $item['id'], 'total_sales', true );
+				$sales += (int) $item['qty'];
+				if ($sales) update_post_meta( $item['id'], 'total_sales', $sales );
+			endif;
+		endforeach;
 		
 	}
 	
@@ -447,38 +475,42 @@ class woocommerce_order {
 	 */
 	function reduce_order_stock() {
 		
-		// Reduce stock levels and do any other actions with products in the cart
-		if (sizeof($this->items)>0) foreach ($this->items as $item) :
+		if (get_option('woocommerce_manage_stock')=='yes' && sizeof($this->items)>0) :
 		
-			if ($item['id']>0) :
-				$_product = $this->get_product_from_item( $item );
-				
-				if ( $_product->exists && $_product->managing_stock() ) :
-				
-					$old_stock = $_product->stock;
+			// Reduce stock levels and do any other actions with products in the cart
+			foreach ($this->items as $item) :
+			
+				if ($item['id']>0) :
+					$_product = $this->get_product_from_item( $item );
 					
-					$new_quantity = $_product->reduce_stock( $item['qty'] );
+					if ( $_product->exists && $_product->managing_stock() ) :
 					
-					$this->add_order_note( sprintf( __('Item #%s stock reduced from %s to %s.', 'woothemes'), $item['id'], $old_stock, $new_quantity) );
+						$old_stock = $_product->stock;
 						
-					if ($new_quantity<0) :
-						do_action('woocommerce_product_on_backorder_notification', $item['id'], $item['qty']);
-					endif;
-					
-					// stock status notifications
-					if (get_option('woocommerce_notify_no_stock_amount') && get_option('woocommerce_notify_no_stock_amount')>=$new_quantity) :
-						do_action('woocommerce_no_stock_notification', $item['id']);
-					elseif (get_option('woocommerce_notify_low_stock_amount') && get_option('woocommerce_notify_low_stock_amount')>=$new_quantity) :
-						do_action('woocommerce_low_stock_notification', $item['id']);
+						$new_quantity = $_product->reduce_stock( $item['qty'] );
+						
+						$this->add_order_note( sprintf( __('Item #%s stock reduced from %s to %s.', 'woothemes'), $item['id'], $old_stock, $new_quantity) );
+							
+						if ($new_quantity<0) :
+							do_action('woocommerce_product_on_backorder_notification', $item['id'], $item['qty']);
+						endif;
+						
+						// stock status notifications
+						if (get_option('woocommerce_notify_no_stock_amount') && get_option('woocommerce_notify_no_stock_amount')>=$new_quantity) :
+							do_action('woocommerce_no_stock_notification', $item['id']);
+						elseif (get_option('woocommerce_notify_low_stock_amount') && get_option('woocommerce_notify_low_stock_amount')>=$new_quantity) :
+							do_action('woocommerce_low_stock_notification', $item['id']);
+						endif;
+						
 					endif;
 					
 				endif;
-				
-			endif;
-		 	
-		endforeach;
+			 	
+			endforeach;
+			
+			$this->add_order_note( __('Order item stock reduced successfully.', 'woothemes') );
 		
-		$this->add_order_note( __('Order item stock reduced successfully.', 'woothemes') );
+		endif;
 			
 	}
 	

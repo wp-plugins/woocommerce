@@ -160,6 +160,14 @@ $woocommerce_settings['pages'] = apply_filters('woocommerce_page_settings', arra
 		'args'		=> 'show_option_none=' . __('None', 'woothemes'),
 	),
 	
+	array(  
+		'name' => __( 'Logout link', 'woothemes' ),
+		'desc' 		=> sprintf(__( 'Append a logout link to menus containing "My Account"', 'woothemes' ), $base_slug),
+		'id' 		=> 'woocommerce_menu_logout_link',
+		'std' 		=> 'yes',
+		'type' 		=> 'checkbox',
+	),
+	
 	array( 'type' => 'sectionend', 'id' => 'page_options' ),
 	
 	array( 'name' => __( 'Permalinks', 'woothemes' ), 'type' => 'title', 'desc' => '', 'id' => 'permalink_options' ),
@@ -636,8 +644,28 @@ $woocommerce_settings['tax'] = apply_filters('woocommerce_tax_settings', array(
 )); // End tax settings
 
 $woocommerce_settings['email'] = apply_filters('woocommerce_email_settings', array(
-
-	array(	'name' => __( 'Email Options', 'woothemes' ), 'type' => 'title', '', 'id' => 'email_options' ),
+	
+	array(	'name' => __( 'Email Recipient Options', 'woothemes' ), 'type' => 'title', '', 'id' => 'email_recipient_options' ),
+	
+	array(  
+		'name' => __( 'New order notifications', 'woothemes' ),
+		'desc' 		=> __( 'The recipient of new order emails. Defaults to the admin email.', 'woothemes' ),
+		'id' 		=> 'woocommerce_new_order_email_recipient',
+		'type' 		=> 'text',
+		'std' 		=> esc_attr(get_option('admin_email'))
+	),
+	
+	array(  
+		'name' => __( 'Inventory notifications', 'woothemes' ),
+		'desc' 		=> __( 'The recipient of stock emails. Defaults to the admin email.', 'woothemes' ),
+		'id' 		=> 'woocommerce_stock_email_recipient',
+		'type' 		=> 'text',
+		'std' 		=> esc_attr(get_option('admin_email'))
+	),
+	
+	array( 'type' => 'sectionend', 'id' => 'email_recipient_options' ),
+	
+	array(	'name' => __( 'Email Sender Options', 'woothemes' ), 'type' => 'title', '', 'id' => 'email_options' ),
 	
 	array(  
 		'name' => __( '"From" name', 'woothemes' ),
@@ -657,7 +685,7 @@ $woocommerce_settings['email'] = apply_filters('woocommerce_email_settings', arr
 	
 	array( 'type' => 'sectionend', 'id' => 'email_options' ),
 	
-	array(	'name' => __( 'Email template', 'woothemes' ), 'type' => 'title', 'desc' => __('This section lets you customise the WooCommerce emails. For more advanced control copy woocommerce/templates/emails/ to yourtheme/woocommmerce/emails/', 'woothemes'), 'id' => 'email_template_options' ),
+	array(	'name' => __( 'Email template', 'woothemes' ), 'type' => 'title', 'desc' => sprintf(__('This section lets you customise the WooCommerce emails. <a href="%s" target="_blank">Click here to preview your email template</a>. For more advanced control copy <code>woocommerce/templates/emails/</code> to <code>yourtheme/woocommmerce/emails/</code>.', 'woothemes'), wp_nonce_url(admin_url('?preview_woocommerce_mail=true'), 'preview-mail')), 'id' => 'email_template_options' ),
 	
 	array(  
 		'name' => __( 'Header image', 'woothemes' ),
@@ -749,9 +777,58 @@ function woocommerce_settings() {
         flush_rewrite_rules( false );
     endif;
     
-    if (isset($_GET['installed']) && $_GET['installed']) :
-    	echo '<div id="message" class="updated fade"><p style="float:right;">' . __( 'Like WooCommerce? <a href="http://wordpress.org/extend/plugins/woocommerce/">Support us by leaving a rating!</a>', 'woothemes' ) . '</p><p><strong>' . __( 'WooCommerce has been installed. Enjoy :)', 'woothemes' ) . '</strong></p></div>';
+    // Install/page installer
+    $install_complete = false;
+    $show_page_installer = false;
+    
+    // Add pages button
+    if (isset($_GET['install_woocommerce_pages']) && $_GET['install_woocommerce_pages']) :
+	    	
+    	woocommerce_create_pages();
+    	update_option('skip_install_woocommerce_pages', 1);
+    	$install_complete = true;
+	
+	// Skip button
+    elseif (isset($_GET['skip_install_woocommerce_pages']) && $_GET['skip_install_woocommerce_pages']) :
+    	
+    	update_option('skip_install_woocommerce_pages', 1);
+    	$install_complete = true;
+    	
+    // If we have just activated WooCommerce...
+    elseif (isset($_GET['installed']) && $_GET['installed']) :
+    	
     	flush_rewrite_rules( false );
+    	
+		if (get_option('woocommerce_shop_page_id')) :
+			$install_complete = true;
+		else :
+			$show_page_installer = true;
+		endif;
+		
+	// If we havn't just installed, but page installed has not been skipped and shop page does not exist...
+	elseif (!get_option('skip_install_woocommerce_pages') && !get_option('woocommerce_shop_page_id')) :
+		
+		$show_page_installer = true;
+		
+	endif;
+	
+	if ($show_page_installer) :
+    	
+    	echo '<div id="message" class="updated fade">
+    		<p><strong>' . __( 'Welcome to WooCommerce!', 'woothemes' ) . '</strong></p>
+    		<p>'. __('WooCommerce requires several WordPress pages containing shortcodes in order to work correctly; these include Shop, Cart, Checkout and My Account. To add these pages automatically please click the \'Automatically add pages\' button below, otherwise you can set them up manually. See the \'Pages\' tab in settings for more information.', 'woothemes') .'</p>
+    		<p><a href="'.remove_query_arg('installed', add_query_arg('install_woocommerce_pages', 'true')).'" class="button button-primary">'. __('Automatically add pages', 'woothemes') .'</a> <a href="'.remove_query_arg('installed', add_query_arg('skip_install_woocommerce_pages', 'true')).'" class="button">'. __('Skip setup', 'woothemes') .'</a></p>
+    	</div>';
+    	
+    elseif ($install_complete) :
+
+    	echo '<div id="message" class="updated fade">
+    		<p style="float:right;">' . __( 'Like WooCommerce? <a href="http://wordpress.org/extend/plugins/woocommerce/">Support us by leaving a rating!</a>', 'woothemes' ) . '</p>
+    		<p><strong>' . __( 'WooCommerce has been installed and setup. Enjoy :)', 'woothemes' ) . '</strong></p>
+    	</div>';
+    	
+    	flush_rewrite_rules( false );
+    	
     endif;
     ?>
 	<div class="wrap woocommerce">

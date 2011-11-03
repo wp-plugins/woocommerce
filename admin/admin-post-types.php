@@ -294,26 +294,80 @@ function woocommerce_custom_product_orderby( $vars ) {
 }
 
 /**
- * Filter products by category
+ * Filter products by category, uses slugs for option values. Code adapted by Andrew Benbow - chromeorange.co.uk
  **/
 add_action('restrict_manage_posts','woocommerce_products_by_category');
 
 function woocommerce_products_by_category() {
     global $typenow, $wp_query;
     if ($typenow=='product') :
-		$terms = get_terms('product_cat', 'pad_counts=1&hierarchal=1');
+		$terms = get_terms('product_cat', 'pad_counts=1&hierarchal=1&hide_empty=1&child_of=0');
 		$output = "<select name='product_cat' id='dropdown_product_cat'>";
 		$output .= '<option value="">'.__('Show all categories', 'woothemes').'</option>';
 		foreach($terms as $term) :
+			if ($term->parent!=0) continue;
+		
+			$depth = woocommerce_get_product_category_depth($term->term_id);
+			
 			if ( isset( $wp_query->query['product_cat'] ) ) :
-				$output .="<option value='$term->slug' ".selected($term->slug, $wp_query->query['product_cat'], false).">$term->name ($term->count)</option>";
+				$output .="<option value='$term->slug' ".selected($term->slug, $wp_query->query['product_cat'], false).">$depth$term->name ($term->count)</option>";
 			else :
-				$output .="<option value='$term->slug'>$term->name ($term->count)</option>";
+				$output .="<option value='$term->slug'>$depth$term->name ($term->count)</option>";
 			endif;
+			$output .= woocommerce_get_product_category_children($term->term_id);
 		endforeach;
 		$output .="</select>";
 		echo $output;
     endif;
+}
+
+function woocommerce_get_product_category_depth( $id = '', $depth = '', $i = '' ) {
+	global $wpdb, $term_taxonomy;
+	
+	if( $depth == '' ) :
+			
+		if( $id == '' ) $id = $term_taxonomy->term_id;			
+			
+		$depth = $wpdb->get_var($wpdb->prepare("SELECT parent FROM $wpdb->term_taxonomy WHERE term_id = '%s'", $id));
+		return woocommerce_get_product_category_depth($id, $depth, $i);
+			
+	elseif( $depth == "0" ) :
+	
+		return $i;
+		
+	else :
+		
+		$depth = $wpdb->get_var($wpdb->prepare("SELECT parent FROM $wpdb->term_taxonomy WHERE term_id = '%s'", $depth));
+		$i .='&nbsp;&nbsp;&nbsp;';
+		return woocommerce_get_product_category_depth($id, $depth, $i);
+		
+	endif;
+}
+
+function woocommerce_get_product_category_children( $id = '' ) {
+	global $wp_query;
+	
+	if (!$id) return;
+	
+	$output = '';
+	
+	$terms = get_terms('product_cat', 'pad_counts=1&hierarchal=1&hide_empty=1&child_of='.esc_attr($id));
+
+	foreach( $terms as $term ) :
+		if ($term->parent!=$id) continue;
+		
+		$depth = woocommerce_get_product_category_depth($term->term_id);
+		
+		if ( isset( $wp_query->query['product_cat'] ) ) :
+			$output .="<option value='$term->slug' ".selected($term->slug, $wp_query->query['product_cat'], false).">$depth$term->name ($term->count)</option>";
+		else :
+			$output .="<option value='$term->slug'>$depth$term->name ($term->count)</option>";
+		endif;
+		$output .= woocommerce_get_product_category_children($term->term_id);
+		
+	endforeach;
+
+	return $output;
 }
 
 
@@ -400,6 +454,7 @@ function woocommerce_edit_order_columns($columns){
 	$columns["shipping_address"] = __("Shipping", 'woothemes');
 	$columns["total_cost"] = __("Order Total", 'woothemes');
 	$columns["order_date"] = __("Date", 'woothemes');
+	$columns["order_actions"] = __("Actions", 'woothemes');
 	
 	return $columns;
 }
@@ -496,6 +551,15 @@ function woocommerce_custom_order_columns($column) {
 			endif;
 
 			echo '<abbr title="' . $t_time . '">' . apply_filters( 'post_date_column_time', $h_time, $post ) . '</abbr>';
+			
+		break;
+		case "order_actions" :
+			
+			?><p>
+				<?php if (in_array($order->status, array('pending', 'on-hold'))) : ?><a class="button" href="<?php echo wp_nonce_url( admin_url('admin-ajax.php?action=woocommerce-mark-order-processing&order_id=' . $post->ID) ); ?>"><?php _e('Processing', 'woothemes'); ?></a><?php endif; ?>
+				<?php if (in_array($order->status, array('pending', 'on-hold', 'processing'))) : ?><a class="button" href="<?php echo wp_nonce_url( admin_url('admin-ajax.php?action=woocommerce-mark-order-complete&order_id=' . $post->ID) ); ?>"><?php _e('Complete', 'woothemes'); ?></a><?php endif; ?>
+				<a class="button" href="<?php echo admin_url('post.php?post='.$post->ID.'&action=edit'); ?>"><?php _e('View', 'woothemes'); ?></a>
+			</p><?php
 			
 		break;
 	}
@@ -674,6 +738,45 @@ function woocommerce_post_updated_messages( $messages ) {
    	endif;
     return $messages;
 }
+
+
+/**
+ * Mark an order as complete
+ */
+function woocommerce_mark_order_complete() {
+
+	if( !is_admin() ) die;
+	if( !current_user_can('edit_posts') ) wp_die( __('You do not have sufficient permissions to access this page.') );
+	if( !check_admin_referer()) wp_die( __('You have taken too long. Please go back and retry.', 'woothemes') );
+	$order_id = isset($_GET['order_id']) && (int) $_GET['order_id'] ? (int) $_GET['order_id'] : '';
+	if(!$order_id) die;
+	
+	$order = &new woocommerce_order( $order_id );
+	$order->update_status( 'completed' );
+	
+	wp_safe_redirect( wp_get_referer() );
+
+}
+add_action('wp_ajax_woocommerce-mark-order-complete', 'woocommerce_mark_order_complete');
+
+/**
+ * Mark an order as processing
+ */
+function woocommerce_mark_order_processing() {
+
+	if( !is_admin() ) die;
+	if( !current_user_can('edit_posts') ) wp_die( __('You do not have sufficient permissions to access this page.') );
+	if( !check_admin_referer()) wp_die( __('You have taken too long. Please go back and retry.', 'woothemes') );
+	$order_id = isset($_GET['order_id']) && (int) $_GET['order_id'] ? (int) $_GET['order_id'] : '';
+	if(!$order_id) die;
+	
+	$order = &new woocommerce_order( $order_id );
+	$order->update_status( 'processing' );
+	
+	wp_safe_redirect( wp_get_referer() );
+
+}
+add_action('wp_ajax_woocommerce-mark-order-processing', 'woocommerce_mark_order_processing');
 
 
 /**

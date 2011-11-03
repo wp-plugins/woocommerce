@@ -29,17 +29,14 @@ class woocommerce_cart {
 	
 	/** constructor */
 	function __construct() {
-		add_action('init', array(&$this, 'init'), 1);
+		add_action('init', array(&$this, 'init'), 1);				// Get cart on init
+		add_action('wp', array(&$this, 'calculate_totals'), 1);		// Defer calculate totals so we can detect page
 	}
     
     function init () {
   		$this->applied_coupons = array();
-		
 		$this->get_cart_from_session();
-		
 		if ( isset($_SESSION['coupons']) ) $this->applied_coupons = $_SESSION['coupons'];
-		
-		$this->calculate_totals();
     }
 	
 	/** Gets the cart data from the PHP session */
@@ -79,15 +76,35 @@ class woocommerce_cart {
 	/** sets the php session data for the cart and coupon */
 	function set_session() {
 		$cart = array();
-
-		$_SESSION['cart'] = $this->cart_contents;
 		
+		// Set cart and coupon session data
+		$_SESSION['cart'] = $this->cart_contents;
 		$_SESSION['coupons'] = $this->applied_coupons;
+		
+		// Cart contents change so reset shipping
+		unset($_SESSION['_chosen_shipping_method']);
+		
+		// Calculate totals
 		$this->calculate_totals();
 	}
 	
 	/** Empty the cart */
 	function empty_cart() {
+	
+		$this->cart_contents = array();
+		$this->total = 0;
+		$this->cart_contents_total = 0;
+		$this->cart_contents_total_ex_tax = 0;
+		$this->cart_contents_weight = 0;
+		$this->cart_contents_count = 0;
+		$this->cart_contents_tax = 0;
+		$this->tax_total = 0;
+		$this->shipping_tax_total = 0;
+		$this->subtotal = 0;
+		$this->subtotal_ex_tax = 0;
+		$this->discount_total = 0;
+		$this->shipping_total = 0;
+		
 		unset($_SESSION['cart']);
 		unset($_SESSION['coupons']);
 	}
@@ -390,23 +407,53 @@ class woocommerce_cart {
 					
 				endif;
 
-				$tax_amount 				= ( isset($tax_amount) ? $tax_amount : 0 );
+				$tax_amount = ( isset($tax_amount) ? $tax_amount : 0 );
 				
-				$this->cart_contents_tax = $this->cart_contents_tax + $tax_amount;
-								
+				$this->cart_contents_tax = $this->cart_contents_tax + $tax_amount;			
 				$this->cart_contents_total = $this->cart_contents_total + $total_item_price;
 				$this->cart_contents_total_ex_tax = $this->cart_contents_total_ex_tax + ($_product->get_price_excluding_tax()*$values['quantity']);
 				
 				// Product Discounts
 				if ($this->applied_coupons) foreach ($this->applied_coupons as $code) :
 					$coupon = &new woocommerce_coupon( $code );
-					if ((in_array($values['product_id'], $coupon->product_ids) || in_array($values['variation_id'], $coupon->product_ids))) :
+					
+					$this_item_is_discounted = false;
+					
+					// Specific product ID's get the discount
+					if (sizeof($coupon->product_ids)>0) :
+						
+						if ((in_array($values['product_id'], $coupon->product_ids) || in_array($values['variation_id'], $coupon->product_ids))) :
+							$this_item_is_discounted = true;
+						endif;
+					
+					else :
+						
+						// No product ids - all items discounted
+						$this_item_is_discounted = true;
+					
+					endif;
+					
+					// Specific product ID's excluded from the discount
+					if (sizeof($coupon->exclude_product_ids)>0) :
+						
+						if ((in_array($values['product_id'], $coupon->exclude_product_ids) || in_array($values['variation_id'], $coupon->exclude_product_ids))) :
+							$this_item_is_discounted = false;
+						endif;
+						
+					endif;
+					
+					// Apply filter
+					$this_item_is_discounted = apply_filters( 'woocommerce_item_is_discounted', $this_item_is_discounted, $values );
+					
+					// Apply the discount
+					if ($this_item_is_discounted) :
 						if ($coupon->type=='fixed_product') :
 							$this->discount_total = $this->discount_total + ( $coupon->amount * $values['quantity'] );
 						elseif ($coupon->type=='percent_product') :
 							$this->discount_total = $this->discount_total + ( $total_item_price / 100 ) * $coupon->amount;
 						endif;
 					endif;
+					
 				endforeach;
 				
 			endif;
@@ -417,14 +464,25 @@ class woocommerce_cart {
 		$this->subtotal_ex_tax 		= $this->cart_contents_total_ex_tax;		// Subtotal without tax
 		$this->subtotal 			= $this->cart_contents_total;				// Subtotal
 		
+		// Only go beyond this point if on the cart/checkout
+		if (!is_checkout() && !is_cart() && !defined('WOOCOMMERCE_CHECKOUT') && !is_ajax()) return;
+		
 		// Cart Discounts
 		if ($this->applied_coupons) foreach ($this->applied_coupons as $code) :
 			$coupon = &new woocommerce_coupon( $code );
 			if ($coupon->is_valid()) :
 				if ($coupon->type=='fixed_cart') : 
+				
 					$this->discount_total = $this->discount_total + $coupon->amount;
+					
 				elseif ($coupon->type=='percent') :
-					$this->discount_total = $this->discount_total + ( $this->subtotal / 100 ) * $coupon->amount;
+
+					if (get_option('woocommerce_prices_include_tax')=='yes') :
+						$this->discount_total = $this->discount_total + ( $this->subtotal / 100 ) * $coupon->amount;
+					else :
+						$this->discount_total = $this->discount_total + ( ($this->subtotal + $this->cart_contents_tax) / 100 ) * $coupon->amount;
+					endif;
+					
 				endif;
 			endif;
 		endforeach;
@@ -466,6 +524,7 @@ class woocommerce_cart {
 	
 	/** gets the sub total (after calculation) */
 	function get_cart_subtotal() {
+		global $woocommerce;
 		
 		if (get_option('woocommerce_display_totals_tax')=='excluding' || ( defined('WOOCOMMERCE_CHECKOUT') && WOOCOMMERCE_CHECKOUT )) :
 			
@@ -480,7 +539,7 @@ class woocommerce_cart {
 			endif;
 			
 			if ($this->tax_total>0) :
-				$return .= __(' <small>(ex. tax)</small>', 'woothemes');
+				$return .= ' <small>'.$woocommerce->countries->ex_tax_or_vat().'</small>';
 			endif;
 			return $return;
 			
@@ -497,7 +556,7 @@ class woocommerce_cart {
 			endif;
 			
 			if ($this->tax_total>0) :
-				$return .= __(' <small>(inc. tax)</small>', 'woothemes');
+				$return .= ' <small>'.$woocommerce->countries->inc_tax_or_vat().'</small>';
 			endif;
 			return $return;
 		
@@ -523,7 +582,7 @@ class woocommerce_cart {
 					
 					$return = woocommerce_price($woocommerce->shipping->shipping_total);
 					if ($this->shipping_tax_total>0) :
-						$return .= __(' <small>(ex. tax)</small>', 'woothemes');
+						$return .= ' <small>'.$woocommerce->countries->ex_tax_or_vat().'</small>';
 					endif;
 					return $return;
 					
@@ -531,7 +590,7 @@ class woocommerce_cart {
 					
 					$return = woocommerce_price($woocommerce->shipping->shipping_total + $woocommerce->shipping->shipping_tax);
 					if ($this->shipping_tax_total>0) :
-						$return .= __(' <small>(inc. tax)</small>', 'woothemes');
+						$return .= ' <small>'.$woocommerce->countries->inc_tax_or_vat().'</small>';
 					endif;
 					return $return;
 				
