@@ -62,14 +62,11 @@ function woocommerce_cart( $atts ) {
 			
 	endif;
 	
-	$result = $woocommerce->cart->check_cart_item_stock();
-	if (is_wp_error($result)) :
-		$woocommerce->add_error( $result->get_error_message() );
-	endif;
+	do_action('woocommerce_check_cart_items');
 	
 	$woocommerce->show_messages();
 	
-	if (sizeof($woocommerce->cart->cart_contents)==0) :
+	if (sizeof($woocommerce->cart->get_cart())==0) :
 		echo '<p>'.__('Your cart is currently empty.', 'woothemes').'</p>';
 		do_action('woocommerce_cart_is_empty');
 		echo '<p><a class="button" href="'.get_permalink(get_option('woocommerce_shop_page_id')).'">'.__('&larr; Return To Shop', 'woothemes').'</a></p>';
@@ -91,8 +88,8 @@ function woocommerce_cart( $atts ) {
 		</thead>
 		<tbody>
 			<?php
-			if (sizeof($woocommerce->cart->cart_contents)>0) : 
-				foreach ($woocommerce->cart->cart_contents as $cart_item_key => $values) :
+			if (sizeof($woocommerce->cart->get_cart())>0) : 
+				foreach ($woocommerce->cart->get_cart() as $cart_item_key => $values) :
 					$_product = $values['data'];
 					if ($_product->exists() && $values['quantity']>0) :
 					
@@ -102,23 +99,15 @@ function woocommerce_cart( $atts ) {
 							<td class="product-thumbnail">
 								<a href="<?php echo esc_url( get_permalink($values['product_id']) ); ?>">
 								<?php 
-									if ($values['variation_id'] && has_post_thumbnail($values['variation_id'])) :
-										echo get_the_post_thumbnail($values['variation_id'], 'shop_thumbnail'); 
-									elseif (has_post_thumbnail($values['product_id'])) :
-										echo get_the_post_thumbnail($values['product_id'], 'shop_thumbnail'); 
-									else :
-										echo '<img src="'.$woocommerce->plugin_url(). '/assets/images/placeholder.png" alt="Placeholder" width="'.$woocommerce->get_image_size('shop_thumbnail_image_width').'" height="'.$woocommerce->get_image_size('shop_thumbnail_image_height').'" />'; 
-									endif;
+									echo $_product->get_image();
 								?>
 								</a>
 							</td>
 							<td class="product-name">
 								<a href="<?php echo esc_url( get_permalink($values['product_id']) ); ?>"><?php echo $_product->get_title(); ?></a>
 								<?php
-									// Variation data
-									if($_product instanceof woocommerce_product_variation && is_array($values['variation'])) :
-                            			echo woocommerce_get_formatted_variation( $values['variation'] );
-                       				endif;
+									// Meta data
+									echo $woocommerce->cart->get_item_data( $values );
                        				
                        				// Backorder notification
                        				if ($_product->backorders_require_notification() && $_product->total_stock<1) echo '<p class="backorder_notification">'.__('Available on backorder.', 'woothemes').'</p>';

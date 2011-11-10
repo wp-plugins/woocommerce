@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, store, sh
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.1
 Tested up to: 3.3
-Stable tag: 1.2
+Stable tag: 1.2.1
 
 An e-commerce toolkit that helps you sell anything. Beautifully.
 
@@ -82,6 +82,33 @@ Yes you can! Join in on our GitHub repository :) https://github.com/woothemes/wo
 
 == Changelog ==
 
+= 1.2.1 - 10/11/2011 =
+* Reworked downloadable and virtual products - now variations can be downloadable/virtual too making it more flexible
+* My account/login widget
+* Added shortcode insertion button to the post editor
+* Shortcode for products by category (slug)
+* Option to enable/disable ajax add to cart buttons
+* Widget for showing onsale products
+* Signup/login can be turned off for checkout
+* Paypal remote post now has 'sslverify' => false to prevent errors with CURL
+* Minor admin settings tidyup
+* Dutch translation has been updated
+* Cart is now more robust and supports custom data being stored, such as addons
+* Fix for 0 quantity
+* add_to_cart shortcode
+* Improved order search
+* Option to unforce SSL checkout
+* Support for X-Accel-Redirect / X-Sendfile for downloads
+* Customer new account email when signing up from the checkout
+* Attributes can be added to nav bar via filter
+* External/Affiliate product type
+* Added Spanish translation by lluis masachs
+* Support for informal/formal localisations
+* Directory changed for uploading file downloads - uploads/woocommerce_files
+* Download directory created on install as well as htaccess for denying access
+* Formal and informal German translations - thanks to stefahn, jessor, Ramoonus , owcv and deckerweb 
+* Hook for checking cart contents during cart/checkout - used for plugins too
+
 = 1.2 - 03/11/2011 =
 * Added quick status change buttons (processing/complete) to orders panel
 * Ability to preview email templates
@@ -109,6 +136,7 @@ Yes you can! Join in on our GitHub repository :) https://github.com/woothemes/wo
 * Dashboard chart now ignores 'pending' orders
 * Fixed dashboard report range
 * Added hooks to gateway icons
+* Added Dutch translation by [Ramoonus](http://www.ramoonus.nl/)
 
 = 1.1.3 - 27/10/2011 =
 * Improved Force SSL Setting - now forces https urls for enqueued scripts and styles 
@@ -227,6 +255,9 @@ Yes you can! Join in on our GitHub repository :) https://github.com/woothemes/wo
 * Initial Release. Woo!
 
 == Upgrade Notice ==
+
+= 1.2.1 =
+This version has improved product types - ensure you de/re-activate the theme to ensure existing products get converted correctly.
 
 = 1.2 =
 New features, bug fixes and improvements to keep WooCommerce running smoothly.

@@ -80,6 +80,8 @@ function woocommerce_admin_scripts() {
 	// Product/Coupon/Orders
 	if (in_array( $screen->id, array( 'shop_coupon', 'shop_order', 'product' ))) :
 		
+		global $post;
+		
 		wp_enqueue_script( 'woocommerce_writepanel' );
 		wp_enqueue_script( 'jquery-ui-datepicker' );
 		wp_enqueue_script( 'media-upload' );
@@ -102,7 +104,8 @@ function woocommerce_admin_scripts() {
 			'ajax_url' 						=> admin_url('admin-ajax.php'),
 			'add_order_item_nonce' 			=> wp_create_nonce("add-order-item"),
 			'upsell_crosssell_search_products_nonce' => wp_create_nonce("search-products"),
-			'calendar_image'				=> $woocommerce->plugin_url().'/assets/images/calendar.png'
+			'calendar_image'				=> $woocommerce->plugin_url().'/assets/images/calendar.png',
+			'post_id'						=> $post->ID
 		 );
 					 
 		wp_localize_script( 'woocommerce_writepanel', 'woocommerce_writepanel_params', $woocommerce_witepanel_params );
@@ -248,81 +251,6 @@ function woocommerce_term_ordering() {
 	}
 }
 add_action('wp_ajax_woocommerce-term-ordering', 'woocommerce_term_ordering');
-
-/**
- * Search by SKU or ID for products. Adapted from code by BenIrvin (Admin Search by ID)
- */
-if (is_admin()) :
-	add_action('parse_request', 'woocommerce_admin_product_search');
-	add_filter( 'get_search_query', 'woocommerce_admin_id_search_label' );
-endif;
-
-function woocommerce_admin_product_search( $wp ) {
-    global $pagenow, $wpdb;
-	
-	if( 'edit.php' != $pagenow ) return;
-	if( !isset( $wp->query_vars['s'] ) ) return;
-	if ($wp->query_vars['post_type']!='product') return;
-
-	if( '#' == substr( $wp->query_vars['s'], 0, 1 ) ) :
-
-		$id = absint( substr( $wp->query_vars['s'], 1 ) );
-			
-		if( !$id ) return; 
-		
-		unset( $wp->query_vars['s'] );
-		$wp->query_vars['p'] = $id;
-		
-	elseif( 'SKU:' == substr( $wp->query_vars['s'], 0, 4 ) ) :
-		
-		$sku = trim( substr( $wp->query_vars['s'], 4 ) );
-			
-		if( !$sku ) return; 
-		
-		$id = $wpdb->get_var('SELECT post_id FROM '.$wpdb->postmeta.' WHERE meta_key="sku" AND meta_value LIKE "%'.$sku.'%";');
-		
-		if( !$id ) return; 
-
-		unset( $wp->query_vars['s'] );
-		$wp->query_vars['p'] = $id;
-		$wp->query_vars['sku'] = $sku;
-		
-	endif;
-}
-
-function woocommerce_admin_id_search_label($query) {
-	global $pagenow;
-
-    if( 'edit.php' != $pagenow ) return;
-	
-	$s =  get_query_var( 's' );
-	if($s) return $query;
-	
-	$sku = get_query_var( 'sku' );
-	if($sku) {
-		global $wp;
-		$post_type = get_post_type_object($wp->query_vars['post_type']);
-		
-		return sprintf(__("[%s with SKU of %s]", 'woothemes'), $post_type->labels->singular_name, $sku);
-	}
-	
-	$p = get_query_var( 'p' );
-	if($p) {
-		global $wp;
-		$post_type = get_post_type_object($wp->query_vars['post_type']);
-		
-		return sprintf(__("[%s with ID of %d]", 'woothemes'), $post_type->labels->singular_name, $p);
-	}
-	
-	return $query;
-}
-
-add_filter('query_vars', 'woocommerce_add_sku_var');
-function woocommerce_add_sku_var($public_query_vars) {
-	$public_query_vars[] = 'sku';
-	return $public_query_vars;
-}
-
 
 
 /**
@@ -537,4 +465,34 @@ function woocommerce_delete_product_sync( $id ) {
 	
 	endif;
 	
+}
+
+/**
+ * Directory for uploads
+ * 
+ */
+add_filter('upload_dir', 'woocommerce_downloads_upload_dir');
+
+function woocommerce_downloads_upload_dir( $pathdata ) {
+	
+	if (isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER']) :
+		
+		$args = wp_parse_args( $_SERVER['HTTP_REFERER'] );
+		extract( $args, EXTR_SKIP );
+		
+		if ($from =='wc01') :
+			
+			// Uploading a downloadable file
+			$subdir = '/woocommerce_uploads'.$pathdata['subdir'];
+		 	$pathdata['path'] = str_replace($pathdata['subdir'], $subdir, $pathdata['path']);
+		 	$pathdata['url'] = str_replace($pathdata['subdir'], $subdir, $pathdata['url']);
+			$pathdata['subdir'] = str_replace($pathdata['subdir'], $subdir, $pathdata['subdir']);
+			return $pathdata;
+			
+		endif;
+		
+	endif;
+	
+	return $pathdata;
+
 }

@@ -46,19 +46,16 @@ class WooCommerce_Widget_Cart extends WP_Widget {
 		if ( $title ) echo $before_title . $title . $after_title;
 		
 		echo '<ul class="cart_list product_list_widget">';
-		if (sizeof($woocommerce->cart->cart_contents)>0) : foreach ($woocommerce->cart->cart_contents as $cart_item_key => $cart_item) :
+		if (sizeof($woocommerce->cart->get_cart())>0) : foreach ($woocommerce->cart->get_cart() as $cart_item_key => $cart_item) :
 			$_product = $cart_item['data'];
 			if ($_product->exists() && $cart_item['quantity']>0) :
 				echo '<li><a href="'.get_permalink($cart_item['product_id']).'">';
 				
-				if (has_post_thumbnail($cart_item['product_id'])) echo get_the_post_thumbnail($cart_item['product_id'], 'shop_thumbnail'); 
-				else echo '<img src="'.$woocommerce->plugin_url(). '/assets/images/placeholder.png" alt="Placeholder" width="'.$woocommerce->get_image_size('shop_thumbnail_image_width').'" height="'.$woocommerce->get_image_size('shop_thumbnail_image_height').'" />'; 
+				echo $_product->get_image();
 				
 				echo apply_filters('woocommerce_cart_widget_product_title', $_product->get_title(), $_product).'</a>';
 				
-				if($_product instanceof woocommerce_product_variation && is_array($cart_item['variation'])) :
-        			echo woocommerce_get_formatted_variation( $cart_item['variation'] );
-   				endif;
+   				echo $woocommerce->cart->get_item_data( $cart_item );
 				
 				echo '<span class="quantity">' .$cart_item['quantity'].' &times; '.woocommerce_price($_product->get_price()).'</span></li>';
 			endif;
@@ -66,7 +63,7 @@ class WooCommerce_Widget_Cart extends WP_Widget {
 		else: echo '<li class="empty">'.__('No products in the cart.', 'woothemes').'</li>'; endif;
 		echo '</ul>';
 		
-		if (sizeof($woocommerce->cart->cart_contents)>0) :
+		if (sizeof($woocommerce->cart->get_cart())>0) :
 			echo '<p class="total"><strong>';
 			
 			if (get_option('js_prices_include_tax')=='yes') :

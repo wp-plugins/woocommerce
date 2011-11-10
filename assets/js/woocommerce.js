@@ -1,56 +1,69 @@
 jQuery(document).ready(function($) {
 	
-	// Ajax add to cart
-	$('.add_to_cart_button').live('click', function() {
-		
-		// AJAX add to cart request
-		var thisbutton = $(this);
-		
-		if (thisbutton.is('.product_type_simple, .product_type_downloadable, .product_type_virtual')) {
+	if (woocommerce_params.option_ajax_add_to_cart=='yes') {
 	
-			$(thisbutton).addClass('loading');
+		// Ajax add to cart
+		$('.add_to_cart_button').live('click', function() {
 			
-			var data = {
-				action: 		'woocommerce_add_to_cart',
-				product_id: 	$(thisbutton).attr('rel'),
-				security: 		woocommerce_params.add_to_cart_nonce
-			};
+			// AJAX add to cart request
+			var thisbutton = $(this);
 			
-			// Trigger event
-			$('body').trigger('adding_to_cart');
-			
-			// Ajax action
-			$.post( woocommerce_params.ajax_url, data, function(response) {
+			if (thisbutton.is('.product_type_simple, .product_type_downloadable, .product_type_virtual')) {
+		
+				$(thisbutton).addClass('loading');
 				
-				// Get response
-				data = $.parseJSON( response );
+				var data = {
+					action: 		'woocommerce_add_to_cart',
+					product_id: 	$(thisbutton).attr('rel'),
+					security: 		woocommerce_params.add_to_cart_nonce
+				};
 				
-				if (data.error) {
-					alert(data.error);
+				// Trigger event
+				$('body').trigger('adding_to_cart');
+				
+				// Ajax action
+				$.post( woocommerce_params.ajax_url, data, function(response) {
+					
 					$(thisbutton).removeClass('loading');
-					return;
-				}
-				
-				fragments = data;
-
-				// Block fragments class
-				if (fragments) {
-					$.each(fragments, function(key, value) {
-						$(key).addClass('updating');
-					});
-				}
-				
-				// Block widgets and fragments
-				$('.widget_shopping_cart, .shop_table.cart, .updating, .cart_totals').fadeTo('400', '0.6').block({message: null, overlayCSS: {background: 'transparent url(' + woocommerce_params.plugin_url + '/assets/images/ajax-loader.gif) no-repeat center', opacity: 0.6}});
-				
-				// Changes button classes
-				$(thisbutton).addClass('added');
-				$(thisbutton).removeClass('loading');
-
-				// Cart widget load
-				if ($('.widget_shopping_cart').size()>0) {
-					$('.widget_shopping_cart:eq(0)').load( window.location + ' .widget_shopping_cart:eq(0) > *', function() {
-						
+	
+					// Get response
+					data = $.parseJSON( response );
+					
+					if (data.error) {
+						alert(data.error);
+						return;
+					}
+					
+					fragments = data;
+	
+					// Block fragments class
+					if (fragments) {
+						$.each(fragments, function(key, value) {
+							$(key).addClass('updating');
+						});
+					}
+					
+					// Block widgets and fragments
+					$('.widget_shopping_cart, .shop_table.cart, .updating, .cart_totals').fadeTo('400', '0.6').block({message: null, overlayCSS: {background: 'transparent url(' + woocommerce_params.plugin_url + '/assets/images/ajax-loader.gif) no-repeat center', opacity: 0.6}});
+					
+					// Changes button classes
+					$(thisbutton).addClass('added');
+	
+					// Cart widget load
+					if ($('.widget_shopping_cart').size()>0) {
+						$('.widget_shopping_cart:eq(0)').load( window.location + ' .widget_shopping_cart:eq(0) > *', function() {
+							
+							// Replace fragments
+							if (fragments) {
+								$.each(fragments, function(key, value) {
+									$(key).replaceWith(value);
+								});
+							}
+							
+							// Unblock
+							$('.widget_shopping_cart, .updating').css('opacity', '1').unblock();
+						} );
+					} else {
 						// Replace fragments
 						if (fragments) {
 							$.each(fragments, function(key, value) {
@@ -60,46 +73,35 @@ jQuery(document).ready(function($) {
 						
 						// Unblock
 						$('.widget_shopping_cart, .updating').css('opacity', '1').unblock();
-					} );
-				} else {
-					// Replace fragments
-					if (fragments) {
-						$.each(fragments, function(key, value) {
-							$(key).replaceWith(value);
-						});
 					}
 					
-					// Unblock
-					$('.widget_shopping_cart, .updating').css('opacity', '1').unblock();
-				}
-				
-				// Cart page elements
-				$('.shop_table.cart').load( window.location + ' .shop_table.cart:eq(0) > *', function() {
+					// Cart page elements
+					$('.shop_table.cart').load( window.location + ' .shop_table.cart:eq(0) > *', function() {
+						
+						$("div.quantity:not(.buttons_added), td.quantity:not(.buttons_added)").addClass('buttons_added').append('<input type="button" value="+" id="add1" class="plus" />').prepend('<input type="button" value="-" id="minus1" class="minus" />');
+						
+						$('.shop_table.cart').css('opacity', '1').unblock();
+						
+					});
 					
-					$("div.quantity:not(.buttons_added), td.quantity:not(.buttons_added)").addClass('buttons_added').append('<input type="button" value="+" id="add1" class="plus" />').prepend('<input type="button" value="-" id="minus1" class="minus" />');
+					$('.cart_totals').load( window.location + ' .cart_totals:eq(0) > *', function() {
+						$('.cart_totals').css('opacity', '1').unblock();
+					});
 					
-					$('.shop_table.cart').css('opacity', '1').unblock();
-					
-				});
-				
-				
-				$('.cart_totals').load( window.location + ' .cart_totals:eq(0) > *', function() {
-					$('.cart_totals').css('opacity', '1').unblock();
-				});
-				
-				
-				// Trigger event so themes can refresh other areas
-				$('body').trigger('added_to_cart');
-		
-			});
+					// Trigger event so themes can refresh other areas
+					$('body').trigger('added_to_cart');
 			
-			return false;
-		
-		} else {
-			return true;
-		}
-		
-	});
+				});
+				
+				return false;
+			
+			} else {
+				return true;
+			}
+			
+		});
+	
+	}
 	
 	// Orderby
 	$('select.orderby').change(function(){
@@ -110,9 +112,10 @@ jQuery(document).ready(function($) {
 	$('#rating').hide().before('<p class="stars"><span><a class="star-1" href="#">1</a><a class="star-2" href="#">2</a><a class="star-3" href="#">3</a><a class="star-4" href="#">4</a><a class="star-5" href="#">5</a></span></p>');
 	
 	$('p.stars a').click(function(){
-		$('#rating').val($(this).text());
+		var star = $(this);
+		$('#rating').val( star.text() );
 		$('p.stars a').removeClass('active');
-		$(this).addClass('active');
+		star.addClass('active');
 		return false;
 	});
 
@@ -120,20 +123,11 @@ jQuery(document).ready(function($) {
 	var min_price = $('.price_slider_amount #min_price').val();
 	var max_price = $('.price_slider_amount #max_price').val();
 	
-	if (woocommerce_params.min_price) {
-		current_min_price = woocommerce_params.min_price;
-	} else {
-		current_min_price = min_price;
-	}
+	current_min_price = parseInt(min_price);
+	current_max_price = parseInt(max_price);
 	
-	if (woocommerce_params.max_price) {
-		current_max_price = woocommerce_params.max_price;
-	} else {
-		current_max_price = max_price;
-	}
-	
-	current_min_price = parseInt(current_min_price);
-	current_max_price = parseInt(current_max_price);
+	if (woocommerce_params.min_price) current_min_price = parseInt(woocommerce_params.min_price);
+	if (woocommerce_params.max_price) current_max_price = parseInt(woocommerce_params.max_price);
 	
 	$('.price_slider').slider({
 		range: true,
@@ -175,23 +169,16 @@ jQuery(document).ready(function($) {
 	// Quantity buttons
 	$("div.quantity:not(.buttons_added), td.quantity:not(.buttons_added)").addClass('buttons_added').append('<input type="button" value="+" id="add1" class="plus" />').prepend('<input type="button" value="-" id="minus1" class="minus" />');
 	
-	$(".plus").live('click', function()
-	{
+	$(".plus").live('click', function() {
 	    var currentVal = parseInt($(this).prev(".qty").val());
-	   
 	    if (!currentVal || currentVal=="" || currentVal == "NaN") currentVal = 0;
-	    
 	    $(this).prev(".qty").val(currentVal + 1); 
 	});
 	
-	$(".minus").live('click', function()
-	{
+	$(".minus").live('click', function() {
 	    var currentVal = parseInt($(this).next(".qty").val());
-	    if (currentVal == "NaN") currentVal = 1;
-	    if (currentVal > 1)
-	    {
-	        $(this).next(".qty").val(currentVal - 1);
-	   }
+	    if (!currentVal || currentVal=="" || currentVal == "NaN") currentVal = 1;
+	    if (currentVal > 0)  $(this).next(".qty").val(currentVal - 1);
 	});
 	
 	/* states */
@@ -205,6 +192,8 @@ jQuery(document).ready(function($) {
 		
 		var input_name = $(state_box).attr('name');
 		var input_id = $(state_box).attr('id');
+		
+		var value = $(state_box).val();
 
 		if (states[country]) {
 			var options = '';
@@ -218,6 +207,8 @@ jQuery(document).ready(function($) {
 				state_box = $('#' + $(this).attr('rel'));
 			}
 			$(state_box).html(options);
+			
+			$(state_box).val(value);
 		} else {
 			if ($(state_box).is('select')) {
 				$(state_box).replaceWith('<input type="text" placeholder="' + woocommerce_params.state_text + '" name="' + input_name + '" id="' + input_id + '" />');
@@ -230,14 +221,14 @@ jQuery(document).ready(function($) {
 	/* Tabs */
 	$('div.woocommerce_tabs .panel').hide();
 	$('div.woocommerce_tabs ul.tabs li a').click(function(){
-	
-		var tabs_wrapper = $(this).closest('div.woocommerce_tabs');
-		var href = $(this).attr('href');
 		
-		$('ul.tabs li.active', tabs_wrapper).removeClass('active');
+		var tab = $(this);
+		var tabs_wrapper = tab.closest('div.woocommerce_tabs');
+		
+		$('ul.tabs li', tabs_wrapper).removeClass('active');
 		$('div.panel', tabs_wrapper).hide();
-		$('div' + href).show();
-		$(this).parent().addClass('active');
+		$('div' + tab.attr('href')).show();
+		tab.parent().addClass('active');
 		
 		return false;	
 	});
@@ -254,13 +245,10 @@ jQuery(document).ready(function($) {
 	$('.shipping-calculator-form').hide();
 	
 	$('.shipping-calculator-button').click(function() {
-	  $('.shipping-calculator-form').slideToggle('slow', function() {
-	    // Animation complete.
-	 });
+	  $('.shipping-calculator-form').slideToggle('slow');
 	}); 
 	
 	// Stop anchors moving the viewport
-
 	$(".shipping-calculator-button").click(function() {return false;});
 	
 	// Variations
@@ -410,7 +398,7 @@ jQuery(document).ready(function($) {
         $('.single_variation').text('');
 		check_variations();
 		$(this).blur();
-		if($.isFunction($.uniform.update)) {
+		if( $().uniform && $.isFunction($.uniform.update) ) {
 			$.uniform.update();
 		}
 		

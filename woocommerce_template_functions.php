@@ -56,7 +56,7 @@ if (!function_exists('woocommerce_template_loop_add_to_cart')) {
 	function woocommerce_template_loop_add_to_cart( $post, $_product ) {
 	
 		// No price set - so no button
-		if( $_product->get_price() === '') return;
+		if( $_product->get_price() === '' && $_product->product_type!=='external') return;
 		
 		if (!$_product->is_in_stock()) :
 			echo '<a href="'.get_permalink($post->ID).'" class="button">'.__('Read More', 'woothemes').'</a>';
@@ -71,6 +71,10 @@ if (!function_exists('woocommerce_template_loop_add_to_cart')) {
 			case "grouped" :
 				$link 	= get_permalink($post->ID);
 				$label 	= apply_filters('grouped_add_to_cart_text', __('View options', 'woothemes'));
+			break;
+			case "external" :
+				$link 	= get_permalink($post->ID);
+				$label 	= apply_filters('external_add_to_cart_text', __('Read More', 'woothemes'));
 			break;
 			default :
 				$link 	= esc_url( $_product->add_to_cart_url() );
@@ -282,39 +286,24 @@ if (!function_exists('woocommerce_simple_add_to_cart')) {
 		
 		// Don't show cart if out of stock
 		if (!$_product->is_in_stock()) return;
-		?>			
+		?>
+		<?php do_action('woocommerce_before_add_to_cart_form'); ?>
+			
 		<form action="<?php echo esc_url( $_product->add_to_cart_url() ); ?>" class="cart" method="post">
-		 	<div class="quantity"><input name="quantity" value="1" size="4" title="Qty" class="input-text qty text" maxlength="12" /></div>
+		 	
+		 	<?php do_action('woocommerce_before_to_cart_button'); ?>
+
+		 	<?php if (!$_product->is_downloadable()) : ?>
+		 		<div class="quantity"><input name="quantity" value="1" size="4" title="Qty" class="input-text qty text" maxlength="12" /></div>
+		 	<?php endif; ?>
+
 		 	<button type="submit" class="button alt"><?php _e('Add to cart', 'woothemes'); ?></button>
-		 	<?php do_action('woocommerce_add_to_cart_form'); ?>
+		 	
+		 	<?php do_action('woocommerce_after_add_to_cart_button'); ?>
+		 	
 		</form>
-		<?php
-	}
-}
-if (!function_exists('woocommerce_virtual_add_to_cart')) {
-	function woocommerce_virtual_add_to_cart() {
-
-		woocommerce_simple_add_to_cart();
 		
-	}
-}
-if (!function_exists('woocommerce_downloadable_add_to_cart')) {
-	function woocommerce_downloadable_add_to_cart() {
-
-		global $_product; $availability = $_product->get_availability();
-		
-		// No price set - so no button
-		if( $_product->get_price() === '') return;
-		
-		if ($availability['availability']) : ?><p class="stock <?php echo $availability['class'] ?>"><?php echo $availability['availability']; ?></p><?php endif;
-		
-		// Don't show cart if out of stock
-		if (!$_product->is_in_stock()) return;
-		?>						
-		<form action="<?php echo esc_url( $_product->add_to_cart_url() ); ?>" class="cart" method="post">
-			<button type="submit" class="button alt"><?php _e('Add to cart', 'woothemes'); ?></button>
-			<?php do_action('woocommerce_add_to_cart_form'); ?>
-		</form>
+		<?php do_action('woocommerce_after_add_to_cart_form'); ?>
 		<?php
 	}
 }
@@ -324,6 +313,8 @@ if (!function_exists('woocommerce_grouped_add_to_cart')) {
 		global $_product;
 		
 		?>
+		<?php do_action('woocommerce_before_add_to_cart_form'); ?>
+
 		<form action="<?php echo esc_url( $_product->add_to_cart_url() ); ?>" class="cart" method="post">
 			<table cellspacing="0" class="group_table">
 				<tbody>
@@ -340,9 +331,16 @@ if (!function_exists('woocommerce_grouped_add_to_cart')) {
 					<?php endforeach; ?>
 				</tbody>
 			</table>
+			
+			<?php do_action('woocommerce_before_to_cart_button'); ?>
+			
 			<button type="submit" class="button alt"><?php _e('Add to cart', 'woothemes'); ?></button>
-			<?php do_action('woocommerce_add_to_cart_form'); ?>
+			
+			<?php do_action('woocommerce_after_add_to_cart_button'); ?>
+			
 		</form>
+		
+		<?php do_action('woocommerce_after_add_to_cart_form'); ?>
 		<?php
 	}
 }
@@ -392,6 +390,8 @@ if (!function_exists('woocommerce_variable_add_to_cart')) {
         <script type="text/javascript">
             var product_variations = <?php echo json_encode($available_variations) ?>;
         </script>
+        
+        <?php do_action('woocommerce_before_add_to_cart_form'); ?>
 
 		<form action="<?php echo esc_url( $_product->add_to_cart_url() ); ?>" class="variations_form cart" method="post">
 			<table class="variations" cellspacing="0">
@@ -425,6 +425,9 @@ if (!function_exists('woocommerce_variable_add_to_cart')) {
                 <?php endforeach;?>
 				</tbody>
 			</table>
+			
+			<?php do_action('woocommerce_before_to_cart_button'); ?>
+			
 			<div class="single_variation_wrap" style="display:none;">
 				<div class="single_variation"></div>
 				<div class="variations_button">
@@ -434,8 +437,31 @@ if (!function_exists('woocommerce_variable_add_to_cart')) {
 				</div>
 			</div>
 			<div><input type="hidden" name="product_id" value="<?php echo esc_attr( $post->ID ); ?>" /></div>
-			<?php do_action('woocommerce_add_to_cart_form'); ?>
+			
+			<?php do_action('woocommerce_after_add_to_cart_button'); ?>
+
 		</form>
+		
+		<?php do_action('woocommerce_after_add_to_cart_form'); ?>
+		<?php
+	}
+}
+if (!function_exists('woocommerce_external_add_to_cart')) {
+	function woocommerce_external_add_to_cart() {
+
+		global $_product;
+		
+		$product_url = get_post_meta( $_product->id, 'product_url', true );
+		if (!$product_url) return;
+		
+		?>
+			
+		<?php do_action('woocommerce_before_to_cart_button'); ?>
+		
+		<p class="cart"><a href="<?php echo $product_url; ?>" rel="nofollow" class="button alt"><?php _e('Buy product', 'woothemes'); ?></a></p>
+		
+		<?php do_action('woocommerce_after_add_to_cart_button'); ?>
+		
 		<?php
 	}
 }
@@ -677,7 +703,7 @@ if (!function_exists('woocommerce_cart_totals')) {
 		
 		$available_methods = $woocommerce->shipping->get_available_shipping_methods();
 		?>
-		<div class="cart_totals">
+		<div class="cart_totals <?php if (isset($_SESSION['calculated_shipping']) && $_SESSION['calculated_shipping']) echo 'calculated_shipping'; ?>">
 		<?php
 		//if ( !$woocommerce->shipping->enabled || $available_methods || !$woocommerce->customer->get_shipping_country() || !$woocommerce->customer->get_shipping_state() || !$woocommerce->customer->get_shipping_postcode() ) : 
 		if ( !$woocommerce->shipping->enabled || $available_methods || !$woocommerce->customer->get_shipping_country() || !isset($_SESSION['calculated_shipping']) || !$_SESSION['calculated_shipping'] ) : 
@@ -807,7 +833,11 @@ if (!function_exists('woocommerce_checkout_login_form')) {
 		
 		if (is_user_logged_in()) return;
 		
-		?><p class="info"><?php _e('Already registered?', 'woothemes'); ?> <a href="#" class="showlogin"><?php _e('Click here to login', 'woothemes'); ?></a></p><?php
+		if (get_option('woocommerce_enable_signup_and_login_from_checkout')=="no") return;
+		
+		$info_message = apply_filters('woocommerce_checkout_login_message', __('Already registered?', 'woothemes'));
+		
+		?><p class="info"><?php echo $info_message; ?> <a href="#" class="showlogin"><?php _e('Click here to login', 'woothemes'); ?></a></p><?php
 
 		woocommerce_login_form( __('If you have shopped with us before, please enter your username and password in the boxes below. If you are a new customer please proceed to the Billing &amp; Shipping section.', 'woothemes') );
 	}
@@ -1248,9 +1278,8 @@ function woocommerce_order_details_table( $order_id ) {
 						<tr>
 							<td class="product-name">'.$item['name'];
 					
-					if (isset($item['item_meta'])) :
-						echo woocommerce_get_formatted_variation( $item['item_meta'] );
-					endif;
+					$item_meta = &new order_item_meta( $item['item_meta'] );					
+					$item_meta->display();
 					
 					echo '	</td>
 							<td>'.$item['qty'].'</td>

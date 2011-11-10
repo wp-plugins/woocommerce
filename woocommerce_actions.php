@@ -70,7 +70,7 @@ function woocommerce_ajax_update_order_review() {
 	
 	if (!defined('WOOCOMMERCE_CHECKOUT')) define('WOOCOMMERCE_CHECKOUT', true);
 	
-	if (sizeof($woocommerce->cart->cart_contents)==0) :
+	if (sizeof($woocommerce->cart->get_cart())==0) :
 		echo '<p class="error">'.__('Sorry, your session has expired.', 'woothemes').' <a href="'.home_url().'">'.__('Return to homepage &rarr;', 'woothemes').'</a></p>';
 		die();
 	endif;
@@ -130,7 +130,7 @@ add_action('woocommerce_new_order', 'woocommerce_increase_coupon_counts');
 
 function woocommerce_increase_coupon_counts() {
 	global $woocommerce;
-	if ($woocommerce->cart->applied_coupons) foreach ($woocommerce->cart->applied_coupons as $code) :
+	if ($applied_coupons = $woocommerce->cart->get_applied_coupons()) foreach ($applied_coupons as $code) :
 		$coupon = &new woocommerce_coupon( $code );
 		$coupon->inc_usage_count();
 	endforeach;
@@ -324,7 +324,7 @@ function woocommerce_upsell_crosssell_search_products() {
 		$SKU = get_post_meta($post->ID, 'sku', true);
 		
 		?>
-		<li rel="<?php echo $post->ID; ?>"><button type="button" name="Add" class="button add" title="Add">&rarr;</button><strong><?php echo $post->post_title; ?></strong> &ndash; #<?php echo $post->ID; ?> <?php if (isset($SKU) && $SKU) echo 'SKU: '.$SKU; ?><input type="hidden" name="<?php echo esc_attr( $name ); ?>[]" value="0" /></li>
+		<li rel="<?php echo $post->ID; ?>"><button type="button" name="Add" class="button add_crosssell" title="Add"><?php _e('Cross-sell', 'woothemes'); ?> &rarr;</button><button type="button" name="Add" class="button add_upsell" title="Add"><?php _e('Up-sell', 'woothemes'); ?> &rarr;</button><strong><?php echo $post->post_title; ?></strong> &ndash; #<?php echo $post->ID; ?> <?php if (isset($SKU) && $SKU) echo 'SKU: '.$SKU; ?><input type="hidden" class="product_id" value="0" /></li>
 		<?php
 						
 	endforeach; else : 
@@ -361,7 +361,7 @@ function woocommerce_update_cart_action() {
 	global $woocommerce;
 	
 	// Remove from cart
-	if ( isset($_GET['remove_item']) && is_numeric($_GET['remove_item'])  && $woocommerce->verify_nonce('cart', '_GET')) :
+	if ( isset($_GET['remove_item']) && $_GET['remove_item'] && $woocommerce->verify_nonce('cart', '_GET')) :
 	
 		$woocommerce->cart->set_quantity( $_GET['remove_item'], 0 );
 		
@@ -377,8 +377,8 @@ function woocommerce_update_cart_action() {
 		
 		$cart_totals = $_POST['cart'];
 		
-		if (sizeof($woocommerce->cart->cart_contents)>0) : 
-			foreach ($woocommerce->cart->cart_contents as $cart_item_key => $values) :
+		if (sizeof($woocommerce->cart->get_cart())>0) : 
+			foreach ($woocommerce->cart->get_cart() as $cart_item_key => $values) :
 				
 				if (isset($cart_totals[$cart_item_key]['qty'])) $woocommerce->cart->set_quantity( $cart_item_key, $cart_totals[$cart_item_key]['qty'] );
 				
@@ -457,7 +457,7 @@ function woocommerce_add_to_cart_action( $url = false ) {
             if ($all_variations_set && $variation_id > 0) :
                 
                 // Add to cart
-				if ($woocommerce->cart->add_to_cart($product_id, $quantity, $variations, $variation_id)) :
+				if ($woocommerce->cart->add_to_cart($product_id, $quantity, $variation_id, $variations)) :
 				
 					if (get_option('woocommerce_cart_redirect_after_add')=='yes') :
 						$woocommerce->add_message( __('Product successfully added to your cart.', 'woothemes') );
@@ -734,6 +734,8 @@ function woocommerce_download_product() {
 			// Get the downloads URL and try to replace the url with a path
 			$file_path = get_post_meta($download_file, 'file_path', true);	
 			
+			if (!$file_path) exit;
+			
 			$file_path = str_replace(trailingslashit(site_url()), ABSPATH, $file_path);
 			
 			// See if its local or remote
@@ -759,14 +761,22 @@ function woocommerce_download_product() {
                 case "jpe": case "jpeg": case "jpg": $ctype="image/jpg"; break;
                 default: $ctype="application/force-download";
             endswitch;
+            
+            if (get_option('woocommerce_mod_xsendfile_enabled')=='yes') :
+            
+				header("X-Accel-Redirect: $file_path");
+				header("X-Sendfile: $file_path");
+				header("Content-Type: $ctype");
+				header("Content-Disposition: attachment; filename=\"".basename($file_path)."\";");
+				exit;
 
-            // Headers
+            endif;
+            
             @session_write_close();
             if (function_exists('apache_setenv')) @apache_setenv('no-gzip', 1);
             @ini_set('zlib.output_compression', 'Off');
 			@set_time_limit(0);
 			@set_magic_quotes_runtime(0);
-			
 			@ob_end_clean();
 			if (ob_get_level()) @ob_end_clean(); // Zip corruption fix
 			
@@ -776,15 +786,7 @@ function woocommerce_download_product() {
 			header("Robots: none");
 			header("Content-Type: ".$ctype."");
 			header("Content-Description: File Transfer");	
-							
-          	if (strstr($_SERVER['HTTP_USER_AGENT'], "MSIE")) {
-			    // workaround for IE filename bug with multiple periods / multiple dots in filename
-			    $iefilename = preg_replace('/\./', '%2e', basename($file_path), substr_count(basename($file_path), '.') - 1);
-			    header("Content-Disposition: attachment; filename=\"".$iefilename."\";");
-			} else {
-			    header("Content-Disposition: attachment; filename=\"".basename($file_path)."\";");
-			}
-
+			header("Content-Disposition: attachment; filename=\"".basename($file_path)."\";");	
 			header("Content-Transfer-Encoding: binary");
 							
             if ($size = @filesize($file_path)) header("Content-Length: ".$size);
@@ -796,8 +798,6 @@ function woocommerce_download_product() {
             	
             else :
             	
-            	if (!file_exists($file_path)) wp_die( sprintf(__('File not found. <a href="%s">Go to homepage &rarr;</a>', 'woothemes'), home_url()) );
-            	 
             	@readfile_chunked("$file_path") or wp_die( sprintf(__('File not found. <a href="%s">Go to homepage &rarr;</a>', 'woothemes'), home_url()) );
 			
             endif;
@@ -824,9 +824,11 @@ function woocommerce_downloadable_product_permissions( $order_id ) {
 	if (sizeof($order->items)>0) foreach ($order->items as $item) :
 	
 		if ($item['id']>0) :
-			$_product = &new woocommerce_product( $item['id'] );
+			$_product = $order->get_product_from_item( $item );
 			
-			if ( $_product->exists && $_product->is_type('downloadable') ) :
+			if ( $_product->exists && $_product->is_downloadable() ) :
+			
+				$download_id = ($item['variation_id']>0) ? $item['variation_id'] : $item['id'];
 				
 				$user_email = $order->billing_email;
 				
@@ -839,7 +841,7 @@ function woocommerce_downloadable_product_permissions( $order_id ) {
 					$order->user_id = 0;
 				endif;
 				
-				$limit = trim(get_post_meta($_product->id, 'download_limit', true));
+				$limit = trim(get_post_meta($download_id, 'download_limit', true));
 				
 				if (!empty($limit)) :
 					$limit = (int) $limit;
@@ -849,7 +851,7 @@ function woocommerce_downloadable_product_permissions( $order_id ) {
 				
 				// Downloadable product - give access to the customer
 				$wpdb->insert( $wpdb->prefix . 'woocommerce_downloadable_product_permissions', array( 
-					'product_id' => $_product->id, 
+					'product_id' => $download_id, 
 					'user_id' => $order->user_id,
 					'user_email' => $user_email,
 					'order_key' => $order->order_key,
@@ -974,7 +976,7 @@ function woocommerce_ecommerce_tracking( $order_id ) {
 				'<?php echo $order_id; ?>',           	// order ID - required
 				'<?php echo $_product->sku; ?>',      	// SKU/code - required
 				'<?php echo $item['name']; ?>',        	// product name
-				'<?php echo woocommerce_get_formatted_variation( $_product->variation_data, true ); ?>',   // category or variation
+				'<?php if (isset($_product->variation_data)) echo woocommerce_get_formatted_variation( $_product->variation_data, true ); ?>',   // category or variation
 				'<?php echo $item['cost']; ?>',         // unit price - required
 				'<?php echo $item['qty']; ?>'           // quantity - required
 			]);

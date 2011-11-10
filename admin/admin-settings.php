@@ -29,6 +29,43 @@ $woocommerce_settings['general'] = apply_filters('woocommerce_general_settings',
 	),
 	
 	array(  
+		'name' => __( 'Currency', 'woothemes' ),
+		'desc' 		=> __("This controls what currency prices are listed at in the catalog and which currency gateways will take payments in.", 'woothemes' ),
+		'tip' 		=> '',
+		'id' 		=> 'woocommerce_currency',
+		'css' 		=> 'min-width:175px;',
+		'std' 		=> 'GBP',
+		'type' 		=> 'select',
+		'options' => apply_filters('woocommerce_currencies', array( 
+			'USD' => __( 'US Dollars (&#36;)', 'woothemes' ),
+			'EUR' => __( 'Euros (&euro;)', 'woothemes' ),
+			'GBP' => __( 'Pounds Sterling (&pound;)', 'woothemes' ),
+			'AUD' => __( 'Australian Dollars (&#36;)', 'woothemes' ),
+			'BRL' => __( 'Brazilian Real (&#36;)', 'woothemes' ),
+			'CAD' => __( 'Canadian Dollars (&#36;)', 'woothemes' ),
+			'CZK' => __( 'Czech Koruna', 'woothemes' ),
+			'DKK' => __( 'Danish Krone', 'woothemes' ),
+			'HKD' => __( 'Hong Kong Dollar (&#36;)', 'woothemes' ),
+			'HUF' => __( 'Hungarian Forint', 'woothemes' ),
+			'ILS' => __( 'Israeli Shekel', 'woothemes' ),
+			'JPY' => __( 'Japanese Yen (&yen;)', 'woothemes' ),
+			'MYR' => __( 'Malaysian Ringgits', 'woothemes' ),
+			'MXN' => __( 'Mexican Peso (&#36;)', 'woothemes' ),
+			'NZD' => __( 'New Zealand Dollar (&#36;)', 'woothemes' ),
+			'NOK' => __( 'Norwegian Krone', 'woothemes' ),
+			'PHP' => __( 'Philippine Pesos', 'woothemes' ),
+			'PLN' => __( 'Polish Zloty', 'woothemes' ),
+			'SGD' => __( 'Singapore Dollar (&#36;)', 'woothemes' ),
+			'SEK' => __( 'Swedish Krona', 'woothemes' ),
+			'CHF' => __( 'Swiss Franc', 'woothemes' ),
+			'TWD' => __( 'Taiwan New Dollars', 'woothemes' ),
+			'THB' => __( 'Thai Baht', 'woothemes' ), 
+			'TRY' => __( 'Turkish Lira (TL)', 'woothemes' )
+			)
+		)
+	),	
+	
+	array(  
 		'name' => __( 'Allowed Countries', 'woothemes' ),
 		'desc' 		=> __( 'These are countries that you are willing to ship to.', 'woothemes' ),
 		'id' 		=> 'woocommerce_allowed_countries',
@@ -51,53 +88,103 @@ $woocommerce_settings['general'] = apply_filters('woocommerce_general_settings',
 	),
 	
 	array(  
-		'name' => __( 'Guest checkout', 'woothemes' ),
-		'desc' 		=> __( 'Allow guest users to checkout without an account', 'woothemes' ),
+		'name' => __( 'Checkout', 'woothemes' ),
+		'desc' 		=> __( 'Allow users to checkout without signing up for an account', 'woothemes' ),
 		'id' 		=> 'woocommerce_enable_guest_checkout',
 		'std' 		=> 'yes',
-		'type' 		=> 'checkbox'	
+		'type' 		=> 'checkbox',
+		'checkboxgroup'		=> 'start'
 	),
 	
 	array(  
-		'name' => __( 'Force SSL', 'woothemes' ),
-		'desc' 		=> __( 'Force SSL on the checkout for added security (SSL Certificate required).', 'woothemes' ),
+		'desc' 		=> __( 'Allow users to create an account and login from the checkout page', 'woothemes' ),
+		'id' 		=> 'woocommerce_enable_signup_and_login_from_checkout',
+		'std' 		=> 'yes',
+		'type' 		=> 'checkbox',
+		'checkboxgroup'		=> ''
+	),
+	
+	array(  
+		'desc' 		=> __( 'Force <abbr title="Secure Sockets Layer, a computing protocol that ensures the security of data sent via the Internet by using encryption">SSL</abbr>/HTTPS (an SSL Certificate is required)', 'woothemes' ),
 		'id' 		=> 'woocommerce_force_ssl_checkout',
 		'std' 		=> 'no',
-		'type' 		=> 'checkbox'
+		'type' 		=> 'checkbox',
+		'checkboxgroup'		=> ''
 	),
 	
 	array(  
-		'name' => __( 'WooCommerce CSS', 'woothemes' ),
-		'desc' 		=> __( 'Enable WooCommerce frontend CSS styles', 'woothemes' ),
+		'desc' 		=> __( 'Un-force <abbr title="Secure Sockets Layer, a computing protocol that ensures the security of data sent via the Internet by using encryption">SSL</abbr>/HTTPS when leaving the checkout', 'woothemes' ),
+		'id' 		=> 'woocommerce_unforce_ssl_checkout',
+		'std' 		=> 'no',
+		'type' 		=> 'checkbox',
+		'checkboxgroup'		=> 'end'
+	),
+	
+	array(  
+		'name' => __( 'Shop Styling', 'woothemes' ),
+		'desc' 		=> __( 'Enable WooCommerce CSS styles', 'woothemes' ),
 		'id' 		=> 'woocommerce_frontend_css',
 		'std' 		=> 'yes',
-		'type' 		=> 'checkbox'
+		'type' 		=> 'checkbox',
+		'checkboxgroup'		=> 'start'
 	),
 	
 	array(  
-		'name' => __( 'Lightbox', 'woothemes' ),
-		'desc' 		=> __( 'Enable WooCommerce lightbox?', 'woothemes' ),
+		'desc' 		=> __( 'Enable AJAX add to cart buttons on product archives', 'woothemes' ),
+		'id' 		=> 'woocommerce_enable_ajax_add_to_cart',
+		'std' 		=> 'yes',
+		'type' 		=> 'checkbox',
+		'checkboxgroup'		=> ''
+	),
+	
+	array(  
+		'desc' 		=> __( 'Enable WooCommerce lightbox on the product page', 'woothemes' ),
 		'id' 		=> 'woocommerce_enable_lightbox',
 		'std' 		=> 'yes',
-		'type' 		=> 'checkbox'
+		'type' 		=> 'checkbox',
+		'checkboxgroup'		=> 'end'
 	),
 	
 	array(  
-		'name' => __( 'Demo store', 'woothemes' ),
+		'name' => __( 'Demo store notice', 'woothemes' ),
 		'desc' 		=> __( 'Enable the "Demo Store" notice on your site', 'woothemes' ),
 		'id' 		=> 'woocommerce_demo_store',
 		'std' 		=> 'no',
 		'type' 		=> 'checkbox'
 	),
-		
+	
+	array(  
+		'name' => __('File downloads', 'woothemes'),
+		'desc' 		=> __('Use <code>X-Accel-Redirect</code>/ <code>X-Sendfile</code> to serve downloads (server requires <code>mod_xsendfile</code>)', 'woothemes'),
+		'id' 		=> 'woocommerce_mod_xsendfile_enabled',
+		'type' 		=> 'checkbox',
+		'std' 		=> 'no',
+	),
+	
+	array(  
+		'name' => __('Localisation', 'woothemes'),
+		'desc' 		=> __('Use informal localisation file if it exists', 'woothemes'),
+		'id' 		=> 'woocommerce_informal_localisation_type',
+		'type' 		=> 'checkbox',
+		'std' 		=> 'no',
+	),
+	
+	array( 'type' => 'sectionend', 'id' => 'general_options'),
+	
+	array( 'name' => __( 'ShareThis', 'woothemes' ), 'type' => 'title', 'desc' => '', 'id' => 'share_this' ),
+
 	array(  
 		'name' => __( 'ShareThis Publisher ID', 'woothemes' ),
-		'desc' 		=> sprintf( __( 'Enter your %1$sShareThis publisher ID%2$s to show ShareThis on product pages.', 'woothemes' ), '<a href="http://sharethis.com/account/">', '</a>' ),
+		'desc' 		=> sprintf( __( 'Enter your %1$sShareThis publisher ID%2$s to show social sharing buttons on product pages.', 'woothemes' ), '<a href="http://sharethis.com/account/">', '</a>' ),
 		'id' 		=> 'woocommerce_sharethis',
 		'type' 		=> 'text',
 		'std' 		=> '',
         'css'       => ''
 	),
+	
+	array( 'type' => 'sectionend', 'id' => 'share_this'),
+	
+	array( 'name' => __( 'Google Analytics', 'woothemes' ), 'type' => 'title', 'desc' => '', 'id' => 'google_analytics' ),
 	
 	array(  
 		'name' => __('Google Analytics ID', 'woothemes'),
@@ -108,20 +195,22 @@ $woocommerce_settings['general'] = apply_filters('woocommerce_general_settings',
 	),
 	
 	array(  
-		'name' => __('Google Analytics tracking', 'woothemes'),
-		'desc' 		=> __('Adds standard tracking code to the footer. You don\'t need to enable this if using a 3rd party google analytics plugin.', 'woothemes'),
+		'name' => __('Tracking code', 'woothemes'),
+		'desc' 		=> __('Add tracking code to your site\'s footer. You don\'t need to enable this if using a 3rd party analytics plugin.', 'woothemes'),
 		'id' 		=> 'woocommerce_ga_standard_tracking_enabled',
 		'type' 		=> 'checkbox',
+		'checkboxgroup'		=> 'start'
 	),
 	
 	array(  
-		'name' => __('Google Analytics eCommerce tracking', 'woothemes'),
-		'desc' 		=> __('Adds eCommerce tracking code to the thankyou page.', 'woothemes'),
+		'name' => __('Tracking code', 'woothemes'),
+		'desc' 		=> __('Add eCommerce tracking code to the thankyou page', 'woothemes'),
 		'id' 		=> 'woocommerce_ga_ecommerce_tracking_enabled',
 		'type' 		=> 'checkbox',
+		'checkboxgroup'		=> 'end'
 	),
 					
-	array( 'type' => 'sectionend', 'id' => 'general_options'),
+	array( 'type' => 'sectionend', 'id' => 'google_analytics'),
 
 )); // End general settings
 
@@ -372,43 +461,6 @@ $woocommerce_settings['catalog'] = apply_filters('woocommerce_catalog_settings',
 	array(	'name' => __( 'Pricing Options', 'woothemes' ), 'type' => 'title','desc' => '', 'id' => 'pricing_options' ),
 	
 	array(  
-		'name' => __( 'Currency', 'woothemes' ),
-		'desc' 		=> sprintf( __("This controls what currency prices are listed at in the catalog, and which currency PayPal, and other gateways, will take payments in. See the list of supported <a target='_new' href='%s'>PayPal currencies</a>.", 'woothemes'), 'https://www.paypal.com/cgi-bin/webscr?cmd=p/sell/mc/mc_intro-outside' ),
-		'tip' 		=> '',
-		'id' 		=> 'woocommerce_currency',
-		'css' 		=> 'min-width:175px;',
-		'std' 		=> 'GBP',
-		'type' 		=> 'select',
-		'options' => apply_filters('woocommerce_currencies', array( 
-			'USD' => __( 'US Dollars (&#36;)', 'woothemes' ),
-			'EUR' => __( 'Euros (&euro;)', 'woothemes' ),
-			'GBP' => __( 'Pounds Sterling (&pound;)', 'woothemes' ),
-			'AUD' => __( 'Australian Dollars (&#36;)', 'woothemes' ),
-			'BRL' => __( 'Brazilian Real (&#36;)', 'woothemes' ),
-			'CAD' => __( 'Canadian Dollars (&#36;)', 'woothemes' ),
-			'CZK' => __( 'Czech Koruna', 'woothemes' ),
-			'DKK' => __( 'Danish Krone', 'woothemes' ),
-			'HKD' => __( 'Hong Kong Dollar (&#36;)', 'woothemes' ),
-			'HUF' => __( 'Hungarian Forint', 'woothemes' ),
-			'ILS' => __( 'Israeli Shekel', 'woothemes' ),
-			'JPY' => __( 'Japanese Yen (&yen;)', 'woothemes' ),
-			'MYR' => __( 'Malaysian Ringgits', 'woothemes' ),
-			'MXN' => __( 'Mexican Peso (&#36;)', 'woothemes' ),
-			'NZD' => __( 'New Zealand Dollar (&#36;)', 'woothemes' ),
-			'NOK' => __( 'Norwegian Krone', 'woothemes' ),
-			'PHP' => __( 'Philippine Pesos', 'woothemes' ),
-			'PLN' => __( 'Polish Zloty', 'woothemes' ),
-			'SGD' => __( 'Singapore Dollar (&#36;)', 'woothemes' ),
-			'SEK' => __( 'Swedish Krona', 'woothemes' ),
-			'CHF' => __( 'Swiss Franc', 'woothemes' ),
-			'TWD' => __( 'Taiwan New Dollars', 'woothemes' ),
-			'THB' => __( 'Thai Baht', 'woothemes' ), 
-			'TRY' => __( 'Turkish Lira (TL)', 'woothemes' )
-			)
-		)
-	),
-	
-	array(  
 		'name' => __( 'Currency Position', 'woothemes' ),
 		'desc' 		=> __( 'This controls the position of the currency symbol.', 'woothemes' ),
 		'tip' 		=> '',
@@ -557,23 +609,25 @@ $woocommerce_settings['shipping'] = apply_filters('woocommerce_shipping_settings
 	array(	'name' => __( 'Shipping Options', 'woothemes' ), 'type' => 'title','desc' => '', 'id' => 'shipping_options' ),
 	
 	array(  
-		'name' 		=> __( 'Calculate shipping', 'woothemes' ),
-		'desc' 		=> __( 'Enable shipping/shipping calculations', 'woothemes' ),
+		'name' 		=> __( 'Shipping calculations', 'woothemes' ),
+		'desc' 		=> __( 'Enable shipping', 'woothemes' ),
 		'id' 		=> 'woocommerce_calc_shipping',
 		'std' 		=> 'yes',
-		'type' 		=> 'checkbox'
+		'type' 		=> 'checkbox',
+		'checkboxgroup'		=> 'start'
 	),
 	
 	array(  
-		'name' 		=> __( 'Shipping calculator', 'woothemes' ),
+		'name' 		=> __( 'Shipping calculations', 'woothemes' ),
 		'desc' 		=> __( 'Enable the shipping calculator on the cart page', 'woothemes' ),
 		'id' 		=> 'woocommerce_enable_shipping_calc',
 		'std' 		=> 'yes',
-		'type' 		=> 'checkbox'
+		'type' 		=> 'checkbox',
+		'checkboxgroup'		=> 'end'
 	),
 	
 	array(  
-		'name' 		=> __( 'Ship to billing', 'woothemes' ),
+		'name' 		=> __( 'Shipping destination', 'woothemes' ),
 		'desc' 		=> __( 'Only ship to the users billing address', 'woothemes' ),
 		'id' 		=> 'woocommerce_ship_to_billing_address_only',
 		'std' 		=> 'no',

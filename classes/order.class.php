@@ -208,16 +208,15 @@ class woocommerce_order {
 			
 			$return .= ' - ' . strip_tags(woocommerce_price( $item['cost']*$item['qty'], array('ex_tax_label' => 1 )));
 			
-			if (isset($_product->variation_data)) :
-				$return .= PHP_EOL . woocommerce_get_formatted_variation( $item['item_meta'], true );
-			endif;
+			$item_meta = &new order_item_meta( $item['item_meta'] );					
+			$return .= PHP_EOL . $item_meta->display( true, true );
 			
 			if ($show_download_links) :
 				
 				if ($_product->exists) :
 			
-					if ($_product->is_type('downloadable')) :
-						$return .= PHP_EOL . ' - ' . $this->get_downloadable_file_url( $item['id'] ) . '';
+					if ($_product->is_downloadable()) :
+						$return .= PHP_EOL . ' - ' . $this->get_downloadable_file_url( $item['id'], $item['variation_id'] ) . '';
 					endif;
 		
 				endif;	
@@ -246,16 +245,15 @@ class woocommerce_order {
 				$sku = ' (#' . $_product->sku . ')';
 			endif;
 			
-			if (isset($item['item_meta'])) :
-				$variation = '<br/>' . woocommerce_get_formatted_variation( $item['item_meta'], true );
-			endif;
+			$item_meta = &new order_item_meta( $item['item_meta'] );					
+			$variation = '<br/>' . $item_meta->display( true, true );
 			
 			if ($show_download_links) :
 				
 				if ($_product->exists) :
 			
-					if ($_product->is_type('downloadable')) :
-						$file = '<br/>' . $this->get_downloadable_file_url( $item['id'] ) . '';
+					if ($_product->is_downloadable()) :
+						$file = '<br/>' . $this->get_downloadable_file_url( $item['id'], $item['variation_id'] ) . '';
 					endif;
 		
 				endif;	
@@ -282,7 +280,7 @@ class woocommerce_order {
 			
 			$_product = $this->get_product_from_item( $item );
 
-			if ($_product->exists && $_product->is_type('downloadable')) :
+			if ($_product->exists && $_product->is_downloadable()) :
 				$has_downloadable_item = true;
 			endif;
 			
@@ -310,7 +308,9 @@ class woocommerce_order {
 	
 	
 	/** Gets a downloadable products file url */
-	function get_downloadable_file_url( $item_id ) {
+	function get_downloadable_file_url( $item_id, $variation_id ) {
+	 	
+	 	$download_id = ($variation_id>0) ? $variation_id : $item_id;
 	 	
 	 	$user_email = $this->billing_email;
 				
@@ -321,7 +321,7 @@ class woocommerce_order {
 			endif;
 		endif;
 				
-	 	return add_query_arg('download_file', $item_id, add_query_arg('order', $this->order_key, add_query_arg('email', $user_email, trailingslashit( home_url() ))));
+	 	return add_query_arg('download_file', $download_id, add_query_arg('order', $this->order_key, add_query_arg('email', $user_email, trailingslashit( home_url() ))));
 	 }
 	 
 	/**
@@ -427,7 +427,7 @@ class woocommerce_order {
 			
 				$_product = $this->get_product_from_item( $item );
 				
-				if ( $_product->exists && $_product->is_type('downloadable') ) :
+				if ( $_product->exists && $_product->is_downloadable() && $_product->is_virtual() ) :
 					$downloadable_order = true;
 					continue;
 				endif;
@@ -542,4 +542,94 @@ class woocommerce_order {
 		
 	}
 
+}
+
+
+/**
+ * Order Item Meta
+ * 
+ * A Simple class for managing order item meta so plugins add it in the correct format
+ */
+class order_item_meta {
+	
+	var $meta;
+	
+	/**
+	 * Constructor
+	 */
+	function __construct( $item_meta = '' ) {
+		$this->meta = array();
+		
+		if ($item_meta) $this->meta = $item_meta;
+	}
+	
+	/**
+	 * Load item meta
+	 */
+	function new_order_item( $item ) {
+		if ($item) :
+			do_action('woocommerce_order_item_meta', &$this, $item);
+		endif;
+	}
+	
+	/**
+	 * Add meta
+	 */
+	function add( $name, $value ) {
+		$this->meta[] = array(
+			'meta_name' 		=> $name, 
+			'meta_value' 	=> $value
+		);
+	}
+	
+	/**
+	 * Display meta in a formatted list
+	 */
+	function display( $flat = false, $return = false ) {
+		global $woocommerce;
+		
+		if ($this->meta && is_array($this->meta)) :
+			
+			if (!$flat) $output = '<dl class="variation">'; else $output = '';
+			
+			$meta_list = array();
+			
+			foreach ($this->meta as $meta) :
+				
+				$name 	= $meta['meta_name'];
+				$value	= $meta['meta_value'];
+				
+				if (!$value) continue;
+				
+				// If this is a term slug, get the term's nice name
+	            if (taxonomy_exists(esc_attr(str_replace('attribute_', '', $name)))) :
+	            	$term = get_term_by('slug', $value, esc_attr(str_replace('attribute_', '', $name)));
+	            	if (!is_wp_error($term) && $term->name) :
+	            		$value = $term->name;
+	            	endif;
+	            else :
+	            	$value = ucfirst($value);
+	            endif;
+				
+				if ($flat) :
+					$meta_list[] = $woocommerce->attribute_label(str_replace('attribute_', '', $name)).': '.$value;
+				else :
+					$meta_list[] = '<dt>'.$woocommerce->attribute_label(str_replace('attribute_', '', $name)).':</dt><dd>'.$value.'</dd>';
+				endif;
+				
+			endforeach;
+			
+			if ($flat) :
+				$output .= implode(', ', $meta_list);
+			else :
+				$output .= implode('', $meta_list);
+			endif;
+			
+			if (!$flat) $output .= '</dl>';
+
+			if ($return) return $output; else echo $output;
+			
+		endif;
+	}
+	
 }

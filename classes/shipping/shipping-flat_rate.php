@@ -52,14 +52,14 @@ class flat_rate extends woocommerce_shipping_method {
 			endif;
 		else :
 			// Shipping per item
-			if (sizeof($woocommerce->cart->cart_contents)>0) : foreach ($woocommerce->cart->cart_contents as $item_id => $values) :
+			if (sizeof($woocommerce->cart->get_cart())>0) : foreach ($woocommerce->cart->get_cart() as $item_id => $values) :
 				$_product = $values['data'];
 				if ($_product->exists() && $values['quantity']>0) :
 					
 					$item_shipping_price = ($this->cost + $this->get_fee( $this->fee, $_product->get_price() )) * $values['quantity'];
 					
 					// Only count 'psysical' products
-					if ($_product->is_type( 'simple' ) || $_product->is_type( 'variable' )) :
+					if ( $_product->needs_shipping() ) :
 						
 						$this->shipping_total = $this->shipping_total + $item_shipping_price;
 	

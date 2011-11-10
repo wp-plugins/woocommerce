@@ -49,6 +49,8 @@ class woocommerce_product_variation extends woocommerce_product {
 		// Define the data we're going to load from the parent: Key => Default value
 		$load_data = array(
 			'sku'			=> $this->id,
+			'downloadable' 	=> 'no',
+			'virtual' 		=> 'no',
 			'price' 		=> 0,
 			'visibility'	=> 'hidden',
 			'stock'			=> 0,
@@ -105,6 +107,18 @@ class woocommerce_product_variation extends woocommerce_product {
 			if ($this->sale_price < $this->price) $this->price = $this->sale_price;
 		endif;
 		
+		if (isset($product_custom_fields['downloadable'][0]) && $product_custom_fields['downloadable'][0]=='yes') :
+			$this->downloadable = 'yes';
+		else :
+			$this->downloadable = 'no';
+		endif;
+		
+		if (isset($product_custom_fields['virtual'][0]) && $product_custom_fields['virtual'][0]=='yes') :
+			$this->virtual = 'yes';
+		else :
+			$this->virtual = 'no';
+		endif;
+		
 		$this->total_stock = $this->stock;
 	}
 	
@@ -148,6 +162,23 @@ class woocommerce_product_variation extends woocommerce_product {
 			return woocommerce_price(parent::get_price());
 		endif;
 	}
+	
+	/**
+     * Gets the main product image
+     */ 
+    function get_image( $size = 'shop_thumbnail' ) {
+    	global $woocommerce;
+    	
+    	if ($this->variation_id && has_post_thumbnail($this->variation_id)) :
+			echo get_the_post_thumbnail($this->variation_id, $size); 
+		elseif (has_post_thumbnail($this->id)) :
+			echo get_the_post_thumbnail($this->id, $size); 
+		elseif ($parent_id = wp_get_post_parent_id( $this->id ) && has_post_thumbnail($parent_id)) :
+			echo get_the_post_thumbnail($parent_id, $size); 
+		else :
+			echo '<img src="'.$woocommerce->plugin_url(). '/assets/images/placeholder.png" alt="Placeholder" width="'.$woocommerce->get_image_size('shop_thumbnail_image_width').'" height="'.$woocommerce->get_image_size('shop_thumbnail_image_height').'" />'; 
+		endif;
+    }
 	
 	/**
 	 * Reduce stock level of the product
