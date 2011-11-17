@@ -34,6 +34,7 @@ class woocommerce {
 		$this->cart 			= &new woocommerce_cart();				// Cart class, stores the cart contents
 		$this->payment_gateways = &new woocommerce_payment_gateways();	// Payment gateways class. loads and stores payment methods
 		$this->countries 		= &new woocommerce_countries();			// Countries class
+		$this->log			 	= &new woocommerce_logger();			// Logger class
 		
 		// Load messages
 		$this->load_messages();
@@ -325,8 +326,21 @@ class woocommerce {
 		/**
 		 * Clear Product Transients
 		 */
-		function clear_product_transients() {
+		function clear_product_transients( $post_id = null ) {
+			global $wpdb;
+			
 			delete_transient('woocommerce_products_onsale');
+			delete_transient('woocommerce_hidden_product_ids');
+			delete_transient('woocommerce_hidden_from_search_product_ids');
+			
+			$wpdb->query("DELETE FROM `$wpdb->options` WHERE `option_name` LIKE ('_transient_woocommerce_unfiltered_product_ids_%')");
+			$wpdb->query("DELETE FROM `$wpdb->options` WHERE `option_name` LIKE ('_transient_woocommerce_layered_nav_count_%')");
+
+			if ($post_id>0) :
+				$post_id = (int) $post_id;
+				delete_transient('woocommerce_product_total_stock_'.$post_id);
+				delete_transient('woocommerce_product_children_ids_'.$post_id);
+			endif;
 		}
 	
 }

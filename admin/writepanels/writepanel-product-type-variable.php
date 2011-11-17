@@ -547,7 +547,7 @@ function woocommerce_link_all_variations() {
 	$_product = &new woocommerce_product( $post_id );
 		
 	// Put variation attributes into an array
-	foreach ($_product->attributes as $attribute) :
+	foreach ($_product->get_attributes() as $attribute) :
 								
 		if ( !$attribute['is_variation'] ) continue;
 		
@@ -575,10 +575,10 @@ function woocommerce_link_all_variations() {
 	// Get existing variations so we don't create duplicated
     $available_variations = array();
     
-    foreach($_product->get_children() as $child) {
-        $variation = $child->product;
-        if($variation instanceof woocommerce_product_variation) {
-            $available_variations[] = $variation->get_variation_attributes();
+    foreach($_product->get_children() as $child_id) {
+    	$child = $_product->get_child( $child_id );
+        if($child instanceof woocommerce_product_variation) {
+            $available_variations[] = $child->get_variation_attributes();
         }
     }
 	

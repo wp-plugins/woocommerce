@@ -32,6 +32,7 @@ class woocommerce_paypal extends woocommerce_payment_gateway {
 		$this->email 		= $this->settings['email'];
 		$this->testmode		= $this->settings['testmode'];		
 		$this->send_shipping = $this->settings['send_shipping'];
+		$this->debug		= $this->settings['debug'];	
 		
 		// Actions
 		add_action( 'init', array(&$this, 'check_ipn_response') );
@@ -81,6 +82,12 @@ class woocommerce_paypal extends woocommerce_payment_gateway {
 							'type' => 'checkbox', 
 							'label' => __( 'Enable PayPal sandbox', 'woothemes' ), 
 							'default' => 'yes'
+						),
+			'debug' => array(
+							'title' => __( 'Debug', 'woothemes' ), 
+							'type' => 'checkbox', 
+							'label' => __( 'Enable logging (<code>woocommerce/logs/paypal.txt</code>)', 'woothemes' ), 
+							'default' => 'no'
 						)
 			);
     
@@ -284,6 +291,9 @@ class woocommerce_paypal extends woocommerce_payment_gateway {
 	 * Check PayPal IPN validity
 	 **/
 	function check_ipn_request_is_valid() {
+		global $woocommerce;
+		
+		if ($this->debug=='yes') $woocommerce->log->add( 'paypal', 'Checking IPN response is valid...' );
     
     	 // Add cmd to the post array
         $_POST['cmd'] = '_notify-validate';
@@ -309,8 +319,16 @@ class woocommerce_paypal extends woocommerce_payment_gateway {
         
         // check to see if the request was valid
         if ( !is_wp_error($response) && $response['response']['code'] >= 200 && $response['response']['code'] < 300 && (strcmp( $response['body'], "VERIFIED") == 0)) {
+            if ($this->debug=='yes') $woocommerce->log->add( 'paypal', 'Received valid response from PayPal' );
             return true;
         } 
+        
+        if ($this->debug=='yes') :
+        	$woocommerce->log->add( 'paypal', 'Received invalid response from PayPal' );
+        	if (is_wp_error($response)) :
+        		$woocommerce->log->add( 'paypal', 'Error response: ' . $result->get_error_message() );
+        	endif;
+        endif;
         
         return false;
     }
@@ -360,6 +378,13 @@ class woocommerce_paypal extends woocommerce_payment_gateway {
 		            	// Payment completed
 		                $order->add_order_note( __('IPN payment completed', 'woothemes') );
 		                $order->payment_complete();
+		                
+		                // Store PP Details
+		                update_post_meta( (int) $posted['custom'], 'Payer PayPal address', $posted['payer_email']);
+		                update_post_meta( (int) $posted['custom'], 'Transaction ID', $posted['txn_id']);
+		                update_post_meta( (int) $posted['custom'], 'Payer first name', $posted['first_name']);
+		                update_post_meta( (int) $posted['custom'], 'Payer last name', $posted['last_name']);
+		                update_post_meta( (int) $posted['custom'], 'Payment type', $posted['payment_type']); 
 		            break;
 		            case 'denied' :
 		            case 'expired' :
@@ -367,6 +392,11 @@ class woocommerce_paypal extends woocommerce_payment_gateway {
 		            case 'voided' :
 		                // Order failed
 		                $order->update_status('failed', sprintf(__('Payment %s via IPN.', 'woothemes'), strtolower($posted['payment_status']) ) );
+		            break;
+		            case "refunded" :
+		            case "reversed" :
+		            	// Mark order as refunded
+		            	$order->update_status('refunded', sprintf(__('Payment %s via IPN.', 'woothemes'), strtolower($posted['payment_status']) ) );
 		            break;
 		            default:
 		            	// No action

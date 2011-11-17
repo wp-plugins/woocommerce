@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, store, sh
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.1
 Tested up to: 3.3
-Stable tag: 1.2.1
+Stable tag: 1.2.2
 
 An e-commerce toolkit that helps you sell anything. Beautifully.
 
@@ -81,6 +81,34 @@ Yes you can! Join in on our GitHub repository :) https://github.com/woothemes/wo
 3. WooCommerce sales reports
 
 == Changelog ==
+
+= 1.2.2 =
+* Minor fixes and optimisations
+* Tweaked 'pay' emails
+* Check at top of email templates to make sure they are not accessed directly
+* Fixes for hiding order notes from feeds etc
+* Added transients to main query to improve performance
+* Improved products class and get_related function
+* Removed subcats when paged
+* Category widget now supports hierarchy/counts
+* woocommerce-page body class for *all* woocommerce pages
+* Fix active class in wp_list_pages for shop page
+* Ability to register from my account page
+* Option to show size/weight on attributes tab
+* Added logger class for debugging
+* Logs folder added upon install with htaccess added to prevent access
+* Ability to make layered nav an "OR" query so you can expand your search rather than filter it
+* Tweaked coupon logic. Excluded coupons (for product discounts) don't get a product discount, but valid products do
+* Prevent checkout being submitted twice
+* Made order notes optional
+* PayPal standard stores payer email address
+* Added handling for paypal reversal and refunded statuses
+* Downloads check order status is completed before allowing access - to do this we've added a new column to the permissions table (order id). Existing rows will be updated upon activation.
+* Formatted address shows full state name
+* State field shows 'select a state by default'
+* Country defaults to base country on checkout
+* Fixed upload directory
+* Added customer note email notifications
 
 = 1.2.1 - 10/11/2011 =
 * Reworked downloadable and virtual products - now variations can be downloadable/virtual too making it more flexible
@@ -255,6 +283,9 @@ Yes you can! Join in on our GitHub repository :) https://github.com/woothemes/wo
 * Initial Release. Woo!
 
 == Upgrade Notice ==
+
+= 1.2.2 =
+Due to some changes in the plugin, if you are using any of our extensions please ensure you check the changelogs and download any updates from your account - especially if using 2CO, iDeal or authorize.net. This version also updates the download permissions table so please ensure you backup your database before upgrading.
 
 = 1.2.1 =
 This version has improved product types - ensure you de/re-activate the theme to ensure existing products get converted correctly.

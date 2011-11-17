@@ -9,12 +9,14 @@ jQuery(document).ready(function($) {
 			var thisbutton = $(this);
 			
 			if (thisbutton.is('.product_type_simple, .product_type_downloadable, .product_type_virtual')) {
-		
+				
+				if (!$(thisbutton).attr('data-product_id')) return true;
+				
 				$(thisbutton).addClass('loading');
 				
 				var data = {
 					action: 		'woocommerce_add_to_cart',
-					product_id: 	$(thisbutton).attr('rel'),
+					product_id: 	$(thisbutton).attr('data-product_id'),
 					security: 		woocommerce_params.add_to_cart_nonce
 				};
 				
@@ -203,16 +205,15 @@ jQuery(document).ready(function($) {
 			}
 			if ($(state_box).is('input')) {
 				// Change for select
-				$(state_box).replaceWith('<select name="' + input_name + '" id="' + input_id + '"><option value="">' + woocommerce_params.select_state_text + '</option></select>');
+				$(state_box).replaceWith('<select name="' + input_name + '" id="' + input_id + '"></select>');
 				state_box = $('#' + $(this).attr('rel'));
 			}
-			$(state_box).html(options);
+			$(state_box).html( '<option value="">' + woocommerce_params.select_state_text + '</option>' + options);
 			
 			$(state_box).val(value);
 		} else {
 			if ($(state_box).is('select')) {
-				$(state_box).replaceWith('<input type="text" placeholder="' + woocommerce_params.state_text + '" name="' + input_name + '" id="' + input_id + '" />');
-				state_box = $('#' + $(this).attr('rel'));
+				$(state_box).replaceWith('<input type="text" class="input-text" placeholder="' + woocommerce_params.state_text + '" name="' + input_name + '" id="' + input_id + '" />');
 			}
 		}
 		
@@ -245,11 +246,9 @@ jQuery(document).ready(function($) {
 	$('.shipping-calculator-form').hide();
 	
 	$('.shipping-calculator-button').click(function() {
-	  $('.shipping-calculator-form').slideToggle('slow');
+		$('.shipping-calculator-form').slideToggle('slow');
+		return false;
 	}); 
-	
-	// Stop anchors moving the viewport
-	$(".shipping-calculator-button").click(function() {return false;});
 	
 	// Variations
 	
@@ -551,7 +550,10 @@ jQuery(document).ready(function($) {
 			/* AJAX Form Submission */
 			$('form.checkout').submit(function(){
 				var form = this;
-				$(form).block({message: null, overlayCSS: {background: '#fff url(' + woocommerce_params.plugin_url + '/assets/images/ajax-loader.gif) no-repeat center', opacity: 0.6}});
+				
+				if ($(form).is('.processing')) return false;
+				
+				$(form).addClass('processing').block({message: null, overlayCSS: {background: '#fff url(' + woocommerce_params.plugin_url + '/assets/images/ajax-loader.gif) no-repeat center', opacity: 0.6}});
 				$.ajax({
 					type: 		'POST',
 					url: 		woocommerce_params.checkout_url,
@@ -564,7 +566,7 @@ jQuery(document).ready(function($) {
 							}
 							catch(err) {
 							  	$(form).prepend( code );
-								$(form).unblock(); 
+								$(form).removeClass('processing').unblock(); 
 								
 								$('html, body').animate({
 								    scrollTop: ($('form.checkout').offset().top - 100)

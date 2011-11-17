@@ -99,12 +99,16 @@ class woocommerce_order {
 	
 		// Formatted Addresses
 		$formatted_address = array();
+		
 		$country = ($this->billing_country && isset($woocommerce->countries->countries[$this->billing_country])) ? $woocommerce->countries->countries[$this->billing_country] : $this->billing_country;
+		
+		$state = ($this->billing_country && $this->billing_state && isset($woocommerce->countries->states[$this->billing_country][$this->billing_state])) ? $woocommerce->countries->states[$this->billing_country][$this->billing_state] : $this->billing_state;
+		
 		$address =  array_map('trim', array(
 			$this->billing_address_1,
 			$this->billing_address_2,
 			$this->billing_city,						
-			$this->billing_state,
+			$state,
 			$this->billing_postcode,
 			$country
 		));
@@ -113,12 +117,16 @@ class woocommerce_order {
 		
 		if ($this->shipping_address_1) :
 			$formatted_address = array();
+			
 			$country = ($this->shipping_country && isset($woocommerce->countries->countries[$this->shipping_country])) ? $woocommerce->countries->countries[$this->shipping_country] : $this->shipping_country;
+			
+			$state = ($this->shipping_country && $this->shipping_state && isset($woocommerce->countries->states[$this->shipping_country][$this->shipping_state])) ? $woocommerce->countries->states[$this->shipping_country][$this->shipping_state] : $this->shipping_state;
+
 			$address = array_map('trim', array(
 				$this->shipping_address_1,
 				$this->shipping_address_2,
 				$this->shipping_city,						
-				$this->shipping_state,
+				$state,
 				$this->shipping_postcode,
 				$country
 			));
@@ -352,6 +360,10 @@ class woocommerce_order {
 		
 		add_comment_meta($comment_id, 'is_customer_note', $is_customer_note);
 		
+		if ($is_customer_note) :
+			do_action( 'woocommerce_new_customer_note', $this->id, $note );
+		endif;
+		
 		return $comment_id;
 		
 	}
@@ -453,6 +465,7 @@ class woocommerce_order {
 		$this->record_product_sales();
 		$this->reduce_order_stock();
 		
+		do_action( 'woocommerce_payment_complete', $this->id );
 	}
 	
 	/**
@@ -568,7 +581,7 @@ class order_item_meta {
 	 */
 	function new_order_item( $item ) {
 		if ($item) :
-			do_action('woocommerce_order_item_meta', &$this, $item);
+			do_action('woocommerce_order_item_meta', $this, $item);
 		endif;
 	}
 	

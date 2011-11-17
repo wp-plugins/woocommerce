@@ -90,8 +90,6 @@ class woocommerce_cart {
 	 * Sets the php session data for the cart and coupons
 	 */
 	function set_session() {
-		$cart = array();
-		
 		// Set cart and coupon session data
 		$_SESSION['cart'] = $this->cart_contents;
 		$_SESSION['coupons'] = $this->applied_coupons;
@@ -403,6 +401,8 @@ class woocommerce_cart {
 				// Product Discounts
 				if ($this->applied_coupons) foreach ($this->applied_coupons as $code) :
 					$coupon = &new woocommerce_coupon( $code );
+					
+					if ($coupon->type!='fixed_product' && $coupon->type!='percent_product') continue;
 					
 					$this_item_is_discounted = false;
 					

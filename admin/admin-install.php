@@ -25,7 +25,6 @@ function activate_woocommerce() {
  * Install woocommerce
  */
 function install_woocommerce() {
-	
 	global $woocommerce_settings;
 	
 	// Do install
@@ -36,9 +35,18 @@ function install_woocommerce() {
 	
 	// Install folder for uploading files and prevent hotlinking
 	$upload_dir 	=  wp_upload_dir();
-	$downloads_url 	= $upload_dir['basedir'] . '/woocommerce_files';
+	$downloads_url 	= $upload_dir['basedir'] . '/woocommerce_uploads';
 	if ( wp_mkdir_p($downloads_url) && !file_exists($downloads_url.'/.htaccess') ) :
 		if ($file_handle = fopen( $downloads_url . '/.htaccess', 'w' )) :
+			fwrite($file_handle, 'deny from all');
+			fclose($file_handle);
+		endif;
+	endif;
+	
+	// Install folder for logs
+	$logs_url 		= WP_PLUGIN_DIR . "/" . plugin_basename( dirname(dirname(__FILE__))) . '/logs';
+	if ( wp_mkdir_p($logs_url) && !file_exists($logs_url.'/.htaccess') ) :
+		if ($file_handle = fopen( $logs_url . '/.htaccess', 'w' )) :
 			fwrite($file_handle, 'deny from all');
 			fclose($file_handle);
 		endif;
@@ -79,7 +87,7 @@ function woocommerce_populate_custom_fields() {
 	); 
 	$attachments = get_posts($args);
 	if ($attachments) foreach ($attachments as $id) :
-		add_post_meta($id, '_woocommerce_exclude_image', 0);
+		add_post_meta($id, '_woocommerce_exclude_image', 0, true);
 	endforeach;
 	
 }
@@ -205,6 +213,8 @@ function woocommerce_create_pages() {
 function woocommerce_tables_install() {
 	global $wpdb;
 	
+	$wpdb->hide_errors();
+
 	$collate = '';
     if($wpdb->supports_collation()) {
 		if(!empty($wpdb->charset)) $collate = "DEFAULT CHARACTER SET $wpdb->charset";
@@ -213,31 +223,66 @@ function woocommerce_tables_install() {
     
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
     
-    $sql = "CREATE TABLE IF NOT EXISTS ". $wpdb->prefix . "woocommerce_attribute_taxonomies" ." (
-        `attribute_id` 			mediumint(9) NOT NULL AUTO_INCREMENT,
-        `attribute_name`		varchar(200) NOT NULL,
-        `attribute_label`		longtext NULL,
-        `attribute_type`		varchar(200) NOT NULL,
-        PRIMARY KEY id (`attribute_id`)) $collate;";
+    // Table for storing attribute taxonomies - these are user defined
+    $sql = "CREATE TABLE ". $wpdb->prefix . "woocommerce_attribute_taxonomies" ." (
+        attribute_id 		mediumint(9) NOT NULL AUTO_INCREMENT,
+        attribute_name		varchar(200) NOT NULL,
+        attribute_label		longtext NULL,
+        attribute_type		varchar(200) NOT NULL,
+        PRIMARY KEY id (attribute_id)) $collate;";
     dbDelta($sql);
     
-    $sql = "CREATE TABLE IF NOT EXISTS ". $wpdb->prefix . "woocommerce_downloadable_product_permissions" ." (
-        `product_id` 			mediumint(9) NOT NULL,
-        `user_email`			varchar(200) NOT NULL,
-        `user_id`				mediumint(9) NULL,
-        `order_key`				varchar(200) NOT NULL,
-        `downloads_remaining`	varchar(9) NULL,
-        PRIMARY KEY id (`product_id`, `order_key`)) $collate;";
-    dbDelta($sql);
-    
-    $sql = "CREATE TABLE IF NOT EXISTS ". $wpdb->prefix . "woocommerce_termmeta" ." (
-		`meta_id` 				bigint(20) NOT NULL AUTO_INCREMENT,
-      	`woocommerce_term_id` 		bigint(20) NOT NULL,
-      	`meta_key` 				varchar(255) NULL,
-      	`meta_value` 			longtext NULL,
-      	PRIMARY KEY id (`meta_id`)) $collate;";
-    dbDelta($sql);
+    // Table for storing user and guest download permissions
+    $downloadable_products_table = $wpdb->prefix . "woocommerce_downloadable_product_permissions";
+   
+    // Drop primary key first
+    if ($wpdb->get_var("SHOW TABLES LIKE '$downloadable_products_table'") == $downloadable_products_table) {
+		$wpdb->query("ALTER TABLE $downloadable_products_table DROP PRIMARY KEY");
+	}
 
+    // Now create it
+    $sql = "CREATE TABLE ". $downloadable_products_table ." (
+        product_id 			mediumint(9) NOT NULL,
+        order_id			mediumint(9) NOT NULL DEFAULT 0,
+        order_key			varchar(200) NOT NULL,
+        user_email			varchar(200) NOT NULL,
+        user_id				mediumint(9) NULL,
+        downloads_remaining	varchar(9) NULL,
+        PRIMARY KEY id (product_id,order_id,order_key)) $collate;";
+    dbDelta($sql);
+    
+    // Term meta table - sadly WordPress does not have termmeta so we need our own
+    $sql = "CREATE TABLE ". $wpdb->prefix . "woocommerce_termmeta" ." (
+		meta_id 			bigint(20) NOT NULL AUTO_INCREMENT,
+      	woocommerce_term_id bigint(20) NOT NULL,
+      	meta_key 			varchar(255) NULL,
+      	meta_value 			longtext NULL,
+      	PRIMARY KEY id (meta_id)) $collate;";
+    dbDelta($sql);
+    
+    // Update woocommerce_downloadable_product_permissions table to include order ID's as well as keys
+    $results = $wpdb->get_results( "SELECT * FROM ".$wpdb->prefix."woocommerce_downloadable_product_permissions WHERE order_id = 0;" );
+	
+	if ($results) foreach ($results as $result) :
+		
+		if (!$result->order_key) continue;
+		
+		$order_id = $wpdb->get_var( $wpdb->prepare("SELECT post_id FROM ".$wpdb->postmeta." WHERE meta_key = '_order_key' AND meta_value = '%s' LIMIT 1;", $result->order_key) );
+		
+		if ($order_id) :
+		
+			$wpdb->update( $wpdb->prefix . "woocommerce_downloadable_product_permissions", array( 
+				'order_id' => $order_id, 
+			), array( 
+				'product_id' => $result->product_id,
+				'order_key' => $result->order_key
+			), array( '%s' ), array( '%s', '%s' ) );
+		
+		endif;
+		
+	endforeach;
+	
+	$wpdb->show_errors();
 }
 
 /**

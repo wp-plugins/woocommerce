@@ -82,7 +82,7 @@ if (!function_exists('woocommerce_template_loop_add_to_cart')) {
 			break;
 		endswitch;
 			
-		echo sprintf('<a href="%s" rel="%s" class="button add_to_cart_button product_type_%s">%s</a>', $link, $_product->id, $_product->product_type, $label);
+		echo sprintf('<a href="%s" data-product_id="%s" class="button add_to_cart_button product_type_%s">%s</a>', $link, $_product->id, $_product->product_type, $label);
 	}
 }
 if (!function_exists('woocommerce_template_loop_product_thumbnail')) {
@@ -92,7 +92,9 @@ if (!function_exists('woocommerce_template_loop_product_thumbnail')) {
 }
 if (!function_exists('woocommerce_template_loop_price')) {
 	function woocommerce_template_loop_price( $post, $_product ) {
-		?><span class="price"><?php echo $_product->get_price_html(); ?></span><?php
+		$price_html = $_product->get_price_html();
+		if (!$price_html) return;
+		?><span class="price"><?php echo $price_html; ?></span><?php
 	}
 }
 
@@ -318,7 +320,7 @@ if (!function_exists('woocommerce_grouped_add_to_cart')) {
 		<form action="<?php echo esc_url( $_product->add_to_cart_url() ); ?>" class="cart" method="post">
 			<table cellspacing="0" class="group_table">
 				<tbody>
-					<?php foreach ($_product->get_children() as $child) : $child_product = &new woocommerce_product( $child->ID ); $cavailability = $child_product->get_availability(); ?>
+					<?php foreach ($_product->get_children() as $child_id) : $child_product = $_product->get_child( $child_id ); $cavailability = $child_product->get_availability(); ?>
 						<tr>
 							<td><div class="quantity"><input name="quantity[<?php echo $child->ID; ?>]" value="0" size="4" title="Qty" class="input-text qty text" maxlength="12" /></div></td>
 							<td><label for="product-<?php echo $child_product->id; ?>"><?php 
@@ -351,12 +353,14 @@ if (!function_exists('woocommerce_variable_add_to_cart')) {
 		
 		$attributes = $_product->get_available_attribute_variations();
 		$default_attributes = (array) maybe_unserialize(get_post_meta( $post->ID, '_default_attributes', true ));
+		$selected_attributes = apply_filters( 'woocommerce_product_default_attributes', $default_attributes );
 
 		// Put available variations into an array and put in a Javascript variable (JSON encoded)
         $available_variations = array();
         
-        foreach($_product->get_children() as $child) {
-            $variation = $child->product;
+        foreach($_product->get_children() as $child_id) {
+
+            $variation = $_product->get_child( $child_id );
             
             if($variation instanceof woocommerce_product_variation) {
                         	
@@ -403,7 +407,7 @@ if (!function_exists('woocommerce_variable_add_to_cart')) {
 							<option value=""><?php echo __('Choose an option', 'woothemes') ?>&hellip;</option>
 							<?php if(is_array($options)) : ?>
 								<?php
-									$selected_value = (isset($default_attributes[sanitize_title($name)])) ? $default_attributes[sanitize_title($name)] : '';
+									$selected_value = (isset($selected_attributes[sanitize_title($name)])) ? $selected_attributes[sanitize_title($name)] : '';
 									// Get terms if this is a taxonomy - ordered
 									if (taxonomy_exists(sanitize_title($name))) :
 										$args = array('menu_order' => 'ASC');
@@ -718,7 +722,7 @@ if (!function_exists('woocommerce_cart_totals')) {
 					</tr>
 					
 					<?php if ($woocommerce->cart->get_cart_shipping_total()) : ?><tr>
-						<th><?php _e('Shipping', 'woothemes'); ?> <small><?php echo $woocommerce->countries->shipping_to_prefix().' '.$woocommerce->countries->countries[ $woocommerce->customer->get_shipping_country() ]; ?></small></th>
+						<th><?php _e('Shipping', 'woothemes'); ?> <small><?php echo $woocommerce->countries->shipping_to_prefix().' '.__($woocommerce->countries->countries[ $woocommerce->customer->get_shipping_country() ], 'woothemes'); ?></small></th>
 						<td>
 							<?php
 								if (sizeof($available_methods)>0) :
@@ -761,7 +765,7 @@ if (!function_exists('woocommerce_cart_totals')) {
 					</tr><?php endif; ?>
 					
 					<?php if ($woocommerce->cart->get_cart_tax()) : ?><tr>
-						<th><?php _e('Tax', 'woothemes'); ?> <?php if ($woocommerce->customer->is_customer_outside_base()) : ?><small><?php echo sprintf(__('estimated for %s', 'woothemes'), $woocommerce->countries->estimated_for_prefix() . $woocommerce->countries->countries[ $woocommerce->countries->get_base_country() ] ); ?></small><?php endif; ?></th>
+						<th><?php _e('Tax', 'woothemes'); ?> <?php if ($woocommerce->customer->is_customer_outside_base()) : ?><small><?php echo sprintf(__('estimated for %s', 'woothemes'), $woocommerce->countries->estimated_for_prefix() . __($woocommerce->countries->countries[ $woocommerce->countries->get_base_country() ], 'woothemes') ); ?></small><?php endif; ?></th>
 						<td><?php 
 							echo $woocommerce->cart->get_cart_tax(); 
 						?></td>
@@ -826,7 +830,7 @@ if (!function_exists('woocommerce_login_form')) {
 }
 
 /**
- * WooCommerce Login Form
+ * WooCommerce Checkout Login Form
  **/
 if (!function_exists('woocommerce_checkout_login_form')) {
 	function woocommerce_checkout_login_form() {
@@ -1130,6 +1134,7 @@ function woocommerce_product_subcategories() {
 	if (!is_product_category() && !is_shop()) return;
 	if (is_product_category() && get_option('woocommerce_show_subcategories')=='no') return;
 	if (is_shop() && get_option('woocommerce_shop_show_subcategories')=='no') return;
+	if (is_paged()) return;
 
 	$product_cat_slug 	= get_query_var('product_cat');
 	

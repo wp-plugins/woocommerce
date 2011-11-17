@@ -105,6 +105,14 @@ $woocommerce_settings['general'] = apply_filters('woocommerce_general_settings',
 	),
 	
 	array(  
+		'desc' 		=> __( 'Show order comments section', 'woothemes' ),
+		'id' 		=> 'woocommerce_enable_order_comments',
+		'std' 		=> 'yes',
+		'type' 		=> 'checkbox',
+		'checkboxgroup'		=> ''
+	),
+	
+	array(  
 		'desc' 		=> __( 'Force <abbr title="Secure Sockets Layer, a computing protocol that ensures the security of data sent via the Internet by using encryption">SSL</abbr>/HTTPS (an SSL Certificate is required)', 'woothemes' ),
 		'id' 		=> 'woocommerce_force_ssl_checkout',
 		'std' 		=> 'no',
@@ -118,6 +126,14 @@ $woocommerce_settings['general'] = apply_filters('woocommerce_general_settings',
 		'std' 		=> 'no',
 		'type' 		=> 'checkbox',
 		'checkboxgroup'		=> 'end'
+	),
+	
+	array(  
+		'name' => __( 'My Account', 'woothemes' ),
+		'desc' 		=> __( 'Allow unregistered users to register from the My Account page', 'woothemes' ),
+		'id' 		=> 'woocommerce_enable_myaccount_registration',
+		'std' 		=> 'no',
+		'type' 		=> 'checkbox',
 	),
 	
 	array(  
@@ -419,6 +435,14 @@ $woocommerce_settings['catalog'] = apply_filters('woocommerce_catalog_settings',
 		'id' 		=> 'woocommerce_enable_dimensions',
 		'std' 		=> 'yes',
 		'type' 		=> 'checkbox',
+		'checkboxgroup'		=> ''
+	),
+	
+	array(  
+		'desc' 		=> __( 'Show weight and dimension fields in product attributes tab', 'woothemes' ),
+		'id' 		=> 'woocommerce_enable_dimension_product_attributes',
+		'std' 		=> 'yes',
+		'type' 		=> 'checkbox',
 		'checkboxgroup'		=> 'end'
 	),
 	
@@ -508,7 +532,7 @@ $woocommerce_settings['catalog'] = apply_filters('woocommerce_catalog_settings',
 	
 	array( 'type' => 'sectionend', 'id' => 'pricing_options' ),
 	
-	array(	'name' => __( 'Image Options', 'woothemes' ), 'type' => 'title','desc' => __('These settings affect the actual dimensions of images in your catalog - the display on the front-end will still be affected by CSS styles.', 'woothemes'), 'id' => 'image_options' ),
+	array(	'name' => __( 'Image Options', 'woothemes' ), 'type' => 'title','desc' => sprintf(__('These settings affect the actual dimensions of images in your catalog - the display on the front-end will still be affected by CSS styles. After changing these settings you may need to <a href="%s">regenerate your thumbnails</a>.', 'woothemes'), 'http://wordpress.org/extend/plugins/regenerate-thumbnails/'), 'id' => 'image_options' ),
 	
 	array(  
 		'name' => __( 'Catalog Images', 'woothemes' ),
@@ -900,6 +924,9 @@ function woocommerce_settings() {
 						'payment_gateways' => __( 'Payment Gateways', 'woothemes' ),
 						'email' => __( 'Emails', 'woothemes' ),
 					);
+					
+					$tabs = apply_filters('woocommerce_settings_tabs_array', $tabs);
+					
 					foreach ($tabs as $name => $label) :
 						echo '<a href="' . admin_url( 'admin.php?page=woocommerce&tab=' . $name ) . '" class="nav-tab ';
 						if( $current_tab==$name ) echo 'nav-tab-active';

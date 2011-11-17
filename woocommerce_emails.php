@@ -188,15 +188,14 @@ function woocommerce_completed_order_customer_notification( $id ) {
 /**
  * Pay for order notification email template - this one includes a payment link
  **/
-function woocommerce_pay_for_order_customer_notification( $id ) {
+function woocommerce_pay_for_order_customer_notification( $order ) {
 	
-	global $order_id, $email_heading;
+	global $order_id, $the_order, $email_heading;
 	
-	$order_id = $id;
+	$order_id = $order->id;
+	$the_order = $order;
 	
-	$order = &new woocommerce_order( $order_id );
-	
-	$email_heading = __('Pay for Order', 'woothemes');
+	$email_heading = sprintf(__('Invoice for Order #%s', 'woothemes'), $order_id);
 
 	$subject = sprintf(__('[%s] Pay for Order', 'woothemes'), get_bloginfo('name'));
 
@@ -205,6 +204,39 @@ function woocommerce_pay_for_order_customer_notification( $id ) {
 	
 	// Get mail template
 	woocommerce_get_template('emails/customer_pay_for_order.php', false);
+	
+	// Get contents
+	$message = ob_get_clean();
+
+	// Send the mail	
+	woocommerce_mail( $order->billing_email, $subject, $message );
+}
+
+/**
+ * Customer note notification
+ **/
+add_action('woocommerce_new_customer_note', 'woocommerce_customer_note_notification', 10, 2);
+
+function woocommerce_customer_note_notification( $id, $note ) {
+	
+	global $order_id, $email_heading, $customer_note;
+	
+	$order_id = $id;
+	$customer_note = $note;
+	
+	$order = &new woocommerce_order( $order_id );
+	
+	if (!$customer_note) return;
+	
+	$email_heading = __('A note has been added to your order', 'woothemes');
+	
+	$subject = sprintf(__('[%s] A note has been added to your order', 'woothemes'), get_bloginfo('name'));
+	
+	// Buffer
+	ob_start();
+	
+	// Get mail template
+	woocommerce_get_template('emails/customer_note_notification.php', false);
 	
 	// Get contents
 	$message = ob_get_clean();

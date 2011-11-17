@@ -237,16 +237,24 @@ class woocommerce_checkout {
 								
 			echo '</div>';
 		
-		elseif ($woocommerce->cart->ship_to_billing_address_only()) :
-			echo '<h3>'.__('Notes/Comments', 'woothemes').'</h3>';
 		endif;
 		
-		$this->checkout_form_field( 'order_comments', array( 
-			'type' => 'textarea', 
-			'class' => array('notes'), 
-			'label' => __('Order Notes', 'woothemes'), 
-			'placeholder' => __('Notes about your order, e.g. special notes for delivery.', 'woothemes') 
-			));
+		do_action('woocommerce_before_order_notes', $this);
+		
+		if (get_option('woocommerce_enable_order_comments')!='no') :
+		
+			if ($woocommerce->cart->ship_to_billing_address_only()) :
+				echo '<h3>'.__('Additional Information', 'woothemes').'</h3>';
+			endif;
+			
+			$this->checkout_form_field( 'order_comments', array( 
+				'type' => 'textarea', 
+				'class' => array('notes'), 
+				'label' => __('Order Notes', 'woothemes'), 
+				'placeholder' => __('Notes about your order, e.g. special notes for delivery.', 'woothemes') 
+				));
+					
+		endif;
 		
 		do_action('woocommerce_after_order_notes', $this);
 	}
@@ -258,7 +266,7 @@ class woocommerce_checkout {
 		global $woocommerce;
 		
 		$defaults = array(
-			'type' => 'input',
+			'type' => 'text',
 			'label' => '',
 			'placeholder' => '',
 			'required' => false,
@@ -339,7 +347,7 @@ class woocommerce_checkout {
 			
 				$field = '<p class="form-row '.implode(' ', $args['class']).'">
 					<label for="'.$key.'" class="'.implode(' ', $args['label_class']).'">'.$args['label'].$required.'</label>
-					<input type="'.$args['type'].'" class="input-text" name="'.$key.'" id="'.$key.'" placeholder="'.$args['placeholder'].'" value="'. $this->get_value( $key ).'" />
+					<input type="text" class="input-text" name="'.$key.'" id="'.$key.'" placeholder="'.$args['placeholder'].'" value="'. $this->get_value( $key ).'" />
 				</p>'.$after;
 				
 			break;
@@ -532,8 +540,8 @@ class woocommerce_checkout {
 					if ($this->creating_account && !$user_id) :
 				
 						$reg_errors = new WP_Error();
-						do_action('register_post', $this->posted['billing_email'], $this->posted['billing_email'], $reg_errors);
-						$errors = apply_filters( 'registration_errors', $reg_errors, $this->posted['billing_email'], $this->posted['billing_email'] );
+						do_action('register_post', $this->posted['account_username'], $this->posted['billing_email'], $reg_errors);
+						$errors = apply_filters( 'registration_errors', $reg_errors, $this->posted['account_username'], $this->posted['billing_email'] );
 				
 		                // if there are no errors, let's create the user account
 						if ( !$reg_errors->get_error_code() ) :
@@ -820,6 +828,8 @@ class woocommerce_checkout {
 	
 	/** Gets the value either from the posted data, or from the users meta data */
 	function get_value( $input ) {
+		global $woocommerce;
+		
 		if (isset( $this->posted[$input] ) && !empty($this->posted[$input])) :
 			return $this->posted[$input];
 		elseif (is_user_logged_in()) :
@@ -834,6 +844,16 @@ class woocommerce_checkout {
 				break;
 				
 			endswitch;
+		else :
+			
+			switch ( $input ) :
+				
+				case "billing_country" :
+					return $woocommerce->countries->get_base_country();
+				break;
+				
+			endswitch;
+			
 		endif;
 	}
 }
