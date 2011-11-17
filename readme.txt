@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, store, sh
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.1
 Tested up to: 3.3
-Stable tag: 1.2.2
+Stable tag: 1.2.3
 
 An e-commerce toolkit that helps you sell anything. Beautifully.
 
@@ -81,6 +81,14 @@ Yes you can! Join in on our GitHub repository :) https://github.com/woothemes/wo
 3. WooCommerce sales reports
 
 == Changelog ==
+
+= 1.2.3 - 17/11/2011 =
+* Fix for sale price logic
+* Related products array_diff fix
+* Fixed Produkt-Kategorie in formal german translation
+* Variations limit fix
+* Transients cleared on install
+* Taxonomies defined before products to prevent 404's
 
 = 1.2.2 - 17/11/2011 =
 * Minor fixes and optimisations
@@ -283,6 +291,9 @@ Yes you can! Join in on our GitHub repository :) https://github.com/woothemes/wo
 * Initial Release. Woo!
 
 == Upgrade Notice ==
+
+= 1.2.3 =
+Fixes minor issues in 1.2.2 - please backup your database before upgrading and also ensure you are running the latest versions of any WooCommerce plugins.
 
 = 1.2.2 =
 Due to some changes in the plugin, if you are using any of our extensions please ensure you check the changelogs and download any updates from your account - especially if using 2CO, iDeal or authorize.net. This version also updates the download permissions table so please ensure you backup your database before upgrading.
