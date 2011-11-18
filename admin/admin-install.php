@@ -25,7 +25,7 @@ function activate_woocommerce() {
  * Install woocommerce
  */
 function install_woocommerce() {
-	global $woocommerce_settings;
+	global $woocommerce_settings, $woocommerce;
 	
 	// Do install
 	woocommerce_default_options();
@@ -52,6 +52,9 @@ function install_woocommerce() {
 		endif;
 	endif;
 	
+	// Clear transient cache (if this is an upgrade then woocommerce_class will be defined)
+	if ( $woocommerce instanceof woocommerce ) $woocommerce->clear_product_transients();
+	
 	// Update version
 	update_option( "woocommerce_db_version", WOOCOMMERCE_VERSION );
 }
@@ -65,9 +68,16 @@ function install_woocommerce_redirect() {
 
 	if ( is_admin() && isset( $_GET['activate'] ) && ($_GET['activate'] == true) && $pagenow == 'plugins.php' && get_option( "woocommerce_installed" ) == 1 ) :
 		
+		// Clear transient cache
 		$woocommerce->clear_product_transients();
+		
+		// Unset installed flag
 		update_option( "woocommerce_installed", 0 );
+		
+		// Flush rewrites
 		flush_rewrite_rules( false );
+		
+		// Redirect to settings
 		wp_redirect(admin_url('admin.php?page=woocommerce&installed=true'));
 		exit;
 		

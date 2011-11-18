@@ -160,8 +160,8 @@ class woocommerce_product {
 				$transient_name = 'woocommerce_product_children_ids_' . $this->id;
         
 	        	if ( false === ( $this->children = get_transient( $transient_name ) ) ) :
-	        
-			        $this->children = get_posts( 'post_parent='.$this->id.'&post_type='.$child_post_type.'&orderby=menu_order&order=ASC&fields=ids&post_status=any&numberposts=-1' );
+	        			
+			        $this->children = get_posts( 'post_parent=' . $this->id . '&post_type=' . $child_post_type . '&orderby=menu_order&order=ASC&fields=ids&post_status=any&numberposts=-1' );
 					
 					set_transient( $transient_name, $this->children );
 					
@@ -456,8 +456,9 @@ class woocommerce_product {
 		if ( $this->has_child() ) :
 			
 			foreach ($this->get_children() as $child_id) :
-				$sale_price = get_post_meta( $child_id, 'sale_price', true);
-				if ( $sale_price > 0 && $sale_price == $this->price ) return true;
+				$sale_price 	= get_post_meta( $child_id, 'sale_price', true );
+				$regular_price 	= get_post_meta( $child_id, 'price', true );
+				if ( $sale_price > 0 && $sale_price < $regular_price ) return true;
 			endforeach;
 			
 		else :
@@ -669,8 +670,12 @@ class woocommerce_product {
 		$terms = wp_get_post_terms($this->id, 'product_tag');
 		foreach ($terms as $term) $tags_array[] = $term->term_id;
 		
+		// Get categories
 		$terms = wp_get_post_terms($this->id, 'product_cat');
 		foreach ($terms as $term) $cats_array[] = $term->term_id;
+		
+		// Don't bother if none are set
+		if ( sizeof($cats_array)==1 && sizeof($tags_array)==1 ) return array();
 		
 		// Meta query
 		$meta_query = array();
@@ -883,7 +888,7 @@ class woocommerce_product {
     	
     	if (has_post_thumbnail($this->id)) :
 			echo get_the_post_thumbnail($this->id, $size); 
-		elseif ($parent_id = wp_get_post_parent_id( $this->id ) && has_post_thumbnail($parent_id)) :
+		elseif (($parent_id = wp_get_post_parent_id( $this->id )) && has_post_thumbnail($parent_id)) :
 			echo get_the_post_thumbnail($parent_id, $size); 
 		else :
 			echo '<img src="'.$woocommerce->plugin_url(). '/assets/images/placeholder.png" alt="Placeholder" width="'.$woocommerce->get_image_size('shop_thumbnail_image_width').'" height="'.$woocommerce->get_image_size('shop_thumbnail_image_height').'" />'; 
