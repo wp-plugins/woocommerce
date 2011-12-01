@@ -1,50 +1,3 @@
-/*
- * jQuery MultiSelect UI Widget 1.11pre
- * Copyright (c) 2011 Eric Hynds
- *
- * http://www.erichynds.com/jquery/jquery-ui-multiselect-widget/
- *
- * Depends:
- *   - jQuery 1.4.2+
- *   - jQuery UI 1.8 widget factory
- *
- * Optional:
- *   - jQuery UI effects
- *   - jQuery UI position utility
- *
- * Dual licensed under the MIT and GPL licenses:
- *   http://www.opensource.org/licenses/mit-license.php
- *   http://www.gnu.org/licenses/gpl.html
- *
-*/
-(function($,undefined){var multiselectID=0;$.widget("ech.multiselect",{options:{header:true,height:175,minWidth:225,classes:'',checkAllText:'Check all',uncheckAllText:'Uncheck all',noneSelectedText:'Select options',selectedText:'# selected',selectedList:0,show:'',hide:'',autoOpen:false,multiple:true,position:{}},_create:function(){var el=this.element.hide(),o=this.options;this.speed=$.fx.speeds._default;this._isOpen=false;var
-button=(this.button=$('<button type="button"><span class="ui-icon ui-icon-triangle-2-n-s"></span></button>')).addClass('ui-multiselect ui-widget ui-state-default ui-corner-all').addClass(o.classes).attr({'title':el.attr('title'),'aria-haspopup':true,'tabIndex':el.attr('tabIndex')}).insertAfter(el),buttonlabel=(this.buttonlabel=$('<span />')).html(o.noneSelectedText).appendTo(button),menu=(this.menu=$('<div />')).addClass('ui-multiselect-menu ui-widget ui-widget-content ui-corner-all').addClass(o.classes).insertAfter(button),header=(this.header=$('<div />')).addClass('ui-widget-header ui-corner-all ui-multiselect-header ui-helper-clearfix').appendTo(menu),headerLinkContainer=(this.headerLinkContainer=$('<ul />')).addClass('ui-helper-reset').html(function(){if(o.header===true){return'<li><a class="ui-multiselect-all" href="#"><span class="ui-icon ui-icon-check"></span><span>'+o.checkAllText+'</span></a></li><li><a class="ui-multiselect-none" href="#"><span class="ui-icon ui-icon-closethick"></span><span>'+o.uncheckAllText+'</span></a></li>';}else if(typeof o.header==="string"){return'<li>'+o.header+'</li>';}else{return'';}}).append('<li class="ui-multiselect-close"><a href="#" class="ui-multiselect-close"><span class="ui-icon ui-icon-circle-close"></span></a></li>').appendTo(header),checkboxContainer=(this.checkboxContainer=$('<ul />')).addClass('ui-multiselect-checkboxes ui-helper-reset').appendTo(menu);this._bindEvents();this.refresh(true);if(!o.multiple){menu.addClass('ui-multiselect-single');}},_init:function(){if(this.options.header===false){this.header.hide();}
-if(!this.options.multiple){this.headerLinkContainer.find('.ui-multiselect-all, .ui-multiselect-none').hide();}
-if(this.options.autoOpen){this.open();}
-if(this.element.is(':disabled')){this.disable();}},refresh:function(init){var el=this.element,o=this.options,menu=this.menu,checkboxContainer=this.checkboxContainer,optgroups=[],html=[],id=el.attr('id')||multiselectID++;this.element.find('option').each(function(i){var $this=$(this),parent=this.parentNode,title=this.innerHTML,description=this.title,value=this.value,inputID=this.id||'ui-multiselect-'+id+'-option-'+i,isDisabled=this.disabled,isSelected=this.selected,labelClasses=['ui-corner-all'],optLabel;if(parent.tagName.toLowerCase()==='optgroup'){optLabel=parent.getAttribute('label');if($.inArray(optLabel,optgroups)===-1){html.push('<li class="ui-multiselect-optgroup-label"><a href="#">'+optLabel+'</a></li>');optgroups.push(optLabel);}}
-if(isDisabled){labelClasses.push('ui-state-disabled');}
-if(isSelected&&!o.multiple){labelClasses.push('ui-state-active');}
-html.push('<li class="'+(isDisabled?'ui-multiselect-disabled':'')+'">');html.push('<label for="'+inputID+'" title="'+description+'" class="'+labelClasses.join(' ')+'">');html.push('<input id="'+inputID+'" name="multiselect_'+id+'" type="'+(o.multiple?"checkbox":"radio")+'" value="'+value+'" title="'+title+'"');if(isSelected){html.push(' checked="checked"');html.push(' aria-selected="true"');}
-if(isDisabled){html.push(' disabled="disabled"');html.push(' aria-disabled="true"');}
-html.push(' /><span>'+title+'</span></label></li>');if(parent.tagName.toLowerCase()==='optgroup'){var $next_parent=$this.next('option').parent();if(!$next_parent.is('optgroup')){html.push('<li class="ui-multiselect-optgroup-last"></li>');}}});checkboxContainer.html(html.join(''));this.labels=menu.find('label');this._setButtonWidth();this._setMenuWidth();this.button[0].defaultValue=this.update();if(!init){this._trigger('refresh');}},update:function(){var o=this.options,$inputs=this.labels.find('input'),$checked=$inputs.filter(':checked'),numChecked=$checked.length,value;if(numChecked===0){value=o.noneSelectedText;}else{if($.isFunction(o.selectedText)){value=o.selectedText.call(this,numChecked,$inputs.length,$checked.get());}else if(/\d/.test(o.selectedList)&&o.selectedList>0&&numChecked<=o.selectedList){value=$checked.map(function(){return this.title;}).get().join(', ');}else{value=o.selectedText.replace('#',numChecked).replace('#',$inputs.length);}}
-this.buttonlabel.html(value);return value;},_bindEvents:function(){var self=this,button=this.button;function clickHandler(){self[self._isOpen?'close':'open']();return false;}
-button.find('span').bind('click.multiselect',clickHandler);button.bind({click:clickHandler,keypress:function(e){switch(e.which){case 27:case 38:case 37:self.close();break;case 39:case 40:self.open();break;}},mouseenter:function(){if(!button.hasClass('ui-state-disabled')){$(this).addClass('ui-state-hover');}},mouseleave:function(){$(this).removeClass('ui-state-hover');},focus:function(){if(!button.hasClass('ui-state-disabled')){$(this).addClass('ui-state-focus');}},blur:function(){$(this).removeClass('ui-state-focus');}});this.header.delegate('a','click.multiselect',function(e){if($(this).hasClass('ui-multiselect-close')){self.close();}else{self[$(this).hasClass('ui-multiselect-all')?'checkAll':'uncheckAll']();}
-e.preventDefault();});this.menu.delegate('li.ui-multiselect-optgroup-label a','click.multiselect',function(e){e.preventDefault();var $this=$(this),$inputs=$this.parent().nextUntil('li.ui-multiselect-optgroup-label, li.ui-multiselect-optgroup-last').find('input:visible:not(:disabled)'),nodes=$inputs.get(),label=$this.parent().text();if(self._trigger('beforeoptgrouptoggle',e,{inputs:nodes,label:label})===false){return;}
-self._toggleChecked($inputs.filter(':checked').length!==$inputs.length,$inputs);self._trigger('optgrouptoggle',e,{inputs:nodes,label:label,checked:nodes[0].checked});}).delegate('label','mouseenter.multiselect',function(){if(!$(this).hasClass('ui-state-disabled')){self.labels.removeClass('ui-state-hover');$(this).addClass('ui-state-hover').find('input').focus();}}).delegate('label','keydown.multiselect',function(e){e.preventDefault();switch(e.which){case 9:case 27:self.close();break;case 38:case 40:case 37:case 39:self._traverse(e.which,this);break;case 13:$(this).find('input')[0].click();break;}}).delegate('input[type="checkbox"], input[type="radio"]','click.multiselect',function(e){var $this=$(this),val=this.value,checked=this.checked,tags=self.element.find('option');if(this.disabled||self._trigger('click',e,{value:val,text:this.title,checked:checked})===false){e.preventDefault();return;}
-$this.attr('aria-selected',checked);tags.each(function(){if(this.value===val){this.selected=checked;if(checked){this.setAttribute('selected','selected');}else{this.removeAttribute('selected');}}else if(!self.options.multiple){this.selected=false;}});if(!self.options.multiple){self.labels.removeClass('ui-state-active');$this.closest('label').toggleClass('ui-state-active',checked);self.close();}
-self.element.trigger("change");setTimeout($.proxy(self.update,self),10);});$(document).bind('mousedown.multiselect',function(e){if(self._isOpen&&!$.contains(self.menu[0],e.target)&&!$.contains(self.button[0],e.target)&&e.target!==self.button[0]){self.close();}});$(this.element[0].form).bind('reset.multiselect',function(){setTimeout(function(){self.update();},10);});},_setButtonWidth:function(){var width=this.element.outerWidth(),o=this.options;if(/\d/.test(o.minWidth)&&width<o.minWidth){width=o.minWidth;}
-this.button.width(width);},_setMenuWidth:function(){var m=this.menu,width=this.button.outerWidth()-
-parseInt(m.css('padding-left'),10)-
-parseInt(m.css('padding-right'),10)-
-parseInt(m.css('border-right-width'),10)-
-parseInt(m.css('border-left-width'),10);m.width(width||this.button.outerWidth());},_traverse:function(which,start){var $start=$(start),moveToLast=which===38||which===37,$next=$start.parent()[moveToLast?'prevAll':'nextAll']('li:not(.ui-multiselect-disabled, .ui-multiselect-optgroup-label)')[moveToLast?'last':'first']();if(!$next.length){var $container=this.menu.find('ul:last');this.menu.find('label')[moveToLast?'last':'first']().trigger('mouseover');$container.scrollTop(moveToLast?$container.height():0);}else{$next.find('label').trigger('mouseover');}},_toggleCheckbox:function(prop,flag){return function(){!this.disabled&&(this[prop]=flag);if(flag){this.setAttribute('aria-selected',true);}else{this.removeAttribute('aria-selected');}}},_toggleChecked:function(flag,group){var $inputs=(group&&group.length)?group:this.labels.find('input'),self=this;$inputs.each(this._toggleCheckbox('checked',flag));this.update();var values=$inputs.map(function(){return this.value;}).get();this.element.find('option').each(function(){if(!this.disabled&&$.inArray(this.value,values)>-1){self._toggleCheckbox('selected',flag).call(this);}});if($inputs.length){this.element.trigger("change");}},_toggleDisabled:function(flag){this.button.attr({'disabled':flag,'aria-disabled':flag})[flag?'addClass':'removeClass']('ui-state-disabled');this.menu.find('input').attr({'disabled':flag,'aria-disabled':flag}).parent()[flag?'addClass':'removeClass']('ui-state-disabled');this.element.attr({'disabled':flag,'aria-disabled':flag});},open:function(e){var self=this,button=this.button,menu=this.menu,speed=this.speed,o=this.options;if(this._trigger('beforeopen')===false||button.hasClass('ui-state-disabled')||this._isOpen){return;}
-var $container=menu.find('ul:last'),effect=o.show,pos=button.position();if($.isArray(o.show)){effect=o.show[0];speed=o.show[1]||self.speed;}
-$container.scrollTop(0).height(o.height);if($.ui.position&&!$.isEmptyObject(o.position)){o.position.of=o.position.of||button;menu.show().position(o.position).hide().show(effect,speed);}else{menu.css({top:pos.top+button.outerHeight(),left:pos.left}).show(effect,speed);}
-this.labels.eq(0).trigger('mouseover').trigger('mouseenter').find('input').trigger('focus');button.addClass('ui-state-active');this._isOpen=true;this._trigger('open');},close:function(){if(this._trigger('beforeclose')===false){return;}
-var o=this.options,effect=o.hide,speed=this.speed;if($.isArray(o.hide)){effect=o.hide[0];speed=o.hide[1]||this.speed;}
-this.menu.hide(effect,speed);this.button.removeClass('ui-state-active').trigger('blur').trigger('mouseleave');this._isOpen=false;this._trigger('close');},enable:function(){this._toggleDisabled(false);},disable:function(){this._toggleDisabled(true);},checkAll:function(e){this._toggleChecked(true);this._trigger('checkAll');},uncheckAll:function(){this._toggleChecked(false);this._trigger('uncheckAll');},getChecked:function(){return this.menu.find('input').filter(':checked');},destroy:function(){$.Widget.prototype.destroy.call(this);this.button.remove();this.menu.remove();this.element.show();return this;},isOpen:function(){return this._isOpen;},widget:function(){return this.menu;},_setOption:function(key,value){var menu=this.menu;switch(key){case'header':menu.find('div.ui-multiselect-header')[value?'show':'hide']();break;case'checkAllText':menu.find('a.ui-multiselect-all span').eq(-1).text(value);break;case'uncheckAllText':menu.find('a.ui-multiselect-none span').eq(-1).text(value);break;case'height':menu.find('ul:last').height(parseInt(value,10));break;case'minWidth':this.options[key]=parseInt(value,10);this._setButtonWidth();this._setMenuWidth();break;case'selectedText':case'selectedList':case'noneSelectedText':this.options[key]=value;this.update();break;case'classes':menu.add(this.button).removeClass(this.options.classes).addClass(value);break;}
-$.Widget.prototype._setOption.apply(this,arguments);}});})(jQuery);
-
 /*!
   jQuery blockUI plugin
   Version 2.37 (29-JAN-2011)
@@ -113,22 +66,27 @@ return true;return $(e.target).parents().children().filter('div.blockUI').length
 return;var e=pageBlockEls[back===true?pageBlockEls.length-1:0];if(e)
 e.focus();};function center(el,x,y){var p=el.parentNode,s=el.style;var l=((p.offsetWidth-el.offsetWidth)/2)-sz(p,'borderLeftWidth');var t=((p.offsetHeight-el.offsetHeight)/2)-sz(p,'borderTopWidth');if(x)s.left=l>0?(l+'px'):'0';if(y)s.top=t>0?(t+'px'):'0';};function sz(el,p){return parseInt($.css(el,p))||0;};})(jQuery);
 
-/*
- * 	Easy Tooltip 1.0 - jQuery plugin
- *	written by Alen Grakalic	
- *	http://cssglobe.com/post/4380/easy-tooltip--jquery-plugin
+ /*
+ * TipTip
+ * Copyright 2010 Drew Wilson
+ * www.drewwilson.com
+ * code.drewwilson.com/entry/tiptip-jquery-plugin
  *
- *	Copyright (c) 2009 Alen Grakalic (http://cssglobe.com)
- *	Dual licensed under the MIT (MIT-LICENSE.txt)
- *	and GPL (GPL-LICENSE.txt) licenses.
+ * Version 1.3   -   Updated: Mar. 23, 2010
  *
+ * This Plug-In will create a custom tooltip to replace the default
+ * browser tooltip. It is extremely lightweight and very smart in
+ * that it detects the edges of the browser window and will make sure
+ * the tooltip stays within the current window size. As a result the
+ * tooltip will adjust itself to be displayed above, below, to the left 
+ * or to the right depending on what is necessary to stay within the
+ * browser window. It is completely customizable as well via CSS.
+ *
+ * This TipTip jQuery plug-in is dual licensed under the MIT and GPL licenses:
+ *   http://www.opensource.org/licenses/mit-license.php
+ *   http://www.gnu.org/licenses/gpl.html
  */
-(function($){$.fn.easyTooltip=function(options){var defaults={xOffset:10,yOffset:25,tooltipId:"easyTooltip",clickRemove:false,content:"",useElement:""};var options=$.extend(defaults,options);var content;this.each(function(){var title=$(this).attr("tip");$(this).hover(function(e){content=(options.content!="")?options.content:title;content=(options.useElement!="")?$("#"+options.useElement).html():content;$(this).attr("title","");if(content!=""&&content!=undefined){$("body").append("<div id='"+options.tooltipId+"'>"+content+"</div>");$("#"+options.tooltipId).css("position","absolute").css("top",(e.pageY-options.yOffset)+"px").css("left",(e.pageX+options.xOffset)+"px").css("display","none").fadeIn("fast")}},function(){$("#"+options.tooltipId).remove();$(this).attr("title",title)});$(this).mousemove(function(e){$("#"+options.tooltipId).css("top",(e.pageY-options.yOffset)+"px").css("left",(e.pageX+options.xOffset)+"px")});if(options.clickRemove){$(this).mousedown(function(e){$("#"+options.tooltipId).remove();$(this).attr("title",title)})}})}})(jQuery);
-
-jQuery(function(){
-    jQuery(".tips").easyTooltip();
-});
-
+(function($){$.fn.tipTip=function(options){var defaults={activation:"hover",keepAlive:false,maxWidth:"200px",edgeOffset:3,defaultPosition:"bottom",delay:400,fadeIn:200,fadeOut:200,attribute:"title",content:false,enter:function(){},exit:function(){}};var opts=$.extend(defaults,options);if($("#tiptip_holder").length<=0){var tiptip_holder=$('<div id="tiptip_holder" style="max-width:'+opts.maxWidth+';"></div>');var tiptip_content=$('<div id="tiptip_content"></div>');var tiptip_arrow=$('<div id="tiptip_arrow"></div>');$("body").append(tiptip_holder.html(tiptip_content).prepend(tiptip_arrow.html('<div id="tiptip_arrow_inner"></div>')))}else{var tiptip_holder=$("#tiptip_holder");var tiptip_content=$("#tiptip_content");var tiptip_arrow=$("#tiptip_arrow")}return this.each(function(){var org_elem=$(this);if(opts.content){var org_title=opts.content}else{var org_title=org_elem.attr(opts.attribute)}if(org_title!=""){if(!opts.content){org_elem.removeAttr(opts.attribute)}var timeout=false;if(opts.activation=="hover"){org_elem.hover(function(){active_tiptip()},function(){if(!opts.keepAlive){deactive_tiptip()}});if(opts.keepAlive){tiptip_holder.hover(function(){},function(){deactive_tiptip()})}}else if(opts.activation=="focus"){org_elem.focus(function(){active_tiptip()}).blur(function(){deactive_tiptip()})}else if(opts.activation=="click"){org_elem.click(function(){active_tiptip();return false}).hover(function(){},function(){if(!opts.keepAlive){deactive_tiptip()}});if(opts.keepAlive){tiptip_holder.hover(function(){},function(){deactive_tiptip()})}}function active_tiptip(){opts.enter.call(this);tiptip_content.html(org_title);tiptip_holder.hide().removeAttr("class").css("margin","0");tiptip_arrow.removeAttr("style");var top=parseInt(org_elem.offset()['top']);var left=parseInt(org_elem.offset()['left']);var org_width=parseInt(org_elem.outerWidth());var org_height=parseInt(org_elem.outerHeight());var tip_w=tiptip_holder.outerWidth();var tip_h=tiptip_holder.outerHeight();var w_compare=Math.round((org_width-tip_w)/2);var h_compare=Math.round((org_height-tip_h)/2);var marg_left=Math.round(left+w_compare);var marg_top=Math.round(top+org_height+opts.edgeOffset);var t_class="";var arrow_top="";var arrow_left=Math.round(tip_w-12)/2;if(opts.defaultPosition=="bottom"){t_class="_bottom"}else if(opts.defaultPosition=="top"){t_class="_top"}else if(opts.defaultPosition=="left"){t_class="_left"}else if(opts.defaultPosition=="right"){t_class="_right"}var right_compare=(w_compare+left)<parseInt($(window).scrollLeft());var left_compare=(tip_w+left)>parseInt($(window).width());if((right_compare&&w_compare<0)||(t_class=="_right"&&!left_compare)||(t_class=="_left"&&left<(tip_w+opts.edgeOffset+5))){t_class="_right";arrow_top=Math.round(tip_h-13)/2;arrow_left=-12;marg_left=Math.round(left+org_width+opts.edgeOffset);marg_top=Math.round(top+h_compare)}else if((left_compare&&w_compare<0)||(t_class=="_left"&&!right_compare)){t_class="_left";arrow_top=Math.round(tip_h-13)/2;arrow_left=Math.round(tip_w);marg_left=Math.round(left-(tip_w+opts.edgeOffset+5));marg_top=Math.round(top+h_compare)}var top_compare=(top+org_height+opts.edgeOffset+tip_h+8)>parseInt($(window).height()+$(window).scrollTop());var bottom_compare=((top+org_height)-(opts.edgeOffset+tip_h+8))<0;if(top_compare||(t_class=="_bottom"&&top_compare)||(t_class=="_top"&&!bottom_compare)){if(t_class=="_top"||t_class=="_bottom"){t_class="_top"}else{t_class=t_class+"_top"}arrow_top=tip_h;marg_top=Math.round(top-(tip_h+5+opts.edgeOffset))}else if(bottom_compare|(t_class=="_top"&&bottom_compare)||(t_class=="_bottom"&&!top_compare)){if(t_class=="_top"||t_class=="_bottom"){t_class="_bottom"}else{t_class=t_class+"_bottom"}arrow_top=-12;marg_top=Math.round(top+org_height+opts.edgeOffset)}if(t_class=="_right_top"||t_class=="_left_top"){marg_top=marg_top+5}else if(t_class=="_right_bottom"||t_class=="_left_bottom"){marg_top=marg_top-5}if(t_class=="_left_top"||t_class=="_left_bottom"){marg_left=marg_left+5}tiptip_arrow.css({"margin-left":arrow_left+"px","margin-top":arrow_top+"px"});tiptip_holder.css({"margin-left":marg_left+"px","margin-top":marg_top+"px"}).attr("class","tip"+t_class);if(timeout){clearTimeout(timeout)}timeout=setTimeout(function(){tiptip_holder.stop(true,true).fadeIn(opts.fadeIn)},opts.delay)}function deactive_tiptip(){opts.exit.call(this);if(timeout){clearTimeout(timeout)}tiptip_holder.fadeOut(opts.fadeOut)}}})}})(jQuery);
 
 /**
  * Spoofs placeholders in browsers that don't support them (eg Firefox 3)
@@ -140,3 +98,24 @@ jQuery(function(){
  */
 (function($){if("placeholder"in document.createElement("input"))return;$(document).ready(function(){$(':input[placeholder]').each(function(){setupPlaceholder($(this));});$('form').submit(function(e){clearPlaceholdersBeforeSubmit($(this));});});function setupPlaceholder(input){var placeholderText=input.attr('placeholder');if(input.val()==='')input.val(placeholderText);input.bind({focus:function(e){if(input.val()===placeholderText)input.val('');},blur:function(e){if(input.val()==='')input.val(placeholderText);}});}
 function clearPlaceholdersBeforeSubmit(form){form.find(':input[placeholder]').each(function(){var el=$(this);if(el.val()===el.attr('placeholder'))el.val('');});}})(jQuery);
+
+/**
+ * WooCommerce Admin JS
+ */
+jQuery(function(){
+
+    jQuery(".tips").tipTip({
+    	'attribute' : 'tip',
+    	'fadeIn' : 50,
+    	'fadeOut' : 50
+    });
+    
+    jQuery('select.availability').change(function(){
+		if (jQuery(this).val()=="specific") {
+			jQuery(this).closest('tr').next('tr').show();
+		} else {
+			jQuery(this).closest('tr').next('tr').hide();
+		}
+	}).change();
+    
+});

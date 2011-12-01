@@ -78,6 +78,8 @@ class woocommerce_tax {
 	function find_rate( $country, $state = '*', $tax_class = '' ) {
 		
 		$rate['rate'] = 0;
+		
+		$tax_class = sanitize_title($tax_class);
 
 		if (isset($this->rates[ $country ][ $state ])) :
 			if ($tax_class) :
@@ -190,9 +192,9 @@ class woocommerce_tax {
 			// Loop cart and find the highest tax band
 			if (sizeof($woocommerce->cart->get_cart())>0) : foreach ($woocommerce->cart->get_cart() as $item) :
 				
-				if ($item['data']->tax_class) :
+				if ($item['data']->get_tax_class()) :
 					
-					$found_rate = $this->find_rate( $country, $state, $item['data']->tax_class );
+					$found_rate = $this->find_rate( $country, $state, $item['data']->get_tax_class() );
 					
 					$found_rates[] = $found_rate['rate'];
 					
@@ -235,7 +237,7 @@ class woocommerce_tax {
 	 */
 	function calc_tax( $price, $rate, $price_includes_tax = true ) {
 
-		$price = round($price * 100, 0);	// To avoid float rounding errors, work with integers (pence)
+		$price = $price * 100;	// To avoid float rounding errors, work with integers (pence)
 
 		if ($price_includes_tax) :
 
@@ -246,10 +248,11 @@ class woocommerce_tax {
 			$tax_amount = $price * ($rate/100);
 		endif;
 
-		$tax_amount = round($tax_amount);	// Round to the nearest pence
 		$tax_amount = $tax_amount / 100; 	// Back to pounds
 		
-		return number_format($tax_amount, 2, '.', '');
+		return $tax_amount; // Return unrounded
+		
+		//return number_format($tax_amount, 2, '.', '');
 	}
 	
 	/**

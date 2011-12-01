@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, store, sh
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.1
 Tested up to: 3.3
-Stable tag: 1.2.4
+Stable tag: 1.3
 
 An e-commerce toolkit that helps you sell anything. Beautifully.
 
@@ -24,7 +24,7 @@ Your business is unique, as should your online store. Choose one of our themes o
 Keep a birds-eye view of incoming sales and reviews, stock levels and general store performance and statistics all from the WordPress dashboard.
 
 = FEATURES =
-Seriously, WooCommerce has got more features than you can shake a stick at. But don’t just take out word for it, try it for yourself.
+Seriously, WooCommerce has got more features than you can shake a stick at. But don’t just take our word for it, try it for yourself.
 
 Read more about the features and benefits of WooCommerce at http://www.woothemes.com/woocommerce/
 Checkout and contribute to the source on GitHub at http://github.com/woothemes/woocommerce/
@@ -81,6 +81,40 @@ Yes you can! Join in on our GitHub repository :) https://github.com/woothemes/wo
 3. WooCommerce sales reports
 
 == Changelog ==
+
+= 1.3 - 01/12/2011 =
+* Minor bug fixes + localisations
+* Schema.org markup for products and reviews
+* Option to apply coupons before tax (per coupon)
+* Rewritten cart tax calculations to support coupons before tax and after tax
+* 2 lines of discounts on total tables - 1 for product discounts, 1 for after tax discounts (e.g. store credit)
+* Tweaked paypal to work with tax inclusive prices without screwing up rounding
+* Stored ex. prices with higher precision to prevent rounding errors 
+* Rewritten options for tax display - cart items can be shown without tax now
+* Fixed ordering of custom attributes in variation select boxes
+* Support for ordering attributes with the same ID (but different taxonomies)
+* Made catalog ordering filterable
+* Enhanced admin with http://harvesthq.github.com/chosen/
+* Added ZAR currency
+* Fixed product (single) visibility
+* Improved orders interface
+* On orders screen you can load customer details is on file
+* Fixed address_1 address_2 names
+* Updated German Lang (formal) thanks @owcv
+* Sale date uses current_time('timestamp') instead of strtotime
+* Fixed variations loading dimensions
+* Product get_attribute function
+* Option to clear cart on logout
+* Made cheque/bacs gateways reduce stock levels upon ordering
+* Continue shopping button when directing user to cart after adding a product to the cart
+* Refund/Reverse notification in paypal gateway
+* Made stock notifications use email template
+* Added dimensions to individual variations
+* Added settings API to be used by Shipping Methods and Payment Gateways
+* Free shipping/Flat rate uses setting API
+* Free shipping coupons
+* Ship to billing default option
+* Trim zeros off prices (optional)
 
 = 1.2.4 - 18/11/2011 =
 * More sale price logic fixes for variations. Now correctly compares variation's prices.
@@ -305,6 +339,9 @@ Yes you can! Join in on our GitHub repository :) https://github.com/woothemes/wo
 * Initial Release. Woo!
 
 == Upgrade Notice ==
+
+= 1.3 =
+This is a major update and includes improvements to the tax and coupon system in particular - please backup your database before upgrading and also ensure you are running the latest versions of any WooCommerce plugins after upgrading.
 
 = 1.2.3 =
 Fixes minor issues in 1.2.2 - please backup your database before upgrading and also ensure you are running the latest versions of any WooCommerce plugins.

@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce
 Plugin URI: http://www.woothemes.com/woocommerce/
 Description: An eCommerce plugin for wordpress.
-Version: 1.2.4
+Version: 1.3
 Author: WooThemes
 Author URI: http://woothemes.com
 Requires at least: 3.1
@@ -28,7 +28,7 @@ endif;
  * Constants
  **/ 
 if (!defined('WOOCOMMERCE_TEMPLATE_URL')) define('WOOCOMMERCE_TEMPLATE_URL', 'woocommerce/');
-if (!defined("WOOCOMMERCE_VERSION")) define("WOOCOMMERCE_VERSION", "1.2.4");	
+if (!defined("WOOCOMMERCE_VERSION")) define("WOOCOMMERCE_VERSION", "1.3");	
 if (!defined("PHP_EOL")) define("PHP_EOL", "\r\n");
 
 /**
@@ -56,6 +56,7 @@ include_once( 'woocommerce_actions.php' );
 include_once( 'woocommerce_emails.php' );
 include_once( 'woocommerce_template_actions.php' );
 include_once( 'woocommerce_templates.php' );
+include_once( 'classes/woocommerce_settings_api.class.php' );
 include_once( 'classes/gateways/gateways.class.php' );
 include_once( 'classes/gateways/gateway.class.php' );
 include_once( 'classes/shipping/shipping.class.php' );
@@ -116,9 +117,6 @@ function woocommerce_init() {
 	add_image_size( 'shop_catalog', $woocommerce->get_image_size('shop_catalog_image_width'), $woocommerce->get_image_size('shop_catalog_image_height'), $shop_catalog_crop );
 	add_image_size( 'shop_single', $woocommerce->get_image_size('shop_single_image_width'), $woocommerce->get_image_size('shop_single_image_height'), $shop_single_crop );
 
-	// Include template functions here so they are pluggable by themes
-	include_once( 'woocommerce_template_functions.php' );
-	
 	$suffix = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ? '' : '.min';
 	
     if (!is_admin()) :
@@ -133,6 +131,18 @@ function woocommerce_init() {
     	if (get_option('woocommerce_enable_lightbox')=='yes') wp_enqueue_style( 'woocommerce_fancybox_styles', $woocommerce->plugin_url() . '/assets/css/fancybox'.$suffix.'.css' );
     endif;
 }
+
+/**
+ * Init WooCommerce Tempalte Functions
+ *
+ * This makes them pluggable by plugins and themes
+ **/
+add_action('init', 'include_template_functions', 99);
+
+function include_template_functions() {
+	include_once( 'woocommerce_template_functions.php' );
+}
+
 
 /**
  * Init WooCommerce Thumbnails after theme setup
@@ -235,10 +245,13 @@ function woocommerce_frontend_scripts() {
 	if (get_option('woocommerce_enable_lightbox')=='yes') wp_enqueue_script('fancybox');
     	
 	/* Script variables */
+	$states = json_encode( $woocommerce->countries->states );
+	$states = (mb_detect_encoding($states, "UTF-8") == "UTF-8") ? $states : utf8_encode($states);
+	
 	$woocommerce_params = array(
 		'currency_symbol' 				=> get_woocommerce_currency_symbol(),
 		'currency_pos'           		=> get_option('woocommerce_currency_pos'), 
-		'countries' 					=> json_encode($woocommerce->countries->states),
+		'countries' 					=> $states,
 		'select_state_text' 			=> __('Select a state&hellip;', 'woothemes'),
 		'state_text' 					=> __('state', 'woothemes'),
 		'plugin_url' 					=> $woocommerce->plugin_url(),
@@ -419,13 +432,14 @@ function get_woocommerce_currency_symbol() {
 		case 'EUR' : $currency_symbol = '&euro;'; break;
 		case 'JPY' : $currency_symbol = '&yen;'; break;
 		case 'TRY' : $currency_symbol = 'TL'; break;
+		case 'NOK' : $currency_symbol = 'kr'; break;
+		case 'ZAR' : $currency_symbol = 'R'; break;
 		
 		case 'CZK' :
 		case 'DKK' :
 		case 'HUF' :
 		case 'ILS' :
 		case 'MYR' :
-		case 'NOK' :
 		case 'PHP' :
 		case 'PLN' :
 		case 'SEK' :
@@ -455,6 +469,12 @@ function woocommerce_price( $price, $args = array() ) {
 	$currency_symbol = get_woocommerce_currency_symbol();
 	$price = number_format( (double) $price, $num_decimals, get_option('woocommerce_price_decimal_sep'), get_option('woocommerce_price_thousand_sep') );
 	
+	if (get_option('woocommerce_price_trim_zeros')=='yes') :
+		$trimmed_price = rtrim(rtrim($price, '0'), get_option('woocommerce_price_decimal_sep'));
+		$after_decimal = explode(get_option('woocommerce_price_decimal_sep'), $trimmed_price);
+		if (!isset($after_decimal[1]) || (isset($after_decimal[1]) && (strlen($after_decimal[1]) == 0 && strlen($after_decimal[1]) == $num_decimals))) $price = $trimmed_price;
+	endif;
+	
 	switch ($currency_pos) :
 		case 'left' :
 			$return = $currency_symbol . $price;
@@ -469,7 +489,7 @@ function woocommerce_price( $price, $args = array() ) {
 			$return = $price . ' ' . $currency_symbol;
 		break;
 	endswitch;
-	
+
 	if ($ex_tax_label && get_option('woocommerce_calc_taxes')=='yes') $return .= ' <small>'.$woocommerce->countries->ex_tax_or_vat().'</small>';
 	
 	return $return;
@@ -517,23 +537,26 @@ add_filter('preprocess_comment', 'woocommerce_check_comment_rating', 0);
 function woocommerce_comments($comment, $args, $depth) {
 	$GLOBALS['comment'] = $comment; global $post; ?>
 	
-	<li <?php comment_class(); ?> id="li-comment-<?php comment_ID() ?>">
+	<li itemprop="reviews" itemscope itemtype="http://schema.org/Review" <?php comment_class(); ?> id="li-comment-<?php comment_ID() ?>">
 		<div id="comment-<?php comment_ID(); ?>" class="comment_container">
 
   			<?php echo get_avatar( $comment, $size='60' ); ?>
 			
 			<div class="comment-text">
-				<div class="star-rating" title="<?php echo esc_attr( get_comment_meta( $comment->comment_ID, 'rating', true ) ); ?>">
-					<span style="width:<?php echo get_comment_meta( $comment->comment_ID, 'rating', true )*16; ?>px"><?php echo get_comment_meta( $comment->comment_ID, 'rating', true ); ?> <?php _e('out of 5', 'woothemes'); ?></span>
+			
+				<div itemprop="reviewRating" itemscope itemtype="http://schema.org/Rating" class="star-rating" title="<?php echo esc_attr( get_comment_meta( $comment->comment_ID, 'rating', true ) ); ?>">
+					<span style="width:<?php echo get_comment_meta( $comment->comment_ID, 'rating', true )*16; ?>px"><span itemprop="ratingValue"><?php echo get_comment_meta( $comment->comment_ID, 'rating', true ); ?></span> <?php _e('out of 5', 'woothemes'); ?></span>
 				</div>
+				
 				<?php if ($comment->comment_approved == '0') : ?>
 					<p class="meta"><em><?php _e('Your comment is awaiting approval', 'woothemes'); ?></em></p>
 				<?php else : ?>
 					<p class="meta">
-						<?php _e('Rating by', 'woothemes'); ?> <strong class="reviewer vcard"><span class="fn"><?php comment_author(); ?></span></strong> <?php _e('on', 'woothemes'); ?> <?php echo get_comment_date('M jS Y'); ?>:
+						<?php _e('Rating by', 'woothemes'); ?> <strong itemprop="author"><?php comment_author(); ?></strong> <?php _e('on', 'woothemes'); ?> <time itemprop="datePublished" time datetime="<?php echo get_comment_date('c'); ?>"><?php echo get_comment_date('M jS Y'); ?></time>:
 					</p>
 				<?php endif; ?>
-  				<div class="description"><?php comment_text(); ?></div>
+				
+  				<div itemprop="description" class="description"><?php comment_text(); ?></div>
   				<div class="clear"></div>
   			</div>
 			<div class="clear"></div>			

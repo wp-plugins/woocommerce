@@ -57,6 +57,7 @@ function woocommerce_admin_scripts() {
 	wp_register_script( 'woocommerce_admin', $woocommerce->plugin_url() . '/assets/js/admin/woocommerce_admin'.$suffix.'.js', array('jquery', 'jquery-ui-widget', 'jquery-ui-core'), '1.0' );
 	wp_register_script( 'jquery-ui-datepicker',  $woocommerce->plugin_url() . '/assets/js/admin/ui-datepicker.js', array('jquery','jquery-ui-core'), '1.0' );
 	wp_register_script( 'woocommerce_writepanel', $woocommerce->plugin_url() . '/assets/js/admin/write-panels'.$suffix.'.js', array('jquery', 'jquery-ui-datepicker') );
+	wp_register_script( 'chosen', $woocommerce->plugin_url() . '/assets/js/chosen.jquery'.$suffix.'.js', array('jquery'), '1.0' );
 	
 	// Get admin screen id
     $screen = get_current_screen();
@@ -66,6 +67,7 @@ function woocommerce_admin_scripts() {
     
     	wp_enqueue_script( 'woocommerce_admin' );
     	wp_enqueue_script('farbtastic');
+    	wp_enqueue_script('chosen');
 
     endif;
     
@@ -86,12 +88,16 @@ function woocommerce_admin_scripts() {
 		wp_enqueue_script( 'jquery-ui-datepicker' );
 		wp_enqueue_script( 'media-upload' );
 		wp_enqueue_script( 'thickbox' );
+		wp_enqueue_script('chosen');
 		
 		$woocommerce_witepanel_params = array( 
 			'remove_item_notice' 			=>  __("Remove this item? If you have previously reduced this item's stock, or this order was submitted by a customer, will need to manually restore the item's stock.", 'woothemes'),
-			'cart_total' 					=> __("Calc totals based on order items, discount amount, and shipping?", 'woothemes'),
+			'cart_total' 					=> __("Calculate totals based on order items, discount amount, and shipping? Note, you will need to calculate discounts before tax manually.", 'woothemes'),
 			'copy_billing' 					=> __("Copy billing information to shipping information? This will remove any currently entered shipping information.", 'woothemes'),
+			'load_billing' 					=> __("Load the customer's billing information? This will remove any currently entered billing information.", 'woothemes'),
+			'load_shipping' 				=> __("Load the customer's shipping information? This will remove any currently entered shipping information.", 'woothemes'),
 			'prices_include_tax' 			=> get_option('woocommerce_prices_include_tax'),
+			'round_at_subtotal'				=> get_option( 'woocommerce_tax_round_at_subtotal' ),
 			'ID' 							=>  __('ID', 'woothemes'),
 			'item_name' 					=> __('Item Name', 'woothemes'),
 			'quantity' 						=> __('Quantity e.g. 2', 'woothemes'),
@@ -100,9 +106,11 @@ function woocommerce_admin_scripts() {
 			'meta_name'						=> __('Meta Name', 'woothemes'),
 			'meta_value'					=> __('Meta Value', 'woothemes'),
 			'select_terms'					=> __('Select terms', 'woothemes'),
+			'no_customer_selected'			=> __('No customer selected', 'woothemes'),
 			'plugin_url' 					=> $woocommerce->plugin_url(),
 			'ajax_url' 						=> admin_url('admin-ajax.php'),
 			'add_order_item_nonce' 			=> wp_create_nonce("add-order-item"),
+			'get_customer_details_nonce' 	=> wp_create_nonce("get-customer-details"),
 			'upsell_crosssell_search_products_nonce' => wp_create_nonce("search-products"),
 			'calendar_image'				=> $woocommerce->plugin_url().'/assets/images/calendar.png',
 			'post_id'						=> $post->ID
@@ -138,7 +146,6 @@ function woocommerce_admin_scripts() {
 	endif;
 }
 add_action('admin_enqueue_scripts', 'woocommerce_admin_scripts');
-
 
 /**
  * Queue admin CSS

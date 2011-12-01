@@ -85,13 +85,13 @@ class WooCommerce_Widget_Login extends WP_Widget {
 			// Get redirect URL
 			$redirect_to = apply_filters( 'woocommerce_login_widget_redirect', get_permalink(get_option('woocommerce_myaccount_page_id')) );
 			?>
-			<form method="post" action="">
+			<form method="post">
 			
 				<p><label for="user_login"><?php _e('Username', 'woothemes'); ?></label> <input name="log" value="<?php if (isset($_POST['log'])) echo esc_attr(stripslashes($_POST['log'])); ?>" class="input-text" id="user_login" type="text" /></p>
 				
 				<p><label for="user_pass"><?php _e('Password', 'woothemes'); ?></label> <input name="pwd" class="input-text" id="user_pass" type="password" /></p>		
 				
-				<p><input type="submit" class="submitbutton" name="wp-submit" id="wp-submit" value="<?php _e('Login &raquo;', 'woothemse'); ?>" /> <a href="<?php echo wp_lostpassword_url(); ?>"><?php echo __('Lost password?', 'woothemes'); ?></a></p>
+				<p><input type="submit" class="submitbutton" name="wp-submit" id="wp-submit" value="<?php _e('Login &raquo;', 'woothemes'); ?>" /> <a href="<?php echo wp_lostpassword_url(); ?>"><?php echo __('Lost password?', 'woothemes'); ?></a></p>
 				
 				<div>
 					<input type="hidden" name="redirect_to" class="redirect_to" value="<?php echo $redirect_to; ?>" />

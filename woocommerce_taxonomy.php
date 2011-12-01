@@ -46,9 +46,9 @@ function woocommerce_post_type() {
         array(
             'hierarchical' 			=> true,
             'update_count_callback' => '_update_post_term_count',
-            'label' 				=> __( 'Categories', 'woothemes'),
+            'label' 				=> __( 'Product Categories', 'woothemes'),
             'labels' => array(
-                    'name' 				=> __( 'Categories', 'woothemes'),
+                    'name' 				=> __( 'Product Categories', 'woothemes'),
                     'singular_name' 	=> __( 'Product Category', 'woothemes'),
                     'search_items' 		=>  __( 'Search Product Categories', 'woothemes'),
                     'all_items' 		=> __( 'All Product Categories', 'woothemes'),
@@ -69,9 +69,9 @@ function woocommerce_post_type() {
         array('product'),
         array(
             'hierarchical' 			=> false,
-            'label' 				=> __( 'Tags', 'woothemes'),
+            'label' 				=> __( 'Product Tags', 'woothemes'),
             'labels' => array(
-                    'name' 				=> __( 'Tags', 'woothemes'),
+                    'name' 				=> __( 'Product Tags', 'woothemes'),
                     'singular_name' 	=> __( 'Product Tag', 'woothemes'),
                     'search_items' 		=>  __( 'Search Product Tags', 'woothemes'),
                     'all_items' 		=> __( 'All Product Tags', 'woothemes'),
@@ -238,6 +238,17 @@ function woocommerce_post_type() {
 			'public' 				=> true,
 			'show_ui' 				=> true,
 			'capability_type' 		=> 'post',
+			'capabilities' => array(
+				'publish_posts' 	=> 'manage_woocommerce',
+				'edit_posts' 		=> 'manage_woocommerce',
+				'edit_others_posts' => 'manage_woocommerce',
+				'delete_posts' 		=> 'manage_woocommerce',
+				'delete_others_posts'=> 'manage_woocommerce',
+				'read_private_posts'=> 'manage_woocommerce',
+				'edit_post' 		=> 'manage_woocommerce',
+				'delete_post' 		=> 'manage_woocommerce',
+				'read_post' 		=> 'manage_woocommerce',
+			),
 			'publicly_queryable' 	=> false,
 			'exclude_from_search' 	=> true,
 			'show_in_menu' 			=> $show_in_menu,
@@ -271,7 +282,18 @@ function woocommerce_post_type() {
 			'public' 				=> true,
 			'show_ui' 				=> true,
 			'capability_type' 		=> 'post',
-			'publicly_queryable' 	=> true,
+			'capabilities' => array(
+				'publish_posts' 	=> 'manage_woocommerce',
+				'edit_posts' 		=> 'manage_woocommerce',
+				'edit_others_posts' => 'manage_woocommerce',
+				'delete_posts' 		=> 'manage_woocommerce',
+				'delete_others_posts'=> 'manage_woocommerce',
+				'read_private_posts'=> 'manage_woocommerce',
+				'edit_post' 		=> 'manage_woocommerce',
+				'delete_post' 		=> 'manage_woocommerce',
+				'read_post' 		=> 'manage_woocommerce',
+			),
+			'publicly_queryable' 	=> false,
 			'exclude_from_search' 	=> true,
 			'show_in_menu' 			=> $show_in_menu,
 			'hierarchical' 			=> false,
@@ -339,6 +361,13 @@ function woocommerce_terms_clauses($clauses, $taxonomies, $args ) {
 		endif;
 	endforeach;
 	if (!$found) return $clauses;
+	
+	// Meta name
+	if (strstr($taxonomies[0], 'pa_')) :
+		$meta_name =  'order_' . esc_attr($taxonomies[0]);
+	else :
+		$meta_name = 'order';
+	endif;
 		
 	// query order
 	if( isset($args['menu_order']) && !$args['menu_order']) return $clauses; // menu_order is false so we do not add order clause
@@ -347,7 +376,7 @@ function woocommerce_terms_clauses($clauses, $taxonomies, $args ) {
 	if( strpos('COUNT(*)', $clauses['fields']) === false ) $clauses['fields']  .= ', tm.* ';
 
 	//query join
-	$clauses['join'] .= " LEFT JOIN {$wpdb->woocommerce_termmeta} AS tm ON (t.term_id = tm.woocommerce_term_id AND tm.meta_key = 'order') ";
+	$clauses['join'] .= " LEFT JOIN {$wpdb->woocommerce_termmeta} AS tm ON (t.term_id = tm.woocommerce_term_id AND tm.meta_key = '". $meta_name ."') ";
 	
 	// default to ASC
 	if( ! isset($args['menu_order']) || ! in_array( strtoupper($args['menu_order']), array('ASC', 'DESC')) ) $args['menu_order'] = 'ASC';
@@ -355,7 +384,7 @@ function woocommerce_terms_clauses($clauses, $taxonomies, $args ) {
 	$order = "ORDER BY CAST(tm.meta_value AS SIGNED) " . $args['menu_order'];
 	
 	if ( $clauses['orderby'] ):
-		$clauses['orderby'] = str_replace ('ORDER BY', $order . ',', $clauses['orderby'] );
+		$clauses['orderby'] = str_replace('ORDER BY', $order . ',', $clauses['orderby'] );
 	else:
 		$clauses['orderby'] = $order;
 	endif;
@@ -404,6 +433,7 @@ function get_woocommerce_term_meta($term_id, $key, $single = true){
  */
 function woocommerce_product_dropdown_categories( $show_counts = 1, $hierarchal = 1 ) {
 	$terms = get_terms('product_cat', 'pad_counts=1&hierarchal='.$hierarchal.'&hide_empty=1&child_of=0');
+	if (!$terms) return;
 	$output = "<select name='product_cat' id='dropdown_product_cat'>";
 	$output .= '<option value="">'.__('Show all categories', 'woothemes').'</option>';
 	foreach($terms as $term) :

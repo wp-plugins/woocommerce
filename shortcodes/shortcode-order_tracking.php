@@ -38,7 +38,7 @@ function woocommerce_order_tracking( $atts ) {
 			
 				$status = get_term_by('slug', $order->status, 'shop_order_status');
 		
-				$order_status_text = sprintf( __('Order #%s which was made %s has the status &ldquo;%s&rdquo;', 'woothemes'), $order->id, human_time_diff(strtotime($order->order_date), current_time('timestamp')).__(' ago', 'woothemes'), $status->name );
+				$order_status_text = sprintf( __('Order #%s which was made %s has the status &ldquo;%s&rdquo;', 'woothemes'), $order->id, human_time_diff(strtotime($order->order_date), current_time('timestamp')).__(' ago', 'woothemes'), __($status->name, 'woothemes') );
 				
 				if ($order->status == 'completed') $order_status_text .= ' ' . __('and was completed', 'woothemes') . ' ' . human_time_diff(strtotime($order->completed_date), current_time('timestamp')).__(' ago', 'woothemes');
 				
@@ -72,66 +72,7 @@ function woocommerce_order_tracking( $atts ) {
 					endif;
 				?>
 				
-				<h2><?php _e('Order Details', 'woothemes'); ?></h2>
-				<table class="shop_table">
-					<thead>
-						<tr>
-							<th><?php _e('Title', 'woothemes'); ?></th>
-							<th><?php _e('sku', 'woothemes'); ?></th>
-							<th><?php _e('Price', 'woothemes'); ?></th>
-							<th><?php _e('Quantity', 'woothemes'); ?></th>
-						</tr>
-					</thead>
-					<tfoot>
-						<tr>
-							<td colspan="3"><?php _e('Subtotal', 'woothemes'); ?></td>
-							<td><?php echo $order->get_subtotal_to_display(); ?></td>
-						</tr>
-						<?php if ($order->order_shipping>0) : ?><tr>
-							<td colspan="3"><?php _e('Shipping', 'woothemes'); ?></td>
-							<td><?php echo $order->get_shipping_to_display(); ?></small></td>
-						</tr><?php endif; ?>
-						<?php if ($order->get_total_tax()>0) : ?><tr>
-							<td colspan="3"><?php _e('Tax', 'woothemes'); ?></td>
-							<td><?php echo woocommerce_price($order->get_total_tax()); ?></td>
-						</tr><?php endif; ?>
-						<?php if ($order->order_discount>0) : ?><tr class="discount">
-							<td colspan="3"><?php _e('Discount', 'woothemes'); ?></td>
-							<td>-<?php echo woocommerce_price($order->order_discount); ?></td>
-						</tr><?php endif; ?>
-						<tr>
-							<td colspan="3"><strong><?php _e('Grand Total', 'woothemes'); ?></strong></td>
-							<td><strong><?php echo woocommerce_price($order->order_total); ?></strong></td>
-						</tr>
-					</tfoot>
-					<tbody>
-						<?php
-						foreach($order->items as $order_item) : 
-						
-							if (isset($order_item['variation_id']) && $order_item['variation_id'] > 0) :
-								$_product = &new woocommerce_product_variation( $order_item['variation_id'] );
-							else :
-								$_product = &new woocommerce_product( $order_item['id'] );
-							endif;
-							
-							echo '<tr>';
-							echo '<td class="product-name">'.$_product->get_title();
-							
-							$item_meta = &new order_item_meta( $item['item_meta'] );					
-							$item_meta->display();
-							
-							echo '</td>';
-							
-							echo '<td>'.$_product->sku.'</td>';
-							echo '<td>'.woocommerce_price($_product->get_price()).'</td>';
-							echo '<td>'.$order_item['qty'].'</td>';
-							
-							echo '</tr>';
-								
-						endforeach;
-						?>
-					</tbody>
-				</table>
+				<?php do_action( 'woocommerce_view_order', $order->id ); ?>
 				
 				<div style="width: 49%; float:left;">
 					<h2><?php _e('Billing Address', 'woothemes'); ?></h2>
@@ -155,10 +96,10 @@ function woocommerce_order_tracking( $atts ) {
 				<?php
 				
 			else :
-				echo '<p>'.__('Sorry, we could not find that order id in our database. <a href="'.get_permalink($post->ID).'">Want to retry?</a>', 'woothemes').'</p>';
+				echo '<p>'.sprintf(__('Sorry, we could not find that order id in our database. <a href="%s">Want to retry?</a>', 'woothemes'), get_permalink($post->ID)).'</p>';
 			endif;
 		else :
-			echo '<p>'.__('Sorry, we could not find that order id in our database. <a href="'.get_permalink($post->ID).'">Want to retry?</a>', 'woothemes').'</p>';
+			echo '<p>'.sprintf(__('Sorry, we could not find that order id in our database. <a href="%s">Want to retry?</a>', 'woothemes'), get_permalink($post->ID)).'</p>';
 		endif;	
 	
 	else :

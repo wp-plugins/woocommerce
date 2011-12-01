@@ -11,9 +11,14 @@
 		</thead>
 		<tfoot>
 			<tr>
-				<td colspan="2"><?php _e('Subtotal', 'woothemes'); ?></td>
+				<td colspan="2"><?php _e('Cart Subtotal', 'woothemes'); ?></td>
 				<td><?php echo $woocommerce->cart->get_cart_subtotal(); ?></td>
 			</tr>
+			
+			<?php if ($woocommerce->cart->get_discounts_before_tax()) : ?><tr class="discount">
+				<td colspan="2"><?php _e('Cart Discount', 'woothemes'); ?></td>
+				<td>-<?php echo $woocommerce->cart->get_discounts_before_tax(); ?></td>
+			</tr><?php endif; ?>
 			
 			<?php  if ($woocommerce->cart->needs_shipping()) : ?>
 				<td colspan="2"><?php _e('Shipping', 'woothemes'); ?></td>
@@ -35,8 +40,19 @@
 							echo '>'.esc_html($method->title).' &ndash; ';
 							
 							if ($method->shipping_total>0) :
-								echo woocommerce_price($method->shipping_total);
-								if ($method->shipping_tax>0) : ' ' . $woocommerce->countries->ex_tax_or_vat(); endif;
+							
+								if (get_option('woocommerce_display_totals_excluding_tax')=='yes') :
+									
+									echo woocommerce_price( $method->shipping_total );
+									if ($method->shipping_tax>0) : echo ' ' . $woocommerce->countries->ex_tax_or_vat(); endif;
+									
+								else :
+									
+									echo woocommerce_price( $method->shipping_total + $method->shipping_tax );
+									if ($method->shipping_tax>0) : echo ' ' . $woocommerce->countries->inc_tax_or_vat(); endif;
+								
+								endif;
+								
 							else :
 								echo __('Free', 'woothemes');
 							endif;
@@ -66,12 +82,13 @@
 				<td><?php echo $woocommerce->cart->get_cart_tax(); ?></td>
 			</tr><?php endif; ?>
 
-			<?php if ($woocommerce->cart->get_total_discount()) : ?><tr class="discount">
-				<td colspan="2"><?php _e('Discount', 'woothemes'); ?></td>
-				<td>-<?php echo $woocommerce->cart->get_total_discount(); ?></td>
+			<?php if ($woocommerce->cart->get_discounts_after_tax()) : ?><tr class="discount">
+				<td colspan="2"><?php _e('Order Discount', 'woothemes'); ?></td>
+				<td>-<?php echo $woocommerce->cart->get_discounts_after_tax(); ?></td>
 			</tr><?php endif; ?>
+			
 			<tr>
-				<td colspan="2"><strong><?php _e('Grand Total', 'woothemes'); ?></strong></td>
+				<td colspan="2"><strong><?php _e('Order Total', 'woothemes'); ?></strong></td>
 				<td><strong><?php echo $woocommerce->cart->get_total(); ?></strong></td>
 			</tr>
 		</tfoot>
@@ -85,7 +102,7 @@
 							<tr>
 								<td class="product-name">'.$_product->get_title().$woocommerce->cart->get_item_data( $values ).'</td>
 								<td>'.$values['quantity'].'</td>
-								<td>'.woocommerce_price($_product->get_price_excluding_tax()*$values['quantity'], array('ex_tax_label' => 1)).'</td>
+								<td>' . $woocommerce->cart->get_product_subtotal( $_product, $values['quantity'] ) . '</td>
 							</tr>';
 					endif;
 				endforeach; 

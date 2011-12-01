@@ -108,13 +108,13 @@ class woocommerce_countries {
 			'GP' => __('Guadeloupe', 'woothemes'),
 			'GQ' => __('Equatorial Guinea', 'woothemes'),
 			'GR' => __('Greece', 'woothemes'),
-			'GS' => __('South Georgia and the South Sandwich Islands', 'woothemes'),
+			'GS' => __('South Georgia/Sandwich Islands', 'woothemes'),
 			'GT' => __('Guatemala', 'woothemes'),
 			'GU' => __('Guam', 'woothemes'),
 			'GW' => __('Guinea-Bissau', 'woothemes'),
 			'GY' => __('Guyana', 'woothemes'),
 			'HK' => __('Hong Kong S.A.R., China', 'woothemes'),
-			'HM' => __('Heard Island and McDonald Islands', 'woothemes'),
+			//'HM' => __('Heard Island and McDonald Islands', 'woothemes'), // Uninhabitted :)
 			'HN' => __('Honduras', 'woothemes'),
 			'HR' => __('Croatia', 'woothemes'),
 			'HT' => __('Haiti', 'woothemes'),
@@ -248,7 +248,7 @@ class woocommerce_countries {
 			'TZ' => __('Tanzania', 'woothemes'),
 			'UA' => __('Ukraine', 'woothemes'),
 			'UG' => __('Uganda', 'woothemes'),
-			'UM' => __('United States Minor Outlying Islands', 'woothemes'),
+			'UM' => __('US Minor Outlying Islands', 'woothemes'),
 			'US' => __('United States', 'woothemes'),
 			'USAF' => __('US Armed Forces', 'woothemes'), 
 			'UY' => __('Uruguay', 'woothemes'),
@@ -587,17 +587,23 @@ class woocommerce_countries {
 	function tax_or_vat() {
 		global $woocommerce;
 		
-		$return = ( in_array($this->get_base_country(), $this->get_european_union_countries()) ) ? __('VAT', 'woothemes') : __('tax', 'woothemes');
+		$return = ( in_array($this->get_base_country(), $this->get_european_union_countries()) ) ? __('VAT', 'woothemes') : __('Tax', 'woothemes');
 		
 		return apply_filters('woocommerce_countries_tax_or_vat', $return);
 	}
 	
-	function inc_tax_or_vat() {
+	function inc_tax_or_vat( $rate = false ) {
 		global $woocommerce;
 		
-		$return = ( in_array($this->get_base_country(), $this->get_european_union_countries()) ) ? __('(inc. VAT)', 'woothemes') : __('(inc. tax)', 'woothemes');
+		if ( $rate > 0 || $rate === 0 ) :
+			$rate = rtrim(rtrim($rate, '0'), '.');
+			if (!$rate) $rate = 0;
+			$return = ( in_array($this->get_base_country(), $this->get_european_union_countries()) ) ? sprintf(__('(inc. %s%% VAT)', 'woothemes'), $rate) : sprintf(__('(inc. %s%% tax)', 'woothemes'), $rate);
+		else :
+			$return = ( in_array($this->get_base_country(), $this->get_european_union_countries()) ) ? __('(inc. VAT)', 'woothemes') : __('(inc. tax)', 'woothemes');
+		endif;
 		
-		return apply_filters('woocommerce_countries_inc_tax_or_vat', $return);
+		return apply_filters('woocommerce_countries_inc_tax_or_vat', $return, $rate);
 	}
 	
 	function ex_tax_or_vat() {

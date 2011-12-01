@@ -20,6 +20,21 @@ jQuery( function($){
 	});
 	
 	// ORDERS
+	$('a.edit_address').click(function(){
+		
+		$(this).hide();
+		$(this).closest('.order_data').find('div.address').hide();
+		$(this).closest('.order_data').find('div.edit_address').show();
+
+	});
+	
+	// Chosen selects
+	jQuery("select.chosen_select").chosen();
+			
+	jQuery("select.chosen_select_nostd").chosen({
+		allow_single_deselect: 'true'
+	});
+	
 	$('#order_items_list button.remove_row').live('click', function(){
 		var answer = confirm(woocommerce_writepanel_params.remove_item_notice);
 		if (answer){
@@ -40,7 +55,9 @@ jQuery( function($){
 			var shipping_tax = parseFloat($('input#_order_shipping_tax').val());
 			var tax = 0;
 			var itemTotal = 0;
+			var subtotal = 0;
 			var total = 0;
+			var cart_discount = 0;
 			
 			if (!discount) discount = 0;
 			if (!shipping) shipping = 0;
@@ -50,44 +67,98 @@ jQuery( function($){
 			if (item_count>0) {
 				for (i=0; i<item_count; i++) {
 					
-					itemCost 	= $('input[name^=item_cost]:eq(' + i + ')').val();
-					itemQty 	= parseInt($('input[name^=item_quantity]:eq(' + i + ')').val());
-					itemTax		= $('input[name^=item_tax_rate]:eq(' + i + ')').val();
+					itemCost 			= $('input[name^=item_cost]:eq(' + i + ')').val();
+					itemQty 			= parseInt($('input[name^=item_quantity]:eq(' + i + ')').val());
+					itemBase 			= $('input[name^=base_item_cost]:eq(' + i + ')').val();
+					itemTax				= $('input[name^=item_tax_rate]:eq(' + i + ')').val();
 					
-					if (!itemCost) itemCost = 0;
-					if (!itemTax) itemTax = 0;
-					if (!itemQty) itemQty = 0;
+					if (!itemCost) 		itemCost = 0;
+					if (!itemTax) 		itemTax = 0;
+					if (!itemQty) 		itemQty = 0;
+					if (!itemBase) 		itemBase = 0;
 					
-					totalItemTax = 0;
+					totalItemTax 		= 0;
 					
-					totalItemCost = itemCost * itemQty;
-					
+					// Calculate tax and discounts
 					if (itemTax && itemTax>0) {
 						
-						taxRate = itemTax/100;
+						if (woocommerce_writepanel_params.prices_include_tax == 'yes') {
+							
+							taxRate = ( itemTax/100 ) + 1;
+							
+							itemDiscount = (( itemBase * itemQty ) * taxRate) - (( itemCost * itemQty ) * taxRate);
+							
+							// Tax worked out backwards
+							totalItemTax = (itemCost * itemQty) * ( itemTax/100 );
+							
+							discounted_price = (itemCost * itemQty) * taxRate;
+							
+							if (woocommerce_writepanel_params.round_at_subtotal == 'no') {
+								totalItemTax = totalItemTax * 100;
+								totalItemTax = totalItemTax.toFixed(2);
+								totalItemTax = Math.round( totalItemTax ) / 100;
+							}
+							
+						} else {
+							
+							taxRate = ( itemTax/100 );
+							
+							itemDiscount = ( itemBase * itemQty ) - ( itemCost * itemQty );
+
+							// Tax worked out forwards
+							totalItemTax = (itemCost * itemQty) * taxRate;
+							
+							discounted_price = (itemCost * itemQty) + totalItemTax;
+							
+							if (woocommerce_writepanel_params.round_at_subtotal == 'no') {
+								totalItemTax = totalItemTax * 100;
+								totalItemTax = totalItemTax.toFixed(2);
+								totalItemTax = Math.round( totalItemTax ) / 100;
+							}
+							
+						}
 						
-						itemTaxAmount = ((itemCost * taxRate) * 100 );
 						
-						itemTaxAmount = itemTaxAmount.toFixed(2);
-						
-						totalItemTax = Math.round( itemTaxAmount ) / 100;
-						
-						totalItemTax = totalItemTax * itemQty;
-						
+					} else {
+						itemDiscount 		= ( itemBase * itemQty ) - ( itemCost * itemQty );
+						discounted_price 	= ( itemCost * itemQty );
 					}
 					
-					itemTotal = itemTotal + totalItemCost;
+					subtotal 		= subtotal + parseFloat( (itemBase * itemQty) );
 					
-					tax = tax + totalItemTax;
+					cart_discount 	= cart_discount + parseFloat( itemDiscount );
+					
+					totalItemCost 	= parseFloat( discounted_price );
+					
+					itemTotal 		= itemTotal + parseFloat( totalItemCost );
+				
+					tax 			= tax + parseFloat( totalItemTax );
+					
 				}
 			}
+				
+			if (woocommerce_writepanel_params.round_at_subtotal == 'yes') {
+						
+				tax = tax * 100;
+				tax = tax.toFixed(2);
+				tax = Math.round( tax ) / 100;
 			
-			subtotal = itemTotal;
+			}
 			
-			total = parseFloat(subtotal) + parseFloat(tax) - parseFloat(discount) + parseFloat(shipping) + parseFloat(shipping_tax);
+			total = parseFloat(itemTotal) - parseFloat(discount) + parseFloat(shipping) + parseFloat(shipping_tax);
+			
+			// Rounding
+			subtotal = subtotal * 100;
+			subtotal = subtotal.toFixed(2);
+			subtotal = Math.round( subtotal ) / 100;
+			
+			total = total * 100;
+			total = total.toFixed(2);
+			total = Math.round( total ) / 100;
 			
 			if (total < 0 ) total = 0;
-
+			
+			$('input#_cart_discount').val( cart_discount.toFixed(2) );
 			$('input#_order_subtotal').val( subtotal.toFixed(2) );
 			$('input#_order_tax').val( tax.toFixed(2) );
 			$('input#_order_shipping_tax').val( shipping_tax.toFixed(2) );
@@ -119,8 +190,11 @@ jQuery( function($){
 				$('table.woocommerce_order_items tbody#order_items_list').append( response );
 				$('table.woocommerce_order_items').unblock();
 				$('select.add_item_id').css('border-color', '').val('');
-				$(".tips").easyTooltip();
-				
+				    jQuery(".tips").tipTip({
+				    	'attribute' : 'tip',
+				    	'fadeIn' : 50,
+				    	'fadeOut' : 50
+				    });				
 			});
 
 		} else {
@@ -147,18 +221,116 @@ jQuery( function($){
 		return false;
 	});
 	
+	$('button.load_customer_billing').live('click', function(){
+		
+		var answer = confirm(woocommerce_writepanel_params.load_billing);
+		if (answer){
+		
+			// Get user ID to load data for
+			var user_id = $('#customer_user').val();
+			
+			if (!user_id) {
+				alert(woocommerce_writepanel_params.no_customer_selected);
+				return false;
+			}
+			
+			var data = {
+				user_id: 			user_id,
+				type_to_load: 		'billing',
+				action: 			'woocommerce_get_customer_details',
+				security: 			woocommerce_writepanel_params.get_customer_details_nonce
+			};
+			
+			$(this).closest('.edit_address').block({ message: null, overlayCSS: { background: '#fff url(' + woocommerce_writepanel_params.plugin_url + '/assets/images/ajax-loader.gif) no-repeat center', opacity: 0.6 } });
+			
+			$.ajax({
+				url: woocommerce_writepanel_params.ajax_url,
+				data: data,
+				type: 'POST',
+				success: function( response ) {
+					var info = jQuery.parseJSON(response);
+					
+					if (info) {
+						$('input#_billing_first_name').val( info.billing_first_name );
+						$('input#_billing_last_name').val( info.billing_last_name );
+						$('input#_billing_company').val( info.billing_company );
+						$('input#_billing_address_1').val( info.billing_address_1 );
+						$('input#_billing_address_2').val( info.billing_address_2 );
+						$('input#_billing_city').val( info.billing_city );
+						$('input#_billing_postcode').val( info.billing_postcode );
+						$('input#_billing_country').val( info.billing_country );
+						$('input#_billing_state').val( info.billing_state );
+						$('input#_billing_email').val( info.billing_email );
+						$('input#_billing_phone').val( info.billing_phone );
+					}
+					
+					$('.edit_address').unblock();
+				}
+			});
+		}
+		return false;
+	});
+	
+	$('button.load_customer_shipping').live('click', function(){
+		
+		var answer = confirm(woocommerce_writepanel_params.load_shipping);
+		if (answer){
+		
+			// Get user ID to load data for
+			var user_id = $('#customer_user').val();
+			
+			if (!user_id) {
+				alert(woocommerce_writepanel_params.no_customer_selected);
+				return false;
+			}
+			
+			var data = {
+				user_id: 			user_id,
+				type_to_load: 		'shipping',
+				action: 			'woocommerce_get_customer_details',
+				security: 			woocommerce_writepanel_params.get_customer_details_nonce
+			};
+			
+			$(this).closest('.edit_address').block({ message: null, overlayCSS: { background: '#fff url(' + woocommerce_writepanel_params.plugin_url + '/assets/images/ajax-loader.gif) no-repeat center', opacity: 0.6 } });
+			
+			$.ajax({
+				url: woocommerce_writepanel_params.ajax_url,
+				data: data,
+				type: 'POST',
+				success: function( response ) {
+					var info = jQuery.parseJSON(response);
+					
+					if (info) {
+						$('input#_shipping_first_name').val( info.shipping_first_name );
+						$('input#_shipping_last_name').val( info.shipping_last_name );
+						$('input#_shipping_company').val( info.shipping_company );
+						$('input#_shipping_address_1').val( info.shipping_address_1 );
+						$('input#_shipping_address_2').val( info.shipping_address_2 );
+						$('input#_shipping_city').val( info.shipping_city );
+						$('input#_shipping_postcode').val( info.shipping_postcode );
+						$('input#_shipping_country').val( info.shipping_country );
+						$('input#_shipping_state').val( info.shipping_state );
+					}
+					
+					$('.edit_address').unblock();
+				}
+			});
+		}
+		return false;
+	});
+	
 	$('button.billing-same-as-shipping').live('click', function(){
 		var answer = confirm(woocommerce_writepanel_params.copy_billing);
 		if (answer){
-			$('input#shipping_first_name').val( $('input#billing_first_name').val() );
-			$('input#shipping_last_name').val( $('input#billing_last_name').val() );
-			$('input#shipping_company').val( $('input#billing_company').val() );
-			$('input#shipping_address_1').val( $('input#billing_address_1').val() );
-			$('input#shipping_address_2').val( $('input#billing_address_2').val() );
-			$('input#shipping_city').val( $('input#billing_city').val() );
-			$('input#shipping_postcode').val( $('input#billing_postcode').val() );
-			$('input#shipping_country').val( $('input#billing_country').val() );
-			$('input#shipping_state').val( $('input#billing_state').val() );			
+			$('input#_shipping_first_name').val( $('input#_billing_first_name').val() );
+			$('input#_shipping_last_name').val( $('input#_billing_last_name').val() );
+			$('input#_shipping_company').val( $('input#_billing_company').val() );
+			$('input#_shipping_address_1').val( $('input#_billing_address_1').val() );
+			$('input#_shipping_address_2').val( $('input#_billing_address_2').val() );
+			$('input#_shipping_city').val( $('input#_billing_city').val() );
+			$('input#_shipping_postcode').val( $('input#_billing_postcode').val() );
+			$('input#_shipping_country').val( $('input#_billing_country').val() );
+			$('input#_shipping_state').val( $('input#_billing_state').val() );			
 		}
 		return false;
 	});
@@ -263,10 +435,7 @@ jQuery( function($){
 	// ATTRIBUTE TABLES
 		
 		// Multiselect attributes
-		$("#attributes_list select.multiselect").multiselect({
-			noneSelectedText: woocommerce_writepanel_params.select_terms,
-			selectedList: 4
-		});	
+		$("#attributes_list select.multiselect").chosen();	
 		
 		// Initial order
 		var woocommerce_attributes_table_items = $('#attributes_list').children('tr').get();
