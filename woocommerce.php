@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce
 Plugin URI: http://www.woothemes.com/woocommerce/
 Description: An eCommerce plugin for wordpress.
-Version: 1.3
+Version: 1.3.1
 Author: WooThemes
 Author URI: http://woothemes.com
 Requires at least: 3.1
@@ -13,56 +13,52 @@ Tested up to: 3.3
 if (!session_id()) session_start();
 
 /**
- * Localisation
- **/
-load_plugin_textdomain('woothemes', false, dirname( plugin_basename( __FILE__ ) ) . '/languages');
-load_plugin_textdomain('woothemes', false, dirname( plugin_basename( __FILE__ ) ) . '/../../languages/woocommerce');
-
-if (get_option('woocommerce_informal_localisation_type')=='yes') :
-	load_plugin_textdomain('woothemes', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/informal');
-else :
-	load_plugin_textdomain('woothemes', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/formal');
-endif;
-
-/**
  * Constants
  **/ 
-if (!defined('WOOCOMMERCE_TEMPLATE_URL')) define('WOOCOMMERCE_TEMPLATE_URL', 'woocommerce/');
-if (!defined("WOOCOMMERCE_VERSION")) define("WOOCOMMERCE_VERSION", "1.3");	
-if (!defined("PHP_EOL")) define("PHP_EOL", "\r\n");
+define("WOOCOMMERCE_VERSION", "1.3.1");
+if (!defined('WOOCOMMERCE_TEMPLATE_URL')) define('WOOCOMMERCE_TEMPLATE_URL', 'woocommerce/');	
 
 /**
- * Include admin area
+ * Localisation
  **/
-if (is_admin()) :
+$variable_lang = (get_option('woocommerce_informal_localisation_type')=='yes') ? 'informal' : 'formal';
+load_plugin_textdomain('woothemes', false, dirname( plugin_basename( __FILE__ ) ) . '/languages');
+load_plugin_textdomain('woothemes', false, dirname( plugin_basename( __FILE__ ) ) . '/../../languages/woocommerce');
+load_plugin_textdomain('woothemes', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' . $variable_lang );
+
+/**
+ * Admin init + activation hooks
+ **/
+if (is_admin() && !defined('DOING_AJAX') ) :
+
 	require_once( 'admin/admin-init.php' );
 
-	/**
-	 * Installs and upgrades
-	 **/
 	register_activation_hook( __FILE__, 'activate_woocommerce' );
 	
-	if (get_option('woocommerce_db_version') != WOOCOMMERCE_VERSION) add_action('init', 'install_woocommerce', 0);
-	
+	if (get_option('woocommerce_db_version') != WOOCOMMERCE_VERSION) : add_action('init', 'install_woocommerce', 0); endif;
+
 endif;
 
 /**
  * Include core files
  **/
+if (defined('DOING_AJAX')) :
+	include_once( 'woocommerce_ajax.php' );
+endif;
+
+if ( !is_admin() || defined('DOING_AJAX') ) :
+	include_once( 'woocommerce_templates.php' );
+	include_once( 'woocommerce_template_actions.php' );
+	include_once( 'shortcodes/shortcodes-init.php' );
+	include_once( 'classes/woocommerce_query.class.php' );
+	add_action( 'init', 'include_template_functions', 99 );
+endif;
+
 include_once( 'woocommerce_taxonomy.php' );
 include_once( 'widgets/widgets-init.php' );
-include_once( 'shortcodes/shortcodes-init.php' );
 include_once( 'woocommerce_actions.php' );
 include_once( 'woocommerce_emails.php' );
-include_once( 'woocommerce_template_actions.php' );
-include_once( 'woocommerce_templates.php' );
-include_once( 'classes/woocommerce_settings_api.class.php' );
-include_once( 'classes/gateways/gateways.class.php' );
-include_once( 'classes/gateways/gateway.class.php' );
-include_once( 'classes/shipping/shipping.class.php' );
-include_once( 'classes/shipping/shipping_method.class.php' );
 include_once( 'classes/cart.class.php' );
-include_once( 'classes/checkout.class.php' );
 include_once( 'classes/countries.class.php' );
 include_once( 'classes/coupons.class.php' );
 include_once( 'classes/customer.class.php' ); 
@@ -71,23 +67,28 @@ include_once( 'classes/orders.class.php' );
 include_once( 'classes/product.class.php' );
 include_once( 'classes/product_variation.class.php' );
 include_once( 'classes/tax.class.php' );
-include_once( 'classes/validation.class.php' ); 
-include_once( 'classes/woocommerce_query.class.php' );
-include_once( 'classes/woocommerce_logger.class.php' );
 include_once( 'classes/woocommerce.class.php' );
 
 /**
- * Include core shipping modules
+ * Include shipping modules and gateways
  */
+include_once( 'classes/woocommerce_settings_api.class.php' );
+include_once( 'classes/gateways/gateways.class.php' );
+include_once( 'classes/gateways/gateway.class.php' );
+include_once( 'classes/shipping/shipping.class.php' );
+include_once( 'classes/shipping/shipping_method.class.php' );
 include_once( 'classes/shipping/shipping-flat_rate.php' );
 include_once( 'classes/shipping/shipping-free_shipping.php' );
-
-/**
- * Include core payment gateways
- */
 include_once( 'classes/gateways/gateway-banktransfer.php' );
 include_once( 'classes/gateways/gateway-cheque.php' );
 include_once( 'classes/gateways/gateway-paypal.php' );
+
+/**
+ * Function used to Init WooCommerce Template Functions - This makes them pluggable by plugins and themes
+ **/
+function include_template_functions() {
+	include_once( 'woocommerce_template_functions.php' );
+}
 
 /**
  * Init woocommerce class
@@ -131,18 +132,6 @@ function woocommerce_init() {
     	if (get_option('woocommerce_enable_lightbox')=='yes') wp_enqueue_style( 'woocommerce_fancybox_styles', $woocommerce->plugin_url() . '/assets/css/fancybox'.$suffix.'.css' );
     endif;
 }
-
-/**
- * Init WooCommerce Tempalte Functions
- *
- * This makes them pluggable by plugins and themes
- **/
-add_action('init', 'include_template_functions', 99);
-
-function include_template_functions() {
-	include_once( 'woocommerce_template_functions.php' );
-}
-
 
 /**
  * Init WooCommerce Thumbnails after theme setup
@@ -230,27 +219,47 @@ function woocommerce_init_roles() {
  * Enqueue frontend scripts
  **/
 function woocommerce_frontend_scripts() {
-	
 	global $woocommerce;
 	
 	$suffix = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ? '' : '.min';
+	$lightbox_en = (get_option('woocommerce_enable_lightbox')=='yes') ? true : false;
+	$jquery_ui_en = (get_option('woocommerce_enable_jquery_ui')=='yes') ? true : false;
+	$scripts_position = (get_option('woocommerce_scripts_position') == 'yes') ? true : false;
+
+	wp_register_script( 'woocommerce', $woocommerce->plugin_url() . '/assets/js/woocommerce'.$suffix.'.js', 'jquery', '1.0', $scripts_position );
+	wp_register_script( 'woocommerce_plugins', $woocommerce->plugin_url() . '/assets/js/woocommerce_plugins'.$suffix.'.js', 'jquery', '1.0', $scripts_position );
 	
-	wp_register_script( 'woocommerce', $woocommerce->plugin_url() . '/assets/js/woocommerce'.$suffix.'.js', 'jquery', '1.0' );
-	wp_register_script( 'woocommerce_plugins', $woocommerce->plugin_url() . '/assets/js/woocommerce_plugins'.$suffix.'.js', 'jquery', '1.0' );
-	wp_register_script( 'fancybox', $woocommerce->plugin_url() . '/assets/js/fancybox'.$suffix.'.js', 'jquery', '1.0' );
+	wp_enqueue_script( 'jquery' );
+	wp_enqueue_script( 'woocommerce_plugins' );
+	wp_enqueue_script( 'woocommerce' );
 	
-	wp_enqueue_script('jquery');
-	wp_enqueue_script('woocommerce_plugins');
-	wp_enqueue_script('woocommerce');
-	if (get_option('woocommerce_enable_lightbox')=='yes') wp_enqueue_script('fancybox');
+	if ($lightbox_en) :
+		wp_register_script( 'fancybox', $woocommerce->plugin_url() . '/assets/js/fancybox'.$suffix.'.js', 'jquery', '1.0', $scripts_position );
+		wp_enqueue_script( 'fancybox' );
+	endif;
+	
+	if ($jquery_ui_en) :
+		wp_register_script( 'jqueryui', $woocommerce->plugin_url() . '/assets/js/jquery-ui'.$suffix.'.js', 'jquery', '1.0', $scripts_position );
+		wp_register_script( 'wc_price_slider', $woocommerce->plugin_url() . '/assets/js/price_slider'.$suffix.'.js', 'jqueryui', '1.0', $scripts_position );
+		
+		wp_enqueue_script( 'jqueryui' );
+		wp_enqueue_script( 'wc_price_slider' );
+		
+		$woocommerce_price_slider_params = array(
+			'currency_symbol' 				=> get_woocommerce_currency_symbol(),
+			'currency_pos'           		=> get_option('woocommerce_currency_pos'), 
+		);
+		
+		if (isset($_SESSION['min_price'])) $woocommerce_price_slider_params['min_price'] = $_SESSION['min_price'];
+		if (isset($_SESSION['max_price'])) $woocommerce_price_slider_params['max_price'] = $_SESSION['max_price'];
+		
+		wp_localize_script( 'wc_price_slider', 'woocommerce_price_slider_params', $woocommerce_price_slider_params );
+	endif;
     	
 	/* Script variables */
 	$states = json_encode( $woocommerce->countries->states );
-	$states = (mb_detect_encoding($states, "UTF-8") == "UTF-8") ? $states : utf8_encode($states);
 	
 	$woocommerce_params = array(
-		'currency_symbol' 				=> get_woocommerce_currency_symbol(),
-		'currency_pos'           		=> get_option('woocommerce_currency_pos'), 
 		'countries' 					=> $states,
 		'select_state_text' 			=> __('Select a state&hellip;', 'woothemes'),
 		'state_text' 					=> __('state', 'woothemes'),
@@ -265,26 +274,9 @@ function woocommerce_frontend_scripts() {
 		'option_ajax_add_to_cart'		=> get_option('woocommerce_enable_ajax_add_to_cart')
 	);
 	
-	if (isset($_SESSION['min_price'])) $woocommerce_params['min_price'] = $_SESSION['min_price'];
-	if (isset($_SESSION['max_price'])) $woocommerce_params['max_price'] = $_SESSION['max_price'];
-		
-	if ( is_page(get_option('woocommerce_checkout_page_id')) ) :
-		$woocommerce_params['is_checkout'] = 1;
-	else :
-		$woocommerce_params['is_checkout'] = 0;
-	endif;
-	
-	if (is_page(get_option('woocommerce_pay_page_id'))) :
-		$woocommerce_params['is_pay_page'] = 1;
-	else :
-		$woocommerce_params['is_pay_page'] = 0;
-	endif;
-	
-	if ( is_cart() ) :
-		$woocommerce_params['is_cart'] = 1;
-	else :
-		$woocommerce_params['is_cart'] = 0;
-	endif;
+	$woocommerce_params['is_checkout'] = ( is_page(get_option('woocommerce_checkout_page_id')) ) ? 1 : 0;
+	$woocommerce_params['is_pay_page'] = ( is_page(get_option('woocommerce_pay_page_id')) ) ? 1 : 0;
+	$woocommerce_params['is_cart'] = ( is_cart() ) ? 1 : 0;
 	
 	wp_localize_script( 'woocommerce', 'woocommerce_params', $woocommerce_params );
 	
@@ -336,6 +328,7 @@ if (!function_exists('is_account_page')) {
 }
 if (!function_exists('is_ajax')) {
 	function is_ajax() {
+		if ( defined('DOING_AJAX') ) return true;
 		if ( isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest' ) return true; else return false;
 	}
 }
@@ -434,8 +427,8 @@ function get_woocommerce_currency_symbol() {
 		case 'TRY' : $currency_symbol = 'TL'; break;
 		case 'NOK' : $currency_symbol = 'kr'; break;
 		case 'ZAR' : $currency_symbol = 'R'; break;
-		
-		case 'CZK' :
+		case 'CZK' : $currency_symbol = '&#75;&#269;'; break;
+
 		case 'DKK' :
 		case 'HUF' :
 		case 'ILS' :

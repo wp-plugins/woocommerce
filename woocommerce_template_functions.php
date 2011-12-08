@@ -32,6 +32,17 @@ if (!function_exists('woocommerce_output_content_wrapper_end')) {
 }
 
 /**
+ * Compatibility (for globals)
+ *
+ * Genisis shows products via an action, so ensure the $_product variable is set
+ **/
+function woocommerce_before_single_product( $post, $product ) {
+	global $_product;
+	if (is_null($_product)) $_product = $product;
+}
+
+
+/**
  * Sale Flash
  **/
 if (!function_exists('woocommerce_show_product_sale_flash')) {
@@ -116,7 +127,7 @@ if (!function_exists('woocommerce_check_product_visibility')) {
 if (!function_exists('woocommerce_show_product_images')) {
 	function woocommerce_show_product_images() {
 
-		global $_product, $post, $woocommerce;
+		global $post, $woocommerce;
 
 		echo '<div class="images">';
 
@@ -140,7 +151,7 @@ if (!function_exists('woocommerce_show_product_images')) {
 if (!function_exists('woocommerce_show_product_thumbnails')) {
 	function woocommerce_show_product_thumbnails() {
 
-		global $_product, $post;
+		global $post;
 
 		echo '<div class="thumbnails">';
 
@@ -274,13 +285,13 @@ if (!function_exists('woocommerce_sharethis_script')) {
  **/
 if (!function_exists('woocommerce_template_single_add_to_cart')) {
 	function woocommerce_template_single_add_to_cart( $post, $_product ) {
-		do_action( 'woocommerce_' . $_product->product_type . '_add_to_cart' );
+		do_action( 'woocommerce_' . $_product->product_type . '_add_to_cart', $post, $_product );
 	}
 }
 if (!function_exists('woocommerce_simple_add_to_cart')) {
-	function woocommerce_simple_add_to_cart() {
+	function woocommerce_simple_add_to_cart( $post, $_product ) {
 
-		global $_product; $availability = $_product->get_availability();
+		$availability = $_product->get_availability();
 
 		// No price set - so no button
 		if( $_product->get_price() === '') return;
@@ -304,9 +315,7 @@ if (!function_exists('woocommerce_simple_add_to_cart')) {
 
 		 	<?php do_action('woocommerce_before_add_to_cart_button'); ?>
 
-		 	<?php if (!$_product->is_downloadable()) : ?>
-		 		<div class="quantity"><input name="quantity" value="1" size="4" title="Qty" class="input-text qty text" maxlength="12" /></div>
-		 	<?php endif; ?>
+		 	<?php if (!$_product->is_downloadable()) woocommerce_quantity_input(); ?>
 
 		 	<button type="submit" class="button alt"><?php _e('Add to cart', 'woothemes'); ?></button>
 
@@ -320,19 +329,16 @@ if (!function_exists('woocommerce_simple_add_to_cart')) {
 	}
 }
 if (!function_exists('woocommerce_grouped_add_to_cart')) {
-	function woocommerce_grouped_add_to_cart() {
+	function woocommerce_grouped_add_to_cart( $post, $_product ) {
 
-		global $_product;
-
-		?>
-		<?php do_action('woocommerce_before_add_to_cart_form'); ?>
+		do_action('woocommerce_before_add_to_cart_form'); ?>
 
 		<form action="<?php echo esc_url( $_product->add_to_cart_url() ); ?>" class="cart" method="post" enctype='multipart/form-data'>
 			<table cellspacing="0" class="group_table">
 				<tbody>
 					<?php foreach ($_product->get_children() as $child_id) : $child_product = $_product->get_child( $child_id ); $cavailability = $child_product->get_availability(); ?>
 						<tr>
-							<td><div class="quantity"><input name="quantity[<?php echo $child_product->id; ?>]" value="0" size="4" title="Qty" class="input-text qty text" maxlength="12" /></div></td>
+							<td><?php woocommerce_quantity_input( 'quantity['.$child_product->id.']' ); ?></td>
 							<td><label for="product-<?php echo $child_product->id; ?>"><?php
 								if ($child_product->is_visible()) echo '<a href="'.get_permalink($child_product->id).'">';
 								echo $child_product->get_title();
@@ -359,9 +365,8 @@ if (!function_exists('woocommerce_grouped_add_to_cart')) {
 	}
 }
 if (!function_exists('woocommerce_variable_add_to_cart')) {
-	function woocommerce_variable_add_to_cart() {
-
-		global $post, $_product, $woocommerce;
+	function woocommerce_variable_add_to_cart( $post, $_product ) {
+		global $woocommerce;
 
 		$attributes = $_product->get_available_attribute_variations();
 		$default_attributes = (array) maybe_unserialize(get_post_meta( $post->ID, '_default_attributes', true ));
@@ -448,7 +453,7 @@ if (!function_exists('woocommerce_variable_add_to_cart')) {
 				<div class="single_variation"></div>
 				<div class="variations_button">
 					<input type="hidden" name="variation_id" value="" />
-					<div class="quantity"><input name="quantity" value="1" size="4" title="Qty" class="input-text qty text" maxlength="12" /></div>
+					<?php woocommerce_quantity_input(); ?>
 					<button type="submit" class="button alt"><?php _e('Add to cart', 'woothemes'); ?></button>
 				</div>
 			</div>
@@ -463,9 +468,7 @@ if (!function_exists('woocommerce_variable_add_to_cart')) {
 	}
 }
 if (!function_exists('woocommerce_external_add_to_cart')) {
-	function woocommerce_external_add_to_cart() {
-
-		global $_product;
+	function woocommerce_external_add_to_cart( $post, $_product ) {
 
 		$product_url = get_post_meta( $_product->id, 'product_url', true );
 		if (!$product_url) return;
@@ -482,6 +485,15 @@ if (!function_exists('woocommerce_external_add_to_cart')) {
 	}
 }
 
+/**
+ * Quantity inputs
+ **/
+if (!function_exists('woocommerce_quantity_input')) {
+	function woocommerce_quantity_input( $name = 'quantity' ) {
+		echo '<div class="quantity"><input name="'.$name.'" value="1" size="4" title="Qty" class="input-text qty text" maxlength="12" /></div>';
+	}
+}
+	
 
 /**
  * Product Add to Cart forms
@@ -520,7 +532,7 @@ if (!function_exists('woocommerce_pagination')) {
  **/
 if (!function_exists('woocommerce_catalog_ordering')) {
 	function woocommerce_catalog_ordering() {
-
+		if (!isset($_SESSION['orderby'])) $_SESSION['orderby'] = apply_filters('woocommerce_default_catalog_orderby', 'title');
 		?>
 		<form class="woocommerce_ordering" method="post">
 			<select name="catalog_orderby" class="orderby">
@@ -557,11 +569,8 @@ if (!function_exists('woocommerce_product_description_tab')) {
 }
 if (!function_exists('woocommerce_product_attributes_tab')) {
 	function woocommerce_product_attributes_tab() {
-
 		global $_product;
-
 		if ($_product->has_attributes()) : ?><li><a href="#tab-attributes"><?php _e('Additional Information', 'woothemes'); ?></a></li><?php endif;
-
 	}
 }
 if (!function_exists('woocommerce_product_reviews_tab')) {
@@ -630,7 +639,6 @@ if (!function_exists('woocommerce_output_related_products')) {
 
 if (!function_exists('woocommerce_related_products')) {
 	function woocommerce_related_products( $posts_per_page = 4, $post_columns = 4, $orderby = 'rand' ) {
-
 		global $_product, $woocommerce_loop;
 
 		// Pass vars to loop
@@ -662,7 +670,7 @@ if (!function_exists('woocommerce_related_products')) {
 if (!function_exists('woocommerce_shipping_calculator')) {
 	function woocommerce_shipping_calculator() {
 		global $woocommerce;
-		if ($woocommerce->shipping->enabled && get_option('woocommerce_enable_shipping_calc')=='yes' && $woocommerce->cart->needs_shipping()) :
+		if (get_option('woocommerce_enable_shipping_calc')=='yes' && $woocommerce->cart->needs_shipping()) :
 		?>
 		<form class="shipping_calculator" action="<?php echo esc_url( $woocommerce->cart->get_cart_url() ); ?>" method="post">
 			<h2><a href="#" class="shipping-calculator-button"><?php _e('Calculate Shipping', 'woothemes'); ?> <span>&darr;</span></a></h2>
@@ -727,12 +735,11 @@ if (!function_exists('woocommerce_shipping_calculator')) {
 if (!function_exists('woocommerce_cart_totals')) {
 	function woocommerce_cart_totals() {
 		global $woocommerce;
-
+		
 		$available_methods = $woocommerce->shipping->get_available_shipping_methods();
 		?>
 		<div class="cart_totals <?php if (isset($_SESSION['calculated_shipping']) && $_SESSION['calculated_shipping']) echo 'calculated_shipping'; ?>">
 		<?php
-		//if ( !$woocommerce->shipping->enabled || $available_methods || !$woocommerce->customer->get_shipping_country() || !$woocommerce->customer->get_shipping_state() || !$woocommerce->customer->get_shipping_postcode() ) :
 		if ( !$woocommerce->shipping->enabled || $available_methods || !$woocommerce->customer->get_shipping_country() || !isset($_SESSION['calculated_shipping']) || !$_SESSION['calculated_shipping'] ) :
 			// Hide totals if customer has set location and there are no methods going there
 			?>
@@ -1177,8 +1184,7 @@ function woocommerce_product_subcategories() {
 	// NOTE: using child_of instead of parent - this is not ideal but due to a WP bug (http://core.trac.wordpress.org/ticket/15626) pad_counts won't work
 	$args = array(
 	    'child_of'                  => $parent,
-	    'orderby'                  	=> 'menu_order',
-	    'order'                    	=> 'ASC',
+	    'menu_order'                => 'ASC',
 	    'hide_empty'               	=> 1,
 	    'hierarchical'             	=> 1,
 	    'taxonomy'                  => 'product_cat',
@@ -1234,9 +1240,9 @@ function woocommerce_product_subcategories() {
 function woocommerce_subcategory_thumbnail( $category ) {
 	global $woocommerce;
 
-	$small_thumbnail_size 	= apply_filters('single_product_small_thumbnail_size', 'shop_thumbnail');
-	$image_width 			= $woocommerce->get_image_size('shop_thumbnail_image_width');
-	$image_height 			= $woocommerce->get_image_size('shop_thumbnail_image_height');
+	$small_thumbnail_size 	= apply_filters('single_product_small_thumbnail_size', 'shop_catalog');
+	$image_width 			= $woocommerce->get_image_size('shop_catalog_image_width');
+	$image_height 			= $woocommerce->get_image_size('shop_catalog_image_height');
 
 	$thumbnail_id 	= get_woocommerce_term_meta( $category->term_id, 'thumbnail_id', true );
 

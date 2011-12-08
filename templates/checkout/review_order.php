@@ -20,11 +20,11 @@
 				<td>-<?php echo $woocommerce->cart->get_discounts_before_tax(); ?></td>
 			</tr><?php endif; ?>
 			
-			<?php  if ($woocommerce->cart->needs_shipping()) : ?>
+			<?php if ($woocommerce->cart->needs_shipping()) : ?>
 				<td colspan="2"><?php _e('Shipping', 'woothemes'); ?></td>
 				<td>
 				<?php
-				
+					
 					$available_methods = $woocommerce->shipping->get_available_shipping_methods();
 					
 					if (sizeof($available_methods)>0) :
@@ -118,7 +118,14 @@
 				$available_gateways = $woocommerce->payment_gateways->get_available_payment_gateways();
 				if ($available_gateways) : 
 					// Chosen Method
-					if (sizeof($available_gateways)) current($available_gateways)->set_current();
+					if (sizeof($available_gateways)) :
+						$default_gateway = get_option('woocommerce_default_gateway');
+						if (isset($available_gateways[$default_gateway])) :
+							$available_gateways[$default_gateway]->set_current();
+						else :
+							current($available_gateways)->set_current();
+						endif;
+					endif;
 					foreach ($available_gateways as $gateway ) :
 						?>
 						<li>
