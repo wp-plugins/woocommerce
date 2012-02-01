@@ -20,6 +20,10 @@ jQuery( function($){
 	});
 	
 	// ORDERS
+	jQuery('#woocommerce-order-actions input, #woocommerce-order-actions a').click(function(){
+		window.onbeforeunload = '';
+	});
+	
 	$('a.edit_address').click(function(){
 		
 		$(this).hide();
@@ -35,7 +39,7 @@ jQuery( function($){
 		allow_single_deselect: 'true'
 	});
 	
-	$('#order_items_list button.remove_row').live('click', function(){
+	$('#order_items_list .remove_row').live('click', function(){
 		var answer = confirm(woocommerce_writepanel_params.remove_item_notice);
 		if (answer){
 			$(this).closest('tr.item').hide();
@@ -44,129 +48,145 @@ jQuery( function($){
 		return false;
 	});
 	
-	$('button.calc_totals').live('click', function(){
-		var answer = confirm(woocommerce_writepanel_params.cart_total);
-		if (answer){
+	
+	$('button.calc_line_taxes').live('click', function(){
+		// Block write panel
+		$('.woocommerce_order_items_wrapper').block({ message: null, overlayCSS: { background: '#fff url(' + woocommerce_writepanel_params.plugin_url + '/assets/images/ajax-loader.gif) no-repeat center', opacity: 0.6 } });
 			
-			var item_count = $('#order_items_list tr.item').size();
-			var subtotal = 0;
-			var discount = $('input#_order_discount').val();
-			var shipping = $('input#_order_shipping').val();
-			var shipping_tax = parseFloat($('input#_order_shipping_tax').val());
-			var tax = 0;
-			var itemTotal = 0;
-			var subtotal = 0;
-			var total = 0;
-			var cart_discount = 0;
+		var answer = confirm(woocommerce_writepanel_params.calc_line_taxes);
+		
+		if (answer) {
 			
-			if (!discount) discount = 0;
-			if (!shipping) shipping = 0;
-			if (!shipping_tax) shipping_tax = 0;
-			
-			// Items
-			if (item_count>0) {
-				for (i=0; i<item_count; i++) {
-					
-					itemCost 			= $('input[name^=item_cost]:eq(' + i + ')').val();
-					itemQty 			= parseInt($('input[name^=item_quantity]:eq(' + i + ')').val());
-					itemBase 			= $('input[name^=base_item_cost]:eq(' + i + ')').val();
-					itemTax				= $('input[name^=item_tax_rate]:eq(' + i + ')').val();
-					
-					if (!itemCost) 		itemCost = 0;
-					if (!itemTax) 		itemTax = 0;
-					if (!itemQty) 		itemQty = 0;
-					if (!itemBase) 		itemBase = 0;
-					
-					totalItemTax 		= 0;
-					
-					// Calculate tax and discounts
-					if (itemTax && itemTax>0) {
+			var $items = $('#order_items_list tr.item');
 						
-						if (woocommerce_writepanel_params.prices_include_tax == 'yes') {
-							
-							taxRate = ( itemTax/100 ) + 1;
-							
-							itemDiscount = (( itemBase * itemQty ) * taxRate) - (( itemCost * itemQty ) * taxRate);
-							
-							// Tax worked out backwards
-							totalItemTax = (itemCost * itemQty) * ( itemTax/100 );
-							
-							discounted_price = (itemCost * itemQty) * taxRate;
-							
-							if (woocommerce_writepanel_params.round_at_subtotal == 'no') {
-								totalItemTax = totalItemTax * 100;
-								totalItemTax = totalItemTax.toFixed(2);
-								totalItemTax = Math.round( totalItemTax ) / 100;
-							}
-							
-						} else {
-							
-							taxRate = ( itemTax/100 );
-							
-							itemDiscount = ( itemBase * itemQty ) - ( itemCost * itemQty );
+			var country = $('#_shipping_country').val();
+			if (country) {
+				var state = $('#_shipping_state').val();
+				var postcode = $('#_shipping_postcode').val();
+			} else {
+				country = $('#_billing_country').val();
+				var state = $('#_billing_state').val();
+				var postcode = $('#_billing_postcode').val();
+			}
+			
+			$items.each(function( idx ){
+				
+				var $row = $(this);
+				
+				var data = {
+					action: 		'woocommerce_calc_line_taxes',
+					item_id:		$row.find('input.item_id').val(),
+					line_subtotal:	$row.find('input.line_subtotal').val(),
+					line_total:		$row.find('input.line_total').val(),
+					tax_class:		$row.find('select.tax_class').val(),
+					country:		country,
+					state:			state,
+					postcode:		postcode,
+					security: 		woocommerce_writepanel_params.calc_totals_nonce
+				};
+				
+				$.post( woocommerce_writepanel_params.ajax_url, data, function(response) {
 
-							// Tax worked out forwards
-							totalItemTax = (itemCost * itemQty) * taxRate;
-							
-							discounted_price = (itemCost * itemQty) + totalItemTax;
-							
-							if (woocommerce_writepanel_params.round_at_subtotal == 'no') {
-								totalItemTax = totalItemTax * 100;
-								totalItemTax = totalItemTax.toFixed(2);
-								totalItemTax = Math.round( totalItemTax ) / 100;
-							}
-							
-						}
-						
-						
-					} else {
-						itemDiscount 		= ( itemBase * itemQty ) - ( itemCost * itemQty );
-						discounted_price 	= ( itemCost * itemQty );
+					result = jQuery.parseJSON( response );
+					$row.find('input.line_subtotal_tax').val( result.line_subtotal_tax );
+					$row.find('input.line_tax').val( result.line_tax );
+					
+					if (idx == ($items.size() - 1)) {
+						$('.woocommerce_order_items_wrapper').unblock();
 					}
 					
-					subtotal 		= subtotal + parseFloat( (itemBase * itemQty) );
-					
-					cart_discount 	= cart_discount + parseFloat( itemDiscount );
-					
-					totalItemCost 	= parseFloat( discounted_price );
-					
-					itemTotal 		= itemTotal + parseFloat( totalItemCost );
+				});
 				
-					tax 			= tax + parseFloat( totalItemTax );
-					
-				}
-			}
-				
-			if (woocommerce_writepanel_params.round_at_subtotal == 'yes') {
-						
-				tax = tax * 100;
-				tax = tax.toFixed(2);
-				tax = Math.round( tax ) / 100;
-			
-			}
-			
-			total = parseFloat(itemTotal) - parseFloat(discount) + parseFloat(shipping) + parseFloat(shipping_tax);
-			
-			// Rounding
-			subtotal = subtotal * 100;
-			subtotal = subtotal.toFixed(2);
-			subtotal = Math.round( subtotal ) / 100;
-			
-			total = total * 100;
-			total = total.toFixed(2);
-			total = Math.round( total ) / 100;
-			
-			if (total < 0 ) total = 0;
-			
-			$('input#_cart_discount').val( cart_discount.toFixed(2) );
-			$('input#_order_subtotal').val( subtotal.toFixed(2) );
-			$('input#_order_tax').val( tax.toFixed(2) );
-			$('input#_order_shipping_tax').val( shipping_tax.toFixed(2) );
-			$('input#_order_total').val( total.toFixed(2) );
+			});
 
+		} else {
+			$('.woocommerce_order_items_wrapper').unblock();
 		}
 		return false;
+	}).hover(function() {
+		$('#order_items_list input.line_subtotal_tax, #order_items_list input.line_tax').css('background-color', '#d8c8d2');
+	}, function() {
+		$('#order_items_list input.line_subtotal_tax, #order_items_list input.line_tax').css('background-color', '');
 	});
+	
+		
+	$('button.calc_totals').live('click', function(){
+		// Block write panel
+		$('#woocommerce-order-totals').block({ message: null, overlayCSS: { background: '#fff url(' + woocommerce_writepanel_params.plugin_url + '/assets/images/ajax-loader.gif) no-repeat center', opacity: 0.6 } });
+			
+		var answer = confirm(woocommerce_writepanel_params.calc_totals);
+		
+		if (answer) {
+			
+			// Get row totals
+			var line_subtotals 	= 0;
+			var line_subtotal_taxes 	= 0;
+			var line_totals 	= 0;
+			var cart_discount = 0;
+			var cart_tax 	= 0;
+			var order_shipping 		= parseFloat( $('#_order_shipping').val() );
+			var order_shipping_tax 	= parseFloat( $('#_order_shipping_tax').val() );
+			var order_discount		= parseFloat( $('#_order_discount').val() );
+			
+			if (!order_shipping) order_shipping = 0;
+			if (!order_shipping_tax) order_shipping_tax = 0;
+			if (!order_discount) order_discount = 0;
+			
+			$('#order_items_list tr.item').each(function(){
+				
+				var line_subtotal 		= parseFloat( $(this).find('input.line_subtotal').val() );
+				var line_subtotal_tax 	= parseFloat( $(this).find('input.line_subtotal_tax').val() );
+				var line_total 	= parseFloat( $(this).find('input.line_total').val() );
+				var line_tax 	= parseFloat( $(this).find('input.line_tax').val() );
+				
+				line_subtotals = parseFloat( line_subtotals + line_subtotal );
+				line_subtotal_taxes = parseFloat( line_subtotal_taxes + line_subtotal_tax );
+				line_totals = parseFloat( line_totals + line_total );
+				
+				if (woocommerce_writepanel_params.round_at_subtotal=='no') {
+					line_tax = parseFloat( line_tax.toFixed( 2 ) );
+				}
+				
+				cart_tax = parseFloat( cart_tax + line_tax );
+				
+			});
+			
+			// Tax
+			if (woocommerce_writepanel_params.round_at_subtotal=='yes') {
+				cart_tax = parseFloat( cart_tax.toFixed( 2 ) );
+			}
+			
+			// Cart discount
+			var cart_discount = ( (line_subtotals + line_subtotal_taxes) - (line_totals + cart_tax) );
+			if (cart_discount<0) cart_discount = 0;
+			cart_discount = cart_discount.toFixed( 2 );
+			
+			// Total
+			var order_total = line_totals + cart_tax + order_shipping + order_shipping_tax - order_discount;
+			order_total = order_total.toFixed( 2 );
+			
+			// Set fields
+			$('#_cart_discount').val( cart_discount );
+			$('#_order_tax').val( cart_tax );
+			$('#_order_total').val( order_total );
+			
+			// Since we currently cannot calc shipping from the backend, ditch the rows. They must be manually calculated.
+			$('#tax_rows').empty();
+
+			$('#woocommerce-order-totals').unblock();
+
+		} else {
+			$('#woocommerce-order-totals').unblock();
+		}
+		return false;
+	}).hover(function() {
+		$('#woocommerce-order-totals .calculated').css('background-color', '#d8c8d2');
+	}, function() {
+		$('#woocommerce-order-totals .calculated').css('background-color', '');
+	});
+	
+	
+
 	
 	$('button.add_shop_order_item').click(function(){
 		
@@ -207,7 +227,7 @@ jQuery( function($){
 		
 		var index = $(this).closest('tr.item').attr('rel');
 		
-		$(this).closest('table.meta').find('.meta_items').append('<tr><td><input type="text" name="meta_name[' + index + '][]" placeholder="' + woocommerce_writepanel_params.meta_name + '" /></td><td><input type="text" name="meta_value[' + index + '][]" placeholder="' + woocommerce_writepanel_params.meta_value + '" /></td><td><button class="remove_meta button">&times;</button></td></tr>');
+		$(this).closest('table.meta').find('.meta_items').append('<tr><td><input type="text" name="meta_name[' + index + '][]" placeholder="' + woocommerce_writepanel_params.meta_name + '" /></td><td><input type="text" name="meta_value[' + index + '][]" placeholder="' + woocommerce_writepanel_params.meta_value + '" /></td><td width="1%"><button class="remove_meta button">&times;</button></td></tr>');
 		
 		return false;
 		
@@ -335,36 +355,73 @@ jQuery( function($){
 		return false;
 	});
 	
+	$('a.add_tax_row').live('click', function(){
+		
+		var size = $('#tax_rows .tax_row').size();
+		
+		$('#tax_rows').append('<div class="tax_row">\
+			<p class="first">\
+				<label>' + woocommerce_writepanel_params.tax_label + '</label>\
+				<input type="text" name="_order_taxes_label[' + size + ']" placeholder="' + woocommerce_writepanel_params.tax_or_vat + '" />\
+			</p>\
+			<p class="last">\
+				<label>' + woocommerce_writepanel_params.compound_label + '\
+				<input type="checkbox" name="_order_taxes_compound[' + size + ']" /></label>\
+			</p>\
+			<p class="first">\
+				<label>' + woocommerce_writepanel_params.cart_tax_label + '</label>\
+				<input type="text" name="_order_taxes_cart[' + size + ']" placeholder="0.00" />\
+			</p>\
+			<p class="last">\
+				<label>' + woocommerce_writepanel_params.shipping_tax_label + '</label>\
+				<input type="text" name="_order_taxes_shipping[' + size + ']" placeholder="0.00" />\
+			</p>\
+			<a href="#" class="delete_tax_row">&times;</a>\
+			<div class="clear"></div>\
+		</div>');
+		
+		return false;
+	});
+	
+	$('a.delete_tax_row').live('click', function(){
+		$tax_row = $(this).closest('.tax_row');
+		$tax_row.find('input').val('');
+		$tax_row.hide();
+		return false;
+	});
+	
 	// PRODUCT TYPE SPECIFIC OPTIONS
 	$('select#product-type').change(function(){
 		
 		// Get value
 		var select_val = $(this).val();
 		
+		$('.hide_if_grouped').show();
 		$('.show_if_simple, .show_if_variable, .show_if_grouped, .show_if_external').hide();
 		
 		if (select_val=='simple') {
 			$('.show_if_simple').show();
-			$('input#manage_stock').change();
+			$('input#_manage_stock').change();
 		}
 		
 		else if (select_val=='variable') {
 			$('.show_if_variable').show();
-			$('input#manage_stock').change();
-			$('input#downloadable').prop('checked', false).change();
-			$('input#virtual').removeAttr('checked').change();
+			$('input#_manage_stock').change();
+			$('input#_downloadable').prop('checked', false).change();
+			$('input#_virtual').removeAttr('checked').change();
 		}
 		
 		else if (select_val=='grouped') {
 			$('.show_if_grouped').show();
-			$('input#downloadable').prop('checked', false).change();
-			$('input#virtual').removeAttr('checked').change();
+			$('input#_downloadable').prop('checked', false).change();
+			$('input#_virtual').removeAttr('checked').change();
+			$('.hide_if_grouped').hide();
 		}
 		
 		else if (select_val=='external') {
 			$('.show_if_external').show();
-			$('input#downloadable').prop('checked', false).change();
-			$('input#virtual').removeAttr('checked').change();
+			$('input#_downloadable').prop('checked', false).change();
+			$('input#_virtual').removeAttr('checked').change();
 		}
 		
 		$('ul.tabs li:visible').eq(0).find('a').click();
@@ -373,11 +430,11 @@ jQuery( function($){
 		
 	}).change();
 	
-	$('input#downloadable').change(function(){
+	$('input#_downloadable').change(function(){
 	
 		$('.show_if_downloadable').hide();
 		
-		if ($('input#downloadable').is(':checked')) {
+		if ($('input#_downloadable').is(':checked')) {
 			$('.show_if_downloadable').show();
 		}
 		
@@ -385,25 +442,55 @@ jQuery( function($){
 		
 	}).change();
 	
-	$('input#virtual').change(function(){
+	$('input#_virtual').change(function(){
 	
 		$('.show_if_virtual').hide();
+		$('.hide_if_virtual').show();
 		
-		if ($('input#virtual').is(':checked')) {
+		if ($('input#_virtual').is(':checked')) {
 			$('.show_if_virtual').show();
+			$('.hide_if_virtual').hide();
 		}
 		
 	}).change();
+	
+	
+	// Sale price schedule
+	var sale_schedule_set = false;
+	$('.sale_price_dates_fields input').each(function(){
+		if ($(this).val()!='') sale_schedule_set = true;
+	});
+	if (sale_schedule_set) {
+		$('.sale_schedule').hide();
+		$('.sale_price_dates_fields').show();
+	} else {
+		$('.sale_schedule').show();
+		$('.sale_price_dates_fields').hide();
+	}
+	
+	$('.sale_schedule').click(function(){
+		$(this).hide();
+		$('.sale_price_dates_fields').show();
+		return false;
+	});
+	
+	$('.cancel_sale_schedule').click(function(){
+		$(this).closest('p').find('input').val('');
+		$('.sale_schedule').show();
+		$('.sale_price_dates_fields').hide();
+		return false;
+	});
+	
 
 	// STOCK OPTIONS
-	$('input#manage_stock').change(function(){
+	$('input#_manage_stock').change(function(){
 		if ($(this).is(':checked')) $('div.stock_fields').show();
 		else $('div.stock_fields').hide();
 	}).change();
 	
 	
 	// DATE PICKER FIELDS
-	var dates = $( "#sale_price_dates_from, #sale_price_dates_to" ).datepicker({
+	var dates = $( "#_sale_price_dates_from, #_sale_price_dates_to" ).datepicker({
 		defaultDate: "",
 		dateFormat: "yy-mm-dd",
 		numberOfMonths: 1,
@@ -412,7 +499,7 @@ jQuery( function($){
 		buttonImage: woocommerce_writepanel_params.calendar_image,
 		buttonImageOnly: true,
 		onSelect: function( selectedDate ) {
-			var option = this.id == "sale_price_dates_from" ? "minDate" : "maxDate",
+			var option = this.id == "_sale_price_dates_from" ? "minDate" : "maxDate",
 				instance = $( this ).data( "datepicker" ),
 				date = $.datepicker.parseDate(
 					instance.settings.dateFormat ||

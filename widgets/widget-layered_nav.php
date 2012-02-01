@@ -7,13 +7,15 @@
  * @author		WooThemes
  */
  
+if (is_active_widget( false, false, 'layered_nav', 'true' ) && !is_admin()) :
+	add_action('init', 'woocommerce_layered_nav_init', 1);
+	add_filter('loop_shop_post_in', 'woocommerce_layered_nav_query');
+endif;
+
 /**
  * Layered Nav Init
  */
-add_action('init', 'woocommerce_layered_nav_init', 1);
-
 function woocommerce_layered_nav_init() {
-
 	global $_chosen_attributes, $woocommerce;
 	
 	$_chosen_attributes = array();
@@ -44,10 +46,7 @@ function woocommerce_layered_nav_init() {
 /**
  * Layered Nav post filter
  */
-add_filter('loop_shop_post_in', 'woocommerce_layered_nav_query');
-
 function woocommerce_layered_nav_query( $filtered_posts ) {
-	
 	global $_chosen_attributes, $woocommerce;
 	
 	if (sizeof($_chosen_attributes)>0) :
@@ -135,9 +134,9 @@ class WooCommerce_Widget_Layered_Nav extends WP_Widget {
 		
 		/* Widget variable settings. */
 		$this->woo_widget_cssclass = 'widget_layered_nav';
-		$this->woo_widget_description = __( 'Shows a custom attribute in a widget which lets you narrow down the list of products when viewing product categories.', 'woothemes' );
+		$this->woo_widget_description = __( 'Shows a custom attribute in a widget which lets you narrow down the list of products when viewing product categories.', 'woocommerce' );
 		$this->woo_widget_idbase = 'woocommerce_layered_nav';
-		$this->woo_widget_name = __('WooCommerce Layered Nav', 'woothemes' );
+		$this->woo_widget_name = __('WooCommerce Layered Nav', 'woocommerce' );
 		
 		/* Widget settings. */
 		$widget_ops = array( 'classname' => $this->woo_widget_cssclass, 'description' => $this->woo_widget_description );
@@ -176,7 +175,7 @@ class WooCommerce_Widget_Layered_Nav extends WP_Widget {
 			echo "<ul>";
 			
 			// Force found when option is selected
-			if (array_key_exists($taxonomy, $_chosen_attributes)) $found = true;
+			if (is_array($_chosen_attributes) && array_key_exists($taxonomy, $_chosen_attributes)) $found = true;
 			
 			foreach ($terms as $term) {
 				
@@ -223,7 +222,7 @@ class WooCommerce_Widget_Layered_Nav extends WP_Widget {
 				// Base Link decided by current page
 				if (defined('SHOP_IS_ON_FRONT')) :
 					$link = home_url();
-				elseif (is_post_type_archive('product') || is_page( get_option('woocommerce_shop_page_id') )) :
+				elseif (is_post_type_archive('product') || is_page( woocommerce_get_page_id('shop') )) :
 					$link = get_post_type_archive_link('product');
 				else :					
 					$link = get_term_link( get_query_var('term'), get_query_var('taxonomy') );
@@ -317,10 +316,10 @@ class WooCommerce_Widget_Layered_Nav extends WP_Widget {
 		
 		if (!isset($instance['query_type'])) $instance['query_type'] = 'and';
 		?>
-			<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:', 'woothemes') ?></label>
+			<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:', 'woocommerce') ?></label>
 			<input type="text" class="widefat" id="<?php echo esc_attr( $this->get_field_id('title') ); ?>" name="<?php echo esc_attr( $this->get_field_name('title') ); ?>" value="<?php if (isset ( $instance['title'])) {echo esc_attr( $instance['title'] );} ?>" /></p>
 			
-			<p><label for="<?php echo $this->get_field_id('attribute'); ?>"><?php _e('Attribute:', 'woothemes') ?></label>
+			<p><label for="<?php echo $this->get_field_id('attribute'); ?>"><?php _e('Attribute:', 'woocommerce') ?></label>
 			<select id="<?php echo esc_attr( $this->get_field_id('attribute') ); ?>" name="<?php echo esc_attr( $this->get_field_name('attribute') ); ?>">
 				<?php
 				$attribute_taxonomies = $woocommerce->get_attribute_taxonomies();
@@ -340,10 +339,10 @@ class WooCommerce_Widget_Layered_Nav extends WP_Widget {
 				?>
 			</select></p>
 			
-			<p><label for="<?php echo $this->get_field_id('query_type'); ?>"><?php _e('Query Type:', 'woothemes') ?></label>
+			<p><label for="<?php echo $this->get_field_id('query_type'); ?>"><?php _e('Query Type:', 'woocommerce') ?></label>
 			<select id="<?php echo esc_attr( $this->get_field_id('query_type') ); ?>" name="<?php echo esc_attr( $this->get_field_name('query_type') ); ?>">
-				<option value="and" <?php selected($instance['query_type'], 'and'); ?>><?php _e('AND', 'woothemes'); ?></option>
-				<option value="or" <?php selected($instance['query_type'], 'or'); ?>><?php _e('OR', 'woothemes'); ?></option>
+				<option value="and" <?php selected($instance['query_type'], 'and'); ?>><?php _e('AND', 'woocommerce'); ?></option>
+				<option value="or" <?php selected($instance['query_type'], 'or'); ?>><?php _e('OR', 'woocommerce'); ?></option>
 			</select></p>
 		<?php
 	}
