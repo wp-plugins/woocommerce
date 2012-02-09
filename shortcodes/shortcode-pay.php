@@ -18,7 +18,13 @@ function get_woocommerce_pay( $atts ) {
  * Outputs the pay page - payment gateways can hook in here to show payment forms etc
  **/
 function woocommerce_pay() {
-	global $woocommerce, $order;
+	global $woocommerce;
+	
+	woocommerce_nocache();
+	
+	do_action('before_woocommerce_pay');
+	
+	$woocommerce->show_messages();
 	
 	if ( isset($_GET['pay_for_order']) && isset($_GET['order']) && isset($_GET['order_id']) ) :
 		
@@ -35,7 +41,7 @@ function woocommerce_pay() {
 			if ($order->billing_postcode) $woocommerce->customer->set_postcode( $order->billing_postcode );
 			
 			// Show form
-			woocommerce_get_template('checkout/form-pay.php');
+			woocommerce_get_template('checkout/form-pay.php', array('order' => $order));
 		
 		elseif (!in_array($order->status, array('pending', 'failed'))) :
 			
@@ -88,7 +94,7 @@ function woocommerce_pay() {
 				<div class="clear"></div>
 				<?php
 				
-			else :
+			elseif (!in_array($order->status, array('pending', 'failed'))) :
 			
 				$woocommerce->add_error( __('Your order has already been paid for. Please contact us if you need assistance.', 'woocommerce') );
 				$woocommerce->show_messages();
@@ -103,4 +109,6 @@ function woocommerce_pay() {
 		endif;
 
 	endif;
+	
+	do_action('after_woocommerce_pay');
 }

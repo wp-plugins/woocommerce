@@ -62,12 +62,12 @@ class WC_Checkout {
 		
 	/** Output the billing information form */
 	function checkout_form_billing() {
-		include( woocommerce_locate_template( 'checkout/form-billing.php' ) );
+		woocommerce_get_template( 'checkout/form-billing.php', array( 'checkout' => $this ) );
 	}
 	
 	/** Output the shipping information form */
 	function checkout_form_shipping() {
-		include( woocommerce_locate_template( 'checkout/form-shipping.php' ) );
+		woocommerce_get_template( 'checkout/form-shipping.php', array( 'checkout' => $this ) );
 	}
 
 	/**
@@ -145,7 +145,7 @@ class WC_Checkout {
 					switch ($key) :
 						case "billing_postcode" :
 						case "shipping_postcode" :
-							$this->posted[$key] = strtolower(str_replace(' ', '', $this->posted[$key]));
+							$this->posted[$key] = strtoupper(str_replace(' ', '', $this->posted[$key]));
 							
 							if (!$validation->is_postcode( $this->posted[$key], $_POST['billing_country'] )) : $woocommerce->add_error( '<strong>' . $field['label'] . '</strong> ' . __('(billing) is not a valid postcode/ZIP.', 'woocommerce') ); 
 							else :

@@ -3,7 +3,7 @@
  * My Account
  */
  
-global $woocommerce, $current_user, $recent_orders;
+global $woocommerce;
 ?>
 
 <?php $woocommerce->show_messages(); ?>
@@ -73,8 +73,10 @@ if ($customer_orders) :
 	
 	</table>
 <?php
-else : 
-	_e('You have no recent orders.', 'woocommerce');
+else :
+?>
+	<p><?php _e('You have no recent orders.', 'woocommerce'); ?></p>
+<?php
 endif;
 ?>
 

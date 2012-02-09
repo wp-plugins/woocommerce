@@ -104,6 +104,9 @@ class WooCommerce_Widget_Product_Categories extends WP_Widget {
 				echo '<li class="cat-item cat-item-'.$cat->term_id;
 				
 				if (is_tax('product_cat', $cat->slug)) echo ' current-cat';
+				if ($current_cat && $current_cat_parent
+						&& $current_cat_parent->term_id == $cat->term_id 
+						&& $current_cat_parent->term_id != $current_cat->term_id) echo ' current-cat-parent';
 				
 				echo '"><a href="'.get_term_link( $cat->slug, 'product_cat' ).'">'.$cat->name.'</a>';
 				
@@ -116,13 +119,15 @@ class WooCommerce_Widget_Product_Categories extends WP_Widget {
 					$subcat_args['child_of'] = $cat->term_id;
 					$subcat_args['hierarchical'] = 1;
 					$subcat_args['show_option_none'] = false;
+					$subcat_args['echo'] = false;
 					unset( $subcat_args['parent'] );
 					
-					echo '<ul class="children">';
-					
-					wp_list_categories(apply_filters('woocommerce_product_categories_widget_args', $subcat_args));
-					
-					echo '</ul>';
+					$subcategories = wp_list_categories(apply_filters('woocommerce_product_categories_widget_args', $subcat_args));
+					if ($subcategories) {
+						echo '<ul class="children">';
+						echo $subcategories;
+						echo '</ul>';
+					}
 					
 				endif;
 				
@@ -174,8 +179,8 @@ class WooCommerce_Widget_Product_Categories extends WP_Widget {
 		
 		<p><label for="<?php echo $this->get_field_id('orderby'); ?>"><?php _e('Order by:', 'woocommerce') ?></label>
 		<select id="<?php echo esc_attr( $this->get_field_id('orderby') ); ?>" name="<?php echo esc_attr( $this->get_field_name('orderby') ); ?>">
-			<option value="and" <?php selected($orderby, 'order'); ?>><?php _e('Category Order', 'woocommerce'); ?></option>
-			<option value="or" <?php selected($orderby, 'name'); ?>><?php _e('Name', 'woocommerce'); ?></option>
+			<option value="order" <?php selected($orderby, 'order'); ?>><?php _e('Category Order', 'woocommerce'); ?></option>
+			<option value="name" <?php selected($orderby, 'name'); ?>><?php _e('Name', 'woocommerce'); ?></option>
 		</select></p>
 
 		<p><input type="checkbox" class="checkbox" id="<?php echo esc_attr( $this->get_field_id('dropdown') ); ?>" name="<?php echo esc_attr( $this->get_field_name('dropdown') ); ?>"<?php checked( $dropdown ); ?> />

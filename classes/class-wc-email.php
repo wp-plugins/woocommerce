@@ -66,12 +66,12 @@ class WC_Email {
 		return 'text/html';
 	}
 	
-	function email_header() {
-		woocommerce_get_template('emails/email-header.php', false);
+	function email_header( $email_heading ) {
+		woocommerce_get_template('emails/email-header.php', array( 'email_heading' => $email_heading ));
 	}
 	
 	function email_footer() {
-		woocommerce_get_template('emails/email-footer.php', false);
+		woocommerce_get_template('emails/email-footer.php');
 	}
 	
 	/**
@@ -81,7 +81,7 @@ class WC_Email {
 		// Buffer
 		ob_start();
 	
-		do_action('woocommerce_email_header');
+		do_action('woocommerce_email_header', $email_heading);
 		
 		echo wpautop(wptexturize( $message ));
 		
@@ -114,19 +114,23 @@ class WC_Email {
 	 * New order
 	 **/
 	function new_order( $order_id ) {
-		global $order, $email_heading;
 		
 		$order = new WC_Order( $order_id );
 		
 		$email_heading = __('New Customer Order', 'woocommerce');
 		
-		$subject = apply_filters( 'woocommerce_email_subject_new_order', sprintf( __( '[%s] New Customer Order (# %s)', 'woocommerce' ), get_bloginfo('name' ), $order_id ), $order );
+		$blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
+		
+		$subject = apply_filters( 'woocommerce_email_subject_new_order', sprintf( __( '[%s] New Customer Order (# %s)', 'woocommerce' ), $blogname, $order_id ), $order );
 		
 		// Buffer
 		ob_start();
 		
 		// Get mail template
-		woocommerce_get_template('emails/admin-new-order.php', false);
+		woocommerce_get_template('emails/admin-new-order.php', array(
+			'order' => $order,
+			'email_heading' => $email_heading
+		));
 		
 		// Get contents
 		$message = ob_get_clean();
@@ -139,19 +143,23 @@ class WC_Email {
 	 * Processing Order
 	 **/
 	function customer_processing_order( $order_id ) {
-		global $order, $email_heading;
 		
 		$order = new WC_Order( $order_id );
 
 		$email_heading = __('Order Received', 'woocommerce');
 		
-		$subject = apply_filters( 'woocommerce_email_subject_customer_procesing_order', sprintf( __( '[%s] Order Received', 'woocommerce' ), get_bloginfo( 'name' ) ), $order );
+		$blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
+		
+		$subject = apply_filters( 'woocommerce_email_subject_customer_procesing_order', sprintf( __( '[%s] Order Received', 'woocommerce' ), $blogname ), $order );
 		
 		// Buffer
 		ob_start();
 		
 		// Get mail template
-		woocommerce_get_template('emails/customer-processing-order.php', false);
+		woocommerce_get_template('emails/customer-processing-order.php', array(
+			'order' => $order,
+			'email_heading' => $email_heading
+		));
 		
 		// Get contents
 		$message = ob_get_clean();
@@ -167,7 +175,6 @@ class WC_Email {
 	 * Completed Order
 	 **/
 	function customer_completed_order( $order_id ) {
-		global $order, $email_heading;
 		
 		$order = new WC_Order( $order_id );
 		
@@ -180,14 +187,19 @@ class WC_Email {
 		endif;
 		
 		$email_heading = apply_filters( 'woocommerce_completed_order_customer_notification_subject', $email_heading );
-	
-		$subject = apply_filters( 'woocommerce_email_subject_customer_completed_order', sprintf( $subject, get_bloginfo( 'name' ) ), $order );
+		
+		$blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
+		
+		$subject = apply_filters( 'woocommerce_email_subject_customer_completed_order', sprintf( $subject, $blogname ), $order );
 		
 		// Buffer
 		ob_start();
 		
 		// Get mail template
-		woocommerce_get_template('emails/customer-completed-order.php', false);
+		woocommerce_get_template('emails/customer-completed-order.php', array(
+			'order' => $order,
+			'email_heading' => $email_heading
+		));
 		
 		// Get contents
 		$message = ob_get_clean();
@@ -203,19 +215,23 @@ class WC_Email {
 	 * Pay for order - invoice
 	 **/
 	function customer_invoice( $pay_for_order ) {
-		global $order, $email_heading;
 		
 		$order = $pay_for_order;
 		
 		$email_heading = sprintf(__('Invoice for Order #%s', 'woocommerce'), $order->id);
-	
-		$subject = apply_filters( 'woocommerce_email_subject_customer_invoice', sprintf( __( '[%s] Pay for Order', 'woocommerce' ), get_bloginfo( 'name' ) ), $order );
+		
+		$blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
+		
+		$subject = apply_filters( 'woocommerce_email_subject_customer_invoice', sprintf( __( '[%s] Pay for Order', 'woocommerce' ), $blogname ), $order );
 	
 		// Buffer
 		ob_start();
 		
 		// Get mail template
-		woocommerce_get_template('emails/customer-invoice.php', false);
+		woocommerce_get_template('emails/customer-invoice.php', array(
+			'order' => $order,
+			'email_heading' => $email_heading
+		));
 		
 		// Get contents
 		$message = ob_get_clean();
@@ -231,7 +247,6 @@ class WC_Email {
 	 * Customer notes
 	 **/
 	function customer_note( $args ) {
-		global $order, $email_heading, $customer_note;
 		
 		$defaults = array(
 			'order_id' => '',
@@ -248,13 +263,19 @@ class WC_Email {
 		
 		$email_heading = __('A note has been added to your order', 'woocommerce');
 		
-		$subject = apply_filters( 'woocommerce_email_subject_customer_note', sprintf( __( '[%s] A note has been added to your order', 'woocommerce' ), get_bloginfo( 'name' ) ), $order );
+		$blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
+		
+		$subject = apply_filters( 'woocommerce_email_subject_customer_note', sprintf( __( '[%s] A note has been added to your order', 'woocommerce' ), $blogname ), $order );
 		
 		// Buffer
 		ob_start();
 		
 		// Get mail template
-		woocommerce_get_template('emails/customer-note.php', false);
+		woocommerce_get_template('emails/customer-note.php', array(
+			'order' => $order,
+			'email_heading' => $email_heading,
+			'customer_note' => $customer_note
+		));
 		
 		// Get contents
 		$message = ob_get_clean();
@@ -267,8 +288,10 @@ class WC_Email {
 	 * Low stock notification email
 	 **/
 	function low_stock( $product ) {
-	
-		$subject = apply_filters( 'woocommerce_email_subject_low_stock', sprintf( '[%s] %s', get_bloginfo( 'name' ), __( 'Product low in stock', 'woocommerce' ) ), $product );
+		
+		$blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
+		
+		$subject = apply_filters( 'woocommerce_email_subject_low_stock', sprintf( '[%s] %s', $blogname, __( 'Product low in stock', 'woocommerce' ) ), $product );
 		
 		$message = '#' . $product->id .' '. $product->get_title() . ' ('. $product->sku.') ' . __('is low in stock.', 'woocommerce');
 	
@@ -281,7 +304,9 @@ class WC_Email {
 	 **/
 	function no_stock( $product ) {
 		
-		$subject = apply_filters( 'woocommerce_email_subject_no_stock', sprintf( '[%s] %s', get_bloginfo( 'name' ), __( 'Product out of stock', 'woocommerce' ) ), $product );
+		$blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
+		
+		$subject = apply_filters( 'woocommerce_email_subject_no_stock', sprintf( '[%s] %s', $blogname, __( 'Product out of stock', 'woocommerce' ) ), $product );
 		
 		$message = '#' . $product->id .' '. $product->get_title() . ' ('. $product->sku.') ' . __('is out of stock.', 'woocommerce');
 	
@@ -307,7 +332,9 @@ class WC_Email {
 		
 		if (!$product || !$quantity) return;
 		
-		$subject = apply_filters( 'woocommerce_email_subject_backorder', sprintf( '[%s] %s', get_bloginfo( 'name' ), __( 'Product Backorder', 'woocommerce' ) ), $product );
+		$blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
+		
+		$subject = apply_filters( 'woocommerce_email_subject_backorder', sprintf( '[%s] %s', $blogname, __( 'Product Backorder', 'woocommerce' ) ), $product );
 	
 		$message = sprintf(__('%s units of #%s %s (%s) have been backordered in order #%s.', 'woocommerce'), $quantity, $product->id, $product->get_title(), $product->sku, $order_id );
 	
@@ -346,7 +373,6 @@ class WC_Email {
 	 * Customer new account welcome email
 	 **/
 	function customer_new_account( $user_id, $plaintext_pass ) {
-		 global $user_login, $user_pass, $blogname;
 		
 		if (!$user_id || !$plaintext_pass) return;
 		
@@ -365,7 +391,12 @@ class WC_Email {
 		ob_start();
 		
 		// Get mail template
-		woocommerce_get_template('emails/customer-new-account.php', false);
+		woocommerce_get_template('emails/customer-new-account.php', array(
+			'user_login' 	=> $user_login,
+			'user_pass'		=> $user_pass,
+			'blogname'		=> $blogname,
+			'email_heading'	=> $email_heading
+		));
 		
 		// Get contents
 		$message = ob_get_clean();

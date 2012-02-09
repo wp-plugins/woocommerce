@@ -14,8 +14,10 @@ function get_woocommerce_order_tracking($atts) {
 }
 
 function woocommerce_order_tracking( $atts ) {
-	global $woocommerce, $order;
+	global $woocommerce;
 	
+	woocommerce_nocache();
+
 	extract(shortcode_atts(array(
 	), $atts));
 	
@@ -34,7 +36,9 @@ function woocommerce_order_tracking( $atts ) {
 
 			if ($order->billing_email == $order_email) :
 			
-				woocommerce_get_template( 'order/tracking.php' );
+				woocommerce_get_template( 'order/tracking.php', array(
+					'order' => $order
+				) );
 				
 				return;
 				

@@ -242,6 +242,14 @@ $woocommerce_settings['general'] = apply_filters('woocommerce_general_settings',
 	),
 	
 	array(  
+		'name' => __('Require login to download', 'woocommerce'),
+		'desc' 		=> __('Do not allow downloads if a user is not logged in. This setting does not apply to guest downloads.', 'woocommerce'),
+		'id' 		=> 'woocommerce_downloads_require_login',
+		'type' 		=> 'checkbox',
+		'std' 		=> 'no',
+	),
+	
+	array(  
 		'name' => __('Localisation', 'woocommerce'),
 		'desc' 		=> __('Use informal localisation file if it exists', 'woocommerce'),
 		'id' 		=> 'woocommerce_informal_localisation_type',
@@ -505,9 +513,10 @@ $woocommerce_settings['catalog'] = apply_filters('woocommerce_catalog_settings',
 		'std' 		=> 'GBP',
 		'type' 		=> 'select',
 		'options' => array( 
-			'kg' => __( 'kg', 'woocommerce' ),
-			'lbs' => __( 'lbs', 'woocommerce' )
-		)
+			'kg'  => __( 'kg', 'woocommerce' ),
+			'g'   => __( 'g', 'woocommerce' ),
+			'lbs' => __( 'lbs', 'woocommerce' ),
+		),
 	),
 
 	array(  
@@ -518,17 +527,28 @@ $woocommerce_settings['catalog'] = apply_filters('woocommerce_catalog_settings',
 		'std' 		=> 'cm',
 		'type' 		=> 'select',
 		'options' => array( 
+			'm'  => __( 'm', 'woocommerce' ),
 			'cm' => __( 'cm', 'woocommerce' ),
-			'in' => __( 'in', 'woocommerce' )
-		)
+			'mm' => __( 'mm', 'woocommerce' ),
+			'in' => __( 'in', 'woocommerce' ),
+		),
 	),
-	
-	array(  
-		'name' => __( 'Cart redirect', 'woocommerce' ),
+
+	array(
+		'name' => __( 'Redirects', 'woocommerce' ),
 		'desc' 		=> __( 'Redirect to cart after adding a product to the cart (on single product pages)', 'woocommerce' ),
 		'id' 		=> 'woocommerce_cart_redirect_after_add',
 		'std' 		=> 'no',
-		'type' 		=> 'checkbox'
+		'type' 		=> 'checkbox',
+		'checkboxgroup'		=> 'start'
+	),
+
+	array(
+		'desc' 		=> __( 'Redirect to the product page on a single matching search result', 'woocommerce' ),
+		'id' 		=> 'woocommerce_redirect_on_single_search_result',
+		'std' 		=> 'no',
+		'type' 		=> 'checkbox',
+		'checkboxgroup'		=> 'end'
 	),
 	
 	array( 'type' => 'sectionend', 'id' => 'catalog_options' ),
@@ -795,7 +815,7 @@ $woocommerce_settings['tax'] = apply_filters('woocommerce_tax_settings', array(
 		'id' 		=> 'woocommerce_tax_classes',
 		'css' 		=> 'width:100%; height: 75px;',
 		'type' 		=> 'textarea',
-		'std' 		=> "Reduced Rate\nZero Rate"
+		'std' 		=> sprintf( __( 'Reduced Rate%sZero Rate', 'woocommerce' ), PHP_EOL )
 	),
 	
 	array(  
@@ -929,6 +949,18 @@ $woocommerce_settings['integration'] = apply_filters('woocommerce_intregation_se
 		'type' 		=> 'text',
 		'std' 		=> '',
         'css' 		=> 'min-width:300px;',
+	),
+	
+	array( 'type' => 'sectionend', 'id' => 'share_this'),
+
+	array( 'name' => __( 'ShareDaddy', 'woocommerce' ), 'type' => 'title', 'desc' => __('ShareDaddy is a sharing plugin bundled with JetPack.', 'woocommerce'), 'id' => 'share_this' ),
+
+	array(  
+		'name' => __( 'Output ShareDaddy button?', 'woocommerce' ),
+		'desc' 		=> __( 'Enable this option to show the ShareDaddy button (if installed) on the product page.', 'woocommerce' ),
+		'id' 		=> 'woocommerce_sharedaddy',
+		'type' 		=> 'checkbox',
+		'std' 		=> 'no',
 	),
 	
 	array( 'type' => 'sectionend', 'id' => 'share_this'),

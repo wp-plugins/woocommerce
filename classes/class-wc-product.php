@@ -504,7 +504,6 @@ class WC_Product {
 			$_tax = new WC_Tax();
 			
 			$tax_rates 		= $_tax->get_shop_base_rate( $this->tax_class );
-			
 			$taxes 			= $_tax->calc_tax( $price, $tax_rates, true );
 			$tax_amount		= $_tax->get_tax_total( $taxes );
 			$price 			= round( $price - $tax_amount, 2);
@@ -659,7 +658,7 @@ class WC_Product {
 	function get_shipping_class() {
 		if (!$this->shipping_class) :
 			$classes = get_the_terms( $this->id, 'product_shipping_class' );
-			$this->shipping_class = (isset($classes[0])) ? $classes[0]->slug : '';
+			if ($classes && !is_wp_error($classes)) $this->shipping_class = current($classes)->slug; else $this->shipping_class = '';
 		endif;
 		return $this->shipping_class;
 	}
@@ -800,12 +799,19 @@ class WC_Product {
 	function get_dimensions() {
 		if (!$this->dimensions) :
 			$this->dimensions = '';
-			
-			$length = $this->length;
-			$width = $this->width;
-			$height = $this->height;
-			
-			if (($length && $width && $height)) $dimensions = $length . get_option('woocommerce_dimension_unit') . ' x ' . $width . get_option('woocommerce_dimension_unit') . ' x ' . $height . get_option('woocommerce_dimension_unit');
+
+			// Show length
+			if ($this->length) {
+				$this->dimensions = $this->length.get_option('woocommerce_dimension_unit');
+				// Show width also
+				if ($this->width) {
+					$this->dimensions .= ' × '.$this->width.get_option('woocommerce_dimension_unit');
+					// Show height also
+					if ($this->height) {
+						$this->dimensions .= ' × '.$this->height.get_option('woocommerce_dimension_unit');
+					}
+				}
+			}
 		endif;
 		return $this->dimensions;
 	}

@@ -21,6 +21,15 @@ function woocommerce_mail( $to, $subject, $message, $headers = "Content-Type: te
 }
 
 /**
+ * Prevent caching
+ **/
+function woocommerce_nocache() {
+  	if(!defined('DONOTCACHEPAGE')) {
+		define("DONOTCACHEPAGE", "true"); // WP Super Cache constant
+	}
+}
+
+/**
  * WooCommerce page IDs
  *
  * retrieve page ids - used for myaccount, edit_address, change_password, shop, cart, checkout, pay, view_order, thanks, terms, order_tracking
@@ -104,37 +113,38 @@ if (!function_exists('is_ajax')) {
  */
 function woocommerce_get_template_part( $slug, $name = '' ) {
 	global $woocommerce;
-	if ($name=='shop') :
-		if (!locate_template(array( 'loop-shop.php', $woocommerce->template_url . 'loop-shop.php' ))) :
-			load_template( $woocommerce->plugin_path() . '/templates/loop-shop.php',false );
-			return;
-		endif;
-	endif;
-	get_template_part( $woocommerce->template_url . $slug, $name );
+	if ($name=='shop' && !locate_template(array( 'loop-shop.php', $woocommerce->template_url . 'loop-shop.php' ))) {
+		load_template( $woocommerce->plugin_path() . '/templates/loop-shop.php',false );
+		return;
+	} elseif ($name=='shop' && locate_template(array( $woocommerce->template_url . 'loop-shop.php' ))) {
+		get_template_part( $woocommerce->template_url . $slug, $name );
+		return;
+	}
+	get_template_part( $slug, $name );
 }
 
 /**
- * Get other templates (e.g. product attributes)
+ * Get other templates (e.g. product attributes) passing attributes and including the file
  */
-function woocommerce_get_template($template_name, $require_once = true) {
+function woocommerce_get_template($template_name, $args = array()) {
 	global $woocommerce;
 	
-	if (file_exists( STYLESHEETPATH . '/' . $woocommerce->template_url . $template_name )) 
-		load_template( STYLESHEETPATH . '/' . $woocommerce->template_url . $template_name, $require_once ); 
-	elseif (file_exists( STYLESHEETPATH . '/' . $template_name )) 
-		load_template( STYLESHEETPATH . '/' . $template_name , $require_once); 
-	else 
-		load_template( $woocommerce->plugin_path() . '/templates/' . $template_name , $require_once);
+	if ( $args && is_array($args) ) 
+		extract( $args );
+	
+	include( woocommerce_locate_template( $template_name ) );
 }
 
 /**
- * Locate a template and return the path for inclusion - this lets us pass variables to the template easier than wth get_template_part
+ * Locate a template and return the path for inclusion
  */
 function woocommerce_locate_template( $template_name ) {
 	global $woocommerce;
 	
-	$template = locate_template( $woocommerce->template_url . $template_name );
+	// Look in yourtheme/woocommerce/template-name and yourtheme/template-name
+	$template = locate_template( array( $woocommerce->template_url . $template_name , $template_name ) );
 	
+	// Get default template
 	if (!$template) $template = $woocommerce->plugin_path() . '/templates/' . $template_name;
 	
 	return $template;
@@ -205,10 +215,10 @@ function woocommerce_price( $price, $args = array() ) {
 			$return = '<span class="amount">'. $price . $currency_symbol . '</span>';
 		break;
 		case 'left_space' :
-			$return = '<span class="amount">'. $currency_symbol . ' ' . $price . '</span>';
+			$return = '<span class="amount">'. $currency_symbol . '&nbsp;' . $price . '</span>';
 		break;
 		case 'right_space' :
-			$return = '<span class="amount">'. $price . ' ' . $currency_symbol . '</span>';
+			$return = '<span class="amount">'. $price . '&nbsp;' . $currency_symbol . '</span>';
 		break;
 	endswitch;
 

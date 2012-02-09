@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce
 Plugin URI: http://www.woothemes.com/woocommerce/
 Description: An e-commerce toolkit that helps you sell anything. Beautifully.
-Version: 1.4.1
+Version: 1.4.2
 Author: WooThemes
 Author URI: http://woothemes.com
 Requires at least: 3.1
@@ -29,7 +29,7 @@ class Woocommerce {
 	
 	/** Version ***************************************************************/
 	
-	var $version = '1.4.1';
+	var $version = '1.4.2';
 	
 	/** URLS ******************************************************************/
 	
@@ -503,7 +503,7 @@ class Woocommerce {
 	            	'delete_terms' 		=> 'manage_woocommerce_products',
 	            	'assign_terms' 		=> 'manage_woocommerce_products',
 	            ),
-	            'rewrite' 				=> array( 'slug' => $category_base . $category_slug, 'with_front' => false ),
+	            'rewrite' 				=> array( 'slug' => $category_base . $category_slug, 'with_front' => false, 'heirarchical' => true ),
 	        )
 	    );
 	    
@@ -537,7 +537,7 @@ class Woocommerce {
 	    );
 	    
 		register_taxonomy( 'product_shipping_class',
-	        array('product'),
+	        array('product', 'product_variation'),
 	        array(
 	            'hierarchical' 			=> true,
 	            'update_count_callback' => '_update_post_term_count',
@@ -1041,30 +1041,19 @@ class Woocommerce {
 	function message_count() { return sizeof($this->messages); }
 	
 	/**
+	 * Get errors
+	 */
+	function get_errors() { return (array) $this->errors; }
+	
+	/**
+	 * Get messages
+	 */
+	function get_messages() { return (array) $this->messages; }
+	
+	/**
 	 * Output the errors and messages
 	 */
-	function show_messages() {
-		
-		// Show multiple errors in a list format
-		if (isset($this->errors) && sizeof($this->errors)>0) {
-			echo '<ul class="woocommerce_error">';
-			foreach ($this->errors as $error) {
-				echo '<li>' . $error . '</li>';
-			}
-			echo '</ul>';
-			$this->clear_messages();
-			return true;
-			
-		// Show a single message in a div
-		} elseif (isset($this->messages) && sizeof($this->messages)>0) {
-			echo '<div class="woocommerce_message">'.$this->messages[0].'</div>';
-			$this->clear_messages();
-			return true;
-			
-		} else {
-			return false;
-		}
-	}
+	function show_messages() { woocommerce_show_messages(); }
 	
 	/**
 	 * Set session data for messages

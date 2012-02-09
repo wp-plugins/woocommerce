@@ -18,8 +18,10 @@ function get_woocommerce_thankyou( $atts ) {
  * Outputs the order received page
  **/
 function woocommerce_thankyou( $atts ) {
-	global $woocommerce, $order;
+	global $woocommerce;
 	
+	woocommerce_nocache();
+
 	$order = false;
 	
 	// Pay for order after checkout step
@@ -36,5 +38,5 @@ function woocommerce_thankyou( $atts ) {
 		endif;
 	endif;
 
-	woocommerce_get_template( 'checkout/thankyou.php' );
+	woocommerce_get_template( 'checkout/thankyou.php', array( 'order' => $order ) );
 }
