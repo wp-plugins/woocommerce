@@ -52,7 +52,7 @@ class WC_Product_Variation extends WC_Product {
 		
 		// Define the data we're going to load from the parent: Key => Default value
 		$load_data = array(
-			'sku'			=> $this->id,
+			'sku'			=> '',
 			'price' 		=> 0,
 			'visibility'	=> 'hidden',
 			'stock'			=> 0,
@@ -267,7 +267,7 @@ class WC_Product_Variation extends WC_Product {
 	 */
 	function get_shipping_class() {
 		if (!$this->variation_shipping_class) :
-			$classes = get_the_terms( $this->id, 'product_shipping_class' );
+			$classes = get_the_terms( $this->variation_id, 'product_shipping_class' );
 			if ($classes && !is_wp_error($classes)) $this->variation_shipping_class = current($classes)->slug; else $this->variation_shipping_class = parent::get_shipping_class();
 		endif;
 		return $this->variation_shipping_class;

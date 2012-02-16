@@ -21,6 +21,7 @@ class WC_Checkout {
 	function __construct () {
 		global $woocommerce;
 		
+		add_action('woocommerce_checkout_process',array(&$this,'checkout_process'));
 		add_action('woocommerce_checkout_billing',array(&$this,'checkout_form_billing'));
 		add_action('woocommerce_checkout_shipping',array(&$this,'checkout_form_shipping'));
 		
@@ -58,6 +59,12 @@ class WC_Checkout {
 				)
 			);
 		$this->checkout_fields = apply_filters('woocommerce_checkout_fields', $this->checkout_fields);
+	}
+	
+	/** Checkout process */
+	function checkout_process() {
+		// When we process the checkout, lets ensure cart items are rechecked to prevent checkout
+		do_action('woocommerce_check_cart_items');
 	}
 		
 	/** Output the billing information form */
@@ -262,8 +269,8 @@ class WC_Checkout {
 	                // if there are no errors, let's create the user account
 					if ( !$reg_errors->get_error_code() ) :
 	
-		                $user_pass = $this->posted['account_password'];
-		                $user_id = wp_create_user( $this->posted['account_username'], $user_pass, $this->posted['billing_email'] );
+		                $user_pass 	= esc_attr( $this->posted['account_password'] );
+		                $user_id 	= wp_create_user( $this->posted['account_username'], $user_pass, $this->posted['billing_email'] );
 		               
 		               if ( !$user_id ) :
 		                	$woocommerce->add_error( '<strong>' . __('ERROR', 'woocommerce') . '</strong>: ' . __('Couldn&#8217;t register you... please contact us if you continue to have problems.', 'woocommerce') );
@@ -275,7 +282,7 @@ class WC_Checkout {
 	
 	                    // send the user a confirmation and their login details
 	                    $mailer = $woocommerce->mailer();
-						$mailer->customer_new_account( $user_id, $password );
+						$mailer->customer_new_account( $user_id, $user_pass );
 	
 	                    // set the WP login cookie
 	                    $secure_cookie = is_ssl() ? true : false;

@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce
 Plugin URI: http://www.woothemes.com/woocommerce/
 Description: An e-commerce toolkit that helps you sell anything. Beautifully.
-Version: 1.4.2
+Version: 1.4.3
 Author: WooThemes
 Author URI: http://woothemes.com
 Requires at least: 3.1
@@ -29,7 +29,7 @@ class Woocommerce {
 	
 	/** Version ***************************************************************/
 	
-	var $version = '1.4.2';
+	var $version = '1.4.3';
 	
 	/** URLS ******************************************************************/
 	
@@ -81,9 +81,6 @@ class Woocommerce {
 		
 		// Define version constant
 		define( 'WOOCOMMERCE_VERSION', $this->version );
-		
-		// Set up localisation
-		$this->load_plugin_textdomain();
 		
 		// Include required files
 		$this->includes();
@@ -143,16 +140,6 @@ class Woocommerce {
 			add_action( 'wp_footer', array(&$this, 'output_inline_js'), 25);
 		
 		endif;
-	}
-	
-	/**
-	 * Localisation
-	 **/
-	function load_plugin_textdomain() {
-		$variable_lang = (get_option('woocommerce_informal_localisation_type')=='yes') ? 'informal' : 'formal';
-		load_plugin_textdomain('woocommerce', false, dirname( plugin_basename( __FILE__ ) ) . '/languages');
-		load_plugin_textdomain('woocommerce', false, dirname( plugin_basename( __FILE__ ) ) . '/../../languages/woocommerce');
-		load_plugin_textdomain('woocommerce', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' . $variable_lang );
 	}
 
 	/**
@@ -277,7 +264,10 @@ class Woocommerce {
 	 * Init WooCommerce when WordPress Initialises
 	 **/
 	function init() {
-	
+		
+		// Set up localisation
+		$this->load_plugin_textdomain();
+
 		// Register globals for WC environment
 		$this->register_globals();
 
@@ -294,6 +284,16 @@ class Woocommerce {
 		if (!is_admin()) $this->init_styles();
 
 		do_action( 'woocommerce_init' );
+	}
+	
+	/**
+	 * Localisation
+	 **/
+	function load_plugin_textdomain() {
+		$variable_lang = (get_option('woocommerce_informal_localisation_type')=='yes') ? 'informal' : 'formal';
+		load_plugin_textdomain('woocommerce', false, dirname( plugin_basename( __FILE__ ) ) . '/languages');
+		load_plugin_textdomain('woocommerce', false, dirname( plugin_basename( __FILE__ ) ) . '/../../languages/woocommerce');
+		load_plugin_textdomain('woocommerce', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' . $variable_lang );
 	}
 	
 	/**

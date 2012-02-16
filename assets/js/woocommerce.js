@@ -65,6 +65,8 @@ jQuery(document).ready(function($) {
 							
 							// Unblock
 							$('.widget_shopping_cart, .updating').css('opacity', '1').unblock();
+							
+							$('body').trigger('cart_widget_refreshed');
 						} );
 					} else {
 						// Replace fragments
@@ -85,6 +87,7 @@ jQuery(document).ready(function($) {
 						
 						$('.shop_table.cart').css('opacity', '1').unblock();
 						
+						$('body').trigger('cart_page_refreshed');
 					});
 					
 					$('.cart_totals').load( window.location + ' .cart_totals:eq(0) > *', function() {
@@ -365,7 +368,7 @@ jQuery(document).ready(function($) {
         	 $('.product_meta').find('.sku').text('');
         }
 
-        $('.single_variation_wrap').slideDown('200').trigger('variationWrapShown');
+        $('.single_variation_wrap').slideDown('200').trigger('variationWrapShown').trigger('show_variation'); // depreciated variationWrapShown
     }
 	
 	//when one of attributes is changed - check everything to show only valid options
@@ -447,6 +450,7 @@ jQuery(document).ready(function($) {
 			$.post( woocommerce_params.ajax_url, data, function(response) {
 				
 				$('div.cart_totals').replaceWith( response );
+				$('body').trigger('updated_shipping_method');
 							
 			});
 			
@@ -503,6 +507,7 @@ jQuery(document).ready(function($) {
 				success: 	function( response ) {
 					$('#order_review').after(response).remove();
 					$('#order_review input[name=payment_method]:checked').click();
+					$('body').trigger('updated_checkout');
 				}
 			});
 		
@@ -565,7 +570,7 @@ jQuery(document).ready(function($) {
 		});
 		$('input#billing_country, input#billing_state, #billing_postcode, input#shipping_country, input#shipping_state, #shipping_postcode').live('keydown', function(){
 			clearTimeout(updateTimer);
-			updateTimer = setTimeout("update_checkout()", '1000');
+			updateTimer = setTimeout(update_checkout, '1000');
 		});
 		$('select#billing_country, select#billing_state, select#shipping_country, select#shipping_state, #shiptobilling input, .update_totals_on_change').live('change', function(){
 			$('body').trigger('update_checkout');

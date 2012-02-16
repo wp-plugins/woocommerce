@@ -35,6 +35,35 @@ function woocommerce_admin_menu() {
 }
 
 /**
+ * Admin Notices
+ */
+add_action( "admin_print_styles", 'woocommerce_admin_notices_styles' );
+
+function woocommerce_admin_install_notice() {
+	?>
+	<div id="message" class="updated woocommerce-message wc-connect">
+		<div class="squeezer">
+			<h4><?php _e( '<strong>Welcome to WooCommerce</strong> &#8211; Your almost ready to start selling :)', 'woocommerce' ); ?></h4>
+			<p class="submit"><a href="<?php echo add_query_arg('install_woocommerce_pages', 'true', admin_url('admin.php?page=woocommerce')); ?>" class="button-primary"><?php _e( 'Install WooCommerce Pages', 'woocommerce' ); ?></a> <a class="skip button-primary" href="<?php echo add_query_arg('skip_install_woocommerce_pages', 'true', admin_url('admin.php?page=woocommerce')); ?>"><?php _e('Skip setup', 'woocommerce'); ?></a></p>
+		</div>
+	</div>
+	<?php
+}
+function woocommerce_admin_notices_styles() {
+	
+	if ( get_option('woocommerce_installed')==1 ) {
+		
+		wp_enqueue_style( 'woocommerce-activation', plugins_url(  '/assets/css/wc-activation.css', dirname( __FILE__ ) ) );
+	
+		if (get_option('skip_install_woocommerce_pages')!=1 && woocommerce_get_page_id('shop')<1 && !isset($_GET['install_woocommerce_pages']) && !isset($_GET['skip_install_woocommerce_pages'])) {
+			add_action( 'admin_notices', 'woocommerce_admin_install_notice' );
+		}
+		
+	}	
+}
+
+
+/**
  * Admin Includes - loaded conditionally
  */
 add_action('admin_init', 'woocommerce_admin_init');
@@ -46,7 +75,7 @@ function woocommerce_admin_init() {
 
 	if ( $pagenow=='index.php' ) :
 		include_once( 'woocommerce-admin-dashboard.php' );
-	elseif ( $pagenow=='import.php' ) :
+	elseif ( $pagenow=='admin.php' && isset($_GET['import']) ) :
 		include_once( 'woocommerce-admin-import.php' );
 	elseif ( $pagenow=='post-new.php' || $pagenow=='post.php' || $pagenow=='edit.php' ) :
 		include_once( 'post-types/post-types-init.php' );
@@ -82,8 +111,8 @@ function woocommerce_attributes_page() {
  */
 function activate_woocommerce() {
 	include_once( 'woocommerce-admin-install.php' );
-	update_option( "woocommerce_installed", 1 );
 	update_option( 'skip_install_woocommerce_pages', 0 );
+	update_option( 'woocommerce_installed', 1 );
 	do_install_woocommerce();
 }
 function install_woocommerce() {
@@ -145,7 +174,15 @@ function woocommerce_admin_scripts() {
 		wp_enqueue_script( 'chosen' );
 		
 		$woocommerce_witepanel_params = array( 
-			'remove_item_notice' 			=>  __("Remove this item? If you have previously reduced this item's stock, or this order was submitted by a customer, will need to manually restore the item's stock.", 'woocommerce'),
+			'remove_item_notice' 			=> __("Remove this item? If you have previously reduced this item's stock, or this order was submitted by a customer, will need to manually restore the item's stock.", 'woocommerce'),
+			'remove_attribute'				=> __('Remove this attribute?', 'woocommerce'),
+			'name_label'					=> __('Name', 'woocommerce'),
+			'remove_label'					=> __('Remove', 'woocommerce'),
+			'click_to_toggle'				=> __('Click to toggle', 'woocommerce'),
+			'values_label'					=> __('Value(s)', 'woocommerce'),
+			'text_attribute_tip'			=> __('Enter some text, or some attributes by pipe (|) separating values.', 'woocommerce'),
+			'visible_label'					=> __('Visible on the product page', 'woocommerce'),
+			'used_for_variations_label'		=> __('Used for variations', 'woocommerce'),
 			'calc_totals' 					=> __("Calculate totals based on order items, discount amount, and shipping? Note, you will need to (optionally) calculate tax rows and cart discounts manually.", 'woocommerce'),
 			'calc_line_taxes' 				=> __("Calculate line taxes? This will calculate taxes based on the customers country. If no billing/shipping is set it will use the store base country.", 'woocommerce'),
 			'copy_billing' 					=> __("Copy billing information to shipping information? This will remove any currently entered shipping information.", 'woocommerce'),

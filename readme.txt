@@ -1,16 +1,18 @@
-=== WooCommerce ===
+=== WooCommerce – excelling eCommerce ===
 Contributors: woothemes, mikejolley, jameskoster
 Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, store, shop, shopping, cart, checkout, widgets, reports, shipping, tax, paypal, inventory
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.3
 Tested up to: 3.3
-Stable tag: 1.4.2
+Stable tag: 1.4.3
 
-WooCommerce is an open-source e-commerce toolkit that helps you sell anything. Beautifully.
+WooCommerce is a powerful, extendable eCommerce plugin that helps you sell anything. Beautifully.
 
 == Description ==
 
-Transform your WordPress website into a thorough-bred online store. Delivering enterprise-level quality & features whilst backed by a name you can trust. Say hello to WooCommerce.
+Transform your WordPress website into a thorough-bred online store. Delivering enterprise-level quality and features whilst backed by a name you can trust. Say hello to WooCommerce.
+
+WooCommerce is built by WooThemes who also offer premium eCommerce themes and extensions to further enhance your shopfront.
 
 [vimeo http://vimeo.com/29198966]
 
@@ -81,6 +83,32 @@ Yes you can! Join in on our GitHub repository :) https://github.com/woothemes/wo
 3. WooCommerce sales reports
 
 == Changelog ==
+
+= 1.4.3 - 16/02/2012 = 
+* Fix for variation shipping class detection
+* Classes added to my-account
+* Fix for price filtering when the shop is the homepage
+* Renamed orderby GET variable to 'sort' to prevent conflicts with permalinks
+* Fixed a bug allowing checkout when items are out of stock
+* Added a cart item error page for checkout, if the items are invalid
+* Hidden shipping text when calculator is hidden
+* If theres 1 shipping method, don't show a select box (thanks GeertDD)
+* Don't repeat weight units after each measurement (GeertDD is on a role)
+* CZ fix
+* SKU system changes - old system was confusing and could conflict with post IDs thus the following changes have been made; 1) SKU no longer defaults to post ID automatically, 2) Unique SKU check looks for SKUs only - not post IDs 3) get_sku() will return _sku not post ID
+* Product admin interface tweaks
+* Variation interface tweaks
+* Attribute interface tweaks
+* Ability to select all/none attributes
+* Quantity based on stock limit on cart page, like the product page
+* Fixed category widget hierarchy
+* Password error on checkout
+* Improved install process
+* Hookable woocommerce_form_field
+* Updated dummy content
+* Removed the sorting 'GET' from the sort form in favour of POST - caused too many issues. GET requests will still work however.
+* Moved localisation to init
+* Price slider triggers
 
 = 1.4.2 - 09/02/2012 = 
 * Uninstall fix
