@@ -261,8 +261,15 @@ $woocommerce_settings['general'] = apply_filters('woocommerce_general_settings',
 
 )); // End general settings
 
+// Get shop page
 $shop_page_id = woocommerce_get_page_id('shop');
+
 $base_slug = ($shop_page_id > 0 && get_page( $shop_page_id )) ? get_page_uri( $shop_page_id ) : 'shop';	
+
+$woocommerce_prepend_shop_page_to_products_warning = '';
+
+if ( $shop_page_id > 0 && sizeof(get_pages("child_of=$shop_page_id")) > 0 )
+	$woocommerce_prepend_shop_page_to_products_warning = ' <mark class="notice">' . __('Note: The shop page has children - child pages will not work if you enable this option.', 'woocommerce') . '</mark>';
 	
 $woocommerce_settings['pages'] = apply_filters('woocommerce_page_settings', array(
 
@@ -338,7 +345,7 @@ $woocommerce_settings['pages'] = apply_filters('woocommerce_page_settings', arra
 	
 	array(  
 		'name' => __( 'Product base page', 'woocommerce' ),
-		'desc' 		=> sprintf(__( 'Prepend product permalinks with shop base page (<code>%s</code>)', 'woocommerce' ), $base_slug),
+		'desc' 		=> sprintf(__( 'Prepend product permalinks with shop base page (<code>%s</code>)', 'woocommerce' ), $base_slug) . $woocommerce_prepend_shop_page_to_products_warning,
 		'id' 		=> 'woocommerce_prepend_shop_page_to_products',
 		'std' 		=> 'yes',
 		'type' 		=> 'checkbox',
@@ -1006,10 +1013,12 @@ function woocommerce_settings() {
     
     $current_tab = (isset($_GET['tab'])) ? $_GET['tab'] : 'general';
     
-    if( isset( $_POST ) && $_POST ) :
-    	if ( ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'woocommerce-settings' ) ) die( __( 'Action failed. Please refresh the page and retry.', 'woocommerce' ) ); 
+    // Save settings
+    if( isset( $_POST ) && $_POST ) {
+    	if ( ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'woocommerce-settings' ) ) 
+    		die( __( 'Action failed. Please refresh the page and retry.', 'woocommerce' ) ); 
     	
-    	switch ( $current_tab ) :
+    	switch ( $current_tab ) {
 			case "general" :
 			case "pages" :
 			case "catalog" :
@@ -1020,34 +1029,39 @@ function woocommerce_settings() {
 			case "integration" :
 				woocommerce_update_options( $woocommerce_settings[$current_tab] );
 			break;
-		endswitch;
+		}
 		
 		do_action( 'woocommerce_update_options' );
 		do_action( 'woocommerce_update_options_' . $current_tab );
 		
-		// Backwards compat 1.4 <
-		if ($current_tab=='shipping') do_action( 'woocommerce_update_options_shipping_methods' );
+		if ($current_tab=='shipping') do_action( 'woocommerce_update_options_shipping_methods' ); // Shipping Methods
 		
 		flush_rewrite_rules( false );
+		
 		wp_redirect( add_query_arg( 'subtab', esc_attr(str_replace('#', '', $_POST['subtab'])), add_query_arg( 'saved', 'true', admin_url( 'admin.php?page=woocommerce&tab=' . $current_tab ) )) );
-    endif;
+		
+		exit;
+		
+	}
     
-    if (isset($_GET['saved']) && $_GET['saved']) :
+    // Settings saved message
+    if (isset($_GET['saved']) && $_GET['saved']) {
     	echo '<div id="message" class="updated fade"><p><strong>' . __( 'Your settings have been saved.', 'woocommerce' ) . '</strong></p></div>';
+        
         flush_rewrite_rules( false );
         
         do_action('woocommerce_settings_saved');
-    endif;
+    }
+    
+    // Hide WC Link
+    if (isset($_GET['hide-wc-extensions-message'])) 
+    	update_option('hide-wc-extensions-message', 1);
     
     // Install/page installer
     $install_complete = false;
-    $show_page_installer = false;
-    
-    // Hide WC Link
-    if (isset($_GET['hide-wc-extensions-message'])) update_option('hide-wc-extensions-message', 1);
     
     // Add pages button
-    if (isset($_GET['install_woocommerce_pages']) && $_GET['install_woocommerce_pages']) :
+    if (isset($_GET['install_woocommerce_pages']) && $_GET['install_woocommerce_pages']) {
 		
 		require_once( 'woocommerce-admin-install.php' );
     	woocommerce_create_pages();
@@ -1055,27 +1069,15 @@ function woocommerce_settings() {
     	$install_complete = true;
 	
 	// Skip button
-    elseif (isset($_GET['skip_install_woocommerce_pages']) && $_GET['skip_install_woocommerce_pages']) :
+    } elseif (isset($_GET['skip_install_woocommerce_pages']) && $_GET['skip_install_woocommerce_pages']) {
     	
     	update_option('skip_install_woocommerce_pages', 1);
     	$install_complete = true;
     	
-    // If we have just activated WooCommerce...
-    elseif (get_option('woocommerce_installed')==1) :
-    	
-    	flush_rewrite_rules( false );
-    	
-		if (woocommerce_get_page_id('shop')>0) :
-			$install_complete = true;
-		endif;
-		
-	endif;
+    }
 	
-	if ($install_complete) :
-	
-		update_option('woocommerce_installed', 0);
-
-    	?>
+	if ($install_complete) {
+		?>
     	<div id="message" class="updated woocommerce-message wc-connect">
 			<div class="squeezer">
 				<h4><?php _e( '<strong>Congratulations!</strong> &#8211; WooCommerce has been installed and setup. Enjoy :)', 'woocommerce' ); ?></h4>
@@ -1085,9 +1087,12 @@ function woocommerce_settings() {
 		</div>
 		<?php
     	
-    	flush_rewrite_rules( false );
-    	
-    endif;
+		// Flush rules after install
+		flush_rewrite_rules( false );
+		
+		// Set installed option
+		update_option('woocommerce_installed', 0);
+	}
     ?>
 	<div class="wrap woocommerce">
 		<form method="post" id="mainform" action="">

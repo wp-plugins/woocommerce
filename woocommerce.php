@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce
 Plugin URI: http://www.woothemes.com/woocommerce/
 Description: An e-commerce toolkit that helps you sell anything. Beautifully.
-Version: 1.4.3
+Version: 1.4.4
 Author: WooThemes
 Author URI: http://woothemes.com
 Requires at least: 3.1
@@ -29,7 +29,7 @@ class Woocommerce {
 	
 	/** Version ***************************************************************/
 	
-	var $version = '1.4.3';
+	var $version = '1.4.4';
 	
 	/** URLS ******************************************************************/
 	
@@ -257,6 +257,7 @@ class Woocommerce {
 	 **/
 	function install() {
 		register_activation_hook( __FILE__, 'activate_woocommerce' );
+		register_activation_hook( __FILE__, 'flush_rewrite_rules' );
 		if ( get_option('woocommerce_db_version') != $this->version ) : add_action('init', 'install_woocommerce', 0); endif;
 	}
 	
@@ -440,6 +441,8 @@ class Woocommerce {
 	 * Init WooCommerce taxonomies
 	 **/
 	function init_taxonomy() {
+		
+		if (post_type_exists('product')) return;
 		
 		/**
 		 * Slugs
@@ -850,7 +853,10 @@ class Woocommerce {
 		$scripts_position = (get_option('woocommerce_scripts_position') == 'yes') ? true : false;
 		
 		// Woocommerce.min.js is minified and contains woocommerce_plugins
-		wp_enqueue_script( 'woocommerce', $this->plugin_url() . '/assets/js/woocommerce.min.js', array('jquery'), '1.0', $scripts_position );
+		wp_enqueue_script( 'woocommerce', $this->plugin_url() . '/assets/js/woocommerce'.$suffix.'.js', array('jquery'), '1.0', $scripts_position );
+		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
+			wp_enqueue_script( 'woocommerce_plugins', $this->plugin_url() . '/assets/js/woocommerce_plugins'.$suffix.'.js', array('jquery'), '1.0', $scripts_position );
+		}
 		
 		if ($lightbox_en) 
 			wp_enqueue_script( 'fancybox', $this->plugin_url() . '/assets/js/fancybox'.$suffix.'.js', array('jquery'), '1.0', $scripts_position );

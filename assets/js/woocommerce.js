@@ -145,9 +145,19 @@ jQuery(document).ready(function($) {
 	});
 	
 	$(".minus").live('click', function() {
-	    var currentVal = parseInt($(this).next(".qty").val());
-	    if (!currentVal || currentVal=="" || currentVal == "NaN") currentVal = 1;
-	    if (currentVal > 0)  $(this).next(".qty").val(currentVal - 1);
+		var currentVal = parseInt($(this).next(".qty").val());
+	    if (!currentVal || currentVal=="" || currentVal == "NaN") currentVal = 0;
+	    
+	    $qty = $(this).next(".qty");
+	    
+	    var min = parseInt($qty.attr('data-min'));
+	    if (min=="" || min == "NaN") min = 0;
+	    
+	    if (min && (min==currentVal || currentVal<min)) {
+	    	$qty.val(min); 
+	    } else if (currentVal > 0) {
+	    	$qty.val(currentVal - 1);
+	    }
 	});
 	
 	/* states */
@@ -405,7 +415,7 @@ jQuery(document).ready(function($) {
         if(all_set) {
         	var variation = matching_variations.pop();
         	if (variation) {
-            	$('form input[name=variation_id]').val(variation.variation_id);
+            	$('form input[name=variation_id]').val(variation.variation_id).change();
             	show_variation(variation);
             } else {
             	// Nothing found - reset fields
@@ -418,7 +428,7 @@ jQuery(document).ready(function($) {
 
 	$('.variations select').change(function(){
 		
-		$('form input[name=variation_id]').val('');
+		$('form input[name=variation_id]').val('').change();
         $('.single_variation_wrap').hide();
         $('.single_variation').text('');
 		check_variations();
