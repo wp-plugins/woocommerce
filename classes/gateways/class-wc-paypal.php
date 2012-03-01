@@ -146,19 +146,13 @@ class WC_Paypal extends WC_Payment_Gateway {
     	if ($this->description) echo wpautop(wptexturize($this->description));
     }
     
-	/**
-	 * Generate the paypal button link
+    /**
+	 * Get PayPal Args for passing to PP
 	 **/
-    public function generate_paypal_form( $order_id ) {
+	function get_paypal_args( $order ) {
 		global $woocommerce;
 		
-		$order = new WC_Order( $order_id );
-		
-		if ( $this->testmode == 'yes' ):
-			$paypal_adr = $this->testurl . '?test_ipn=1&';		
-		else :
-			$paypal_adr = $this->liveurl . '?';		
-		endif;
+		$order_id = $order->id;
 		
 		if ($this->debug=='yes') $this->log->add( 'paypal', 'Generating payment form for order #' . $order_id . '. Notify URL: ' . trailingslashit(home_url()).'?paypalListener=paypal_standard_IPN');
 		
@@ -269,16 +263,13 @@ class WC_Paypal extends WC_Payment_Gateway {
 					
 					$item_name 	= $item['name'];
 					
-					if (get_option('woocommerce_enable_sku')=='yes' && $product->get_sku()) {
-						$item_name .= ' ('.$product->get_sku().')';
-					}
-					
 					$item_meta = new order_item_meta( $item['item_meta'] );					
 					if ($meta = $item_meta->display( true, true )) :
 						$item_name .= ' ('.$meta.')';
 					endif;
 						
 					$paypal_args['item_name_'.$item_loop] = $item_name;
+					if ($product->get_sku()) $paypal_args['item_number_'.$item_loop] = $product->get_sku();
 					$paypal_args['quantity_'.$item_loop] = $item['qty'];
 					$paypal_args['amount_'.$item_loop] = $order->get_item_total( $item, false );
 					
@@ -296,6 +287,25 @@ class WC_Paypal extends WC_Payment_Gateway {
 		endif;
 		
 		$paypal_args = apply_filters( 'woocommerce_paypal_args', $paypal_args );
+		
+		return $paypal_args;
+	}
+
+	/**
+	 * Generate the paypal button link
+	 **/
+    function generate_paypal_form( $order_id ) {
+		global $woocommerce;
+		
+		$order = new WC_Order( $order_id );
+
+		if ( $this->testmode == 'yes' ):
+			$paypal_adr = $this->testurl . '?test_ipn=1&';		
+		else :
+			$paypal_adr = $this->liveurl . '?';		
+		endif;
+		
+		$paypal_args = $this->get_paypal_args( $order );
 		
 		$paypal_args_array = array();
 
@@ -338,9 +348,18 @@ class WC_Paypal extends WC_Payment_Gateway {
 		
 		$order = new WC_Order( $order_id );
 		
+		$paypal_args = $this->get_paypal_args( $order );
+		
+		if ( $this->testmode == 'yes' ):
+			$paypal_adr = $this->testurl . '?test_ipn=1&';		
+		else :
+			$paypal_adr = $this->liveurl . '?';		
+		endif;
+
 		return array(
 			'result' 	=> 'success',
-			'redirect'	=> add_query_arg('order', $order->id, add_query_arg('key', $order->order_key, get_permalink(woocommerce_get_page_id('pay'))))
+			'redirect'	=> $paypal_adr . http_build_query( $paypal_args )
+			//'redirect'	=> add_query_arg('order', $order->id, add_query_arg('key', $order->order_key, get_permalink(woocommerce_get_page_id('pay'))))
 		);
 		
 	}

@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, store, sh
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.3
 Tested up to: 3.3
-Stable tag: 1.4.4
+Stable tag: 1.5
 
 WooCommerce is a powerful, extendable eCommerce plugin that helps you sell anything. Beautifully.
 
@@ -73,6 +73,9 @@ Finally, here are some cool free extensions listed here on WordPress.org:
 * [Affiliates WooCommerce Integration Light](http://wordpress.org/extend/plugins/affiliates-woocommerce-light/) - Integrates Affiliates with WooCommerce.
 * [WooCommerce Multilingual](http://wordpress.org/extend/plugins/woocommerce-multilingual/) - Allows running multilingual e-commerce sites using WooCommerce and WPML.
 
+= THEMES =
+Looking for a tailored WordPress eCommmerce theme designed specifically to be used with WooCommerce? Be sure to browse the official [WooCommerce Themes](http://www.woothemes.com/themes/woocommerce-themes/)
+
 Read more about the features and benefits of the WooCommerce eCommerce platform on the [WooCommerce website](http://www.woothemes.com/woocommerce/ "WooCommerce: An open-source eCommerce plugin for WordPress"),
 
 Checkout and contribute to the source code on the [WooCommerce GitHub Repository](http://github.com/woothemes/woocommerce/)
@@ -139,6 +142,59 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 3. WooCommerce sales reports
 
 == Changelog ==
+
+= 1.5 - 01/03/2012 =
+* Quick edit products
+* Bulk edit products
+* Purchase notes - add text to a product to include in order tables after payment
+* Downloadable Product Permissions management via orders page - grant and revoke access to files
+* See how many times a download has been downloaded
+* Option for downloadable files to expire after X days
+* Define extra flat rate addons - e.g. priority shipping for an extra $5
+* PayPal standard goes straight to PayPal via a GET request - no more pay page/forms
+* Better mixed cart handling - option to give access to downloads after payment (processing order status)
+* Added basic API for payment gateways to hook into (for IPN etc)
+* Added Bulgarian translation
+* Fixed SKU sort in admin
+* woocommerce_file_download_path hook
+* Order screen has icons showing customer notes + order notes
+* Fixed category hierarchy (typo)
+* Delete term cleanup
+* Filters to override default country and state on checkout form
+* Added item_number to paypal standard (sku)
+* Errors can be loaded into any page though wc_error query string var
+* Fix for default value when data-min is used
+* Hooks for quantity selectors
+* Load order of the translation files tweaked so ones in wp-content/languages get priority
+* Improved woocommerce_get_template_part
+* Improved edit my address page when accessed directly
+* Extra hooks in carts/totals
+* Tweaked attributes page/labels
+* Added required * to checkout fields, dynamically for locales
+* is main query tweak
+* Filters for BACS fields
+* Polish translation by Maciej Swoboda
+* More reliable cache deletion
+* Fixed record_product_sales
+* Fix order tracking page
+* Fix dates for orders
+* Made links in customer notes clickable links
+* Product option for customise the button text for external products
+* Function for getting placeholder.png - woocommerce_placeholder_img_src() with filter woocommerce_placeholder_img_src
+* Slight settings cleanup
+* Order items (frontend) link through to product pages
+* Separate right now widget (thanks Mamaduka!)
+* Fixed missing errors on my account
+* Enhanced variation price display (thanks pixeltrix) and tweaked get_price_html - new filters for variation prices
+* email_order_items_table image thumbnail support
+* Hiding the cart widget option now shows the widget if adding to cart via ajax
+* More reliable un-force https code
+* Reset link for variations
+* Better grouped price code
+* My account remembers post data upon error
+* Hidden shipping address from account page and mails when disabled
+* Option to limit products which are downloadable and virtual to 1 per cart
+* woocommerce_items_in_cart cookie when cart has contents (can be used for caching plugins)
 
 = 1.4.4 - 18/02/2012 = 
 * Fix for remove coupon links after ajax update of shipping

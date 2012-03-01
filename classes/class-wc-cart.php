@@ -66,6 +66,7 @@ class WC_Cart {
 		 * Get the cart data from the PHP session
 		 */
 		function get_cart_from_session() {
+			global $woocommerce;
 			
 			// Load the coupons
 			$this->applied_coupons = (isset($_SESSION['coupons'])) ? array_filter((array) $_SESSION['coupons']) : array();
@@ -104,6 +105,12 @@ class WC_Cart {
 				$this->cart_contents = array();
 			endif;
 			
+			// Cookie
+			if (sizeof($this->cart_contents)>0) 
+				$woocommerce->cart_has_contents_cookie( true );
+			else 
+				$woocommerce->cart_has_contents_cookie( false );
+				
 			// Load totals
 			$this->cart_contents_total 	= isset($_SESSION['cart_contents_total']) ? $_SESSION['cart_contents_total'] : 0;
 			$this->cart_contents_weight = isset($_SESSION['cart_contents_weight']) ? $_SESSION['cart_contents_weight'] : 0;
@@ -173,6 +180,7 @@ class WC_Cart {
 		function check_cart_items() {
 			global $woocommerce;
 			
+			// Check item stock
 			$result = $this->check_cart_item_stock();
 			if (is_wp_error($result)) $woocommerce->add_error( $result->get_error_message() );
 		}
@@ -182,7 +190,7 @@ class WC_Cart {
 		 */
 		function check_cart_item_stock() {
 			$error = new WP_Error();
-			foreach ($this->cart_contents as $cart_item_key => $values) :
+			foreach ($this->get_cart() as $cart_item_key => $values) :
 				$_product = $values['data'];
 				if ($_product->managing_stock()) :
 					if ($_product->is_in_stock() && $_product->has_enough_stock( $values['quantity'] )) :
@@ -433,6 +441,15 @@ class WC_Cart {
 				return false;
 			endif;
 			
+			// Downloadable/virtual qty check
+			if ( get_option('woocommerce_limit_downloadable_product_qty')=='yes' && $product_data->is_downloadable() && $product_data->is_virtual() ) :
+				$qty = ($cart_item_key) ? $this->cart_contents[$cart_item_key]['quantity'] + $quantity : $quantity;
+				if ( $qty > 1 ) :
+					$woocommerce->add_error( __('You already have this item in your cart.', 'woocommerce') );
+					return false;
+				endif;
+			endif;
+			
 			if ($cart_item_key) :
 	
 				$quantity = $quantity + $this->cart_contents[$cart_item_key]['quantity'];
@@ -460,7 +477,9 @@ class WC_Cart {
 				)));
 			
 			endif;
-	
+			
+			$woocommerce->cart_has_contents_cookie( true );
+
 			$this->set_session();
 			
 			return true;
@@ -1019,7 +1038,7 @@ class WC_Cart {
 			 *
 			 * Based on discounted product prices, discounted tax, shipping cost + tax, and any discounts to be added after tax (e.g. store credit)
 			 */
-			$this->total = number_format( $this->cart_contents_total + $this->tax_total + $this->shipping_tax_total + $this->shipping_total - $this->discount_total, 2, '.', '');
+			$this->total = apply_filters('woocommerce_calculated_total', number_format( $this->cart_contents_total + $this->tax_total + $this->shipping_tax_total + $this->shipping_total - $this->discount_total, 2, '.', ''), $this);
 			
 			if ($this->total < 0) $this->total = 0;
 		}

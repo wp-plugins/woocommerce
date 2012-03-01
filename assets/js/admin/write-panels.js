@@ -24,12 +24,12 @@ jQuery( function($){
 		window.onbeforeunload = '';
 	});
 	
-	$('a.edit_address').click(function(){
+	$('a.edit_address').click(function(event){
 		
 		$(this).hide();
 		$(this).closest('.order_data').find('div.address').hide();
 		$(this).closest('.order_data').find('div.edit_address').show();
-
+		event.preventDefault();
 	});
 	
 	// Chosen selects
@@ -86,7 +86,7 @@ jQuery( function($){
 				};
 				
 				$.post( woocommerce_writepanel_params.ajax_url, data, function(response) {
-
+					
 					result = jQuery.parseJSON( response );
 					$row.find('input.line_subtotal_tax').val( result.line_subtotal_tax );
 					$row.find('input.line_tax').val( result.line_tax );
@@ -517,29 +517,30 @@ jQuery( function($){
 		buttonImage: woocommerce_writepanel_params.calendar_image,
 		buttonImageOnly: true
 	});
-		
 	
-	// ATTRIBUTE TABLES
-		
+	// META BOXES
+	
 		jQuery('.expand_all').click(function(){
-			jQuery(this).closest('.panel').find('table.woocommerce_attribute_data, table.woocommerce_variable_attributes').show();
+			jQuery(this).closest('.wc-metaboxes-wrapper').find('.wc-metabox table').show();
 			return false;
 		});
 		
 		jQuery('.close_all').click(function(){
-			jQuery(this).closest('.panel').find('table.woocommerce_attribute_data, table.woocommerce_variable_attributes').hide();
+			jQuery(this).closest('.wc-metaboxes-wrapper').find('.wc-metabox table').hide();
 			return false;
 		});
 		
 		// Open/close
-		jQuery('.woocommerce_attributes').on('click', '.woocommerce_attribute h3', function(){
-			jQuery(this).next('table.woocommerce_attribute_data').toggle();
+		jQuery('.wc-metaboxes-wrapper').on('click', '.wc-metabox h3', function(){
+			jQuery(this).next('.wc-metabox-content').toggle();
 		});
 		
-		jQuery('.woocommerce_attribute.closed').each(function(){
-			jQuery(this).find('table.woocommerce_attribute_data').hide();
+		jQuery('.wc-metabox.closed').each(function(){
+			jQuery(this).find('.wc-metabox-content').hide();
 		});
-		
+	
+	// ATTRIBUTE TABLES
+
 		// Multiselect attributes
 		$(".woocommerce_attributes select.multiselect").chosen();	
 		
@@ -664,7 +665,7 @@ jQuery( function($){
 			forcePlaceholderSize: true,
 			helper: 'clone',
 			opacity: 0.65,
-			placeholder: 'attributes-sortable-placeholder',
+			placeholder: 'wc-metabox-sortable-placeholder',
 			start:function(event,ui){
 				ui.item.css('background-color','#f6f6f6');
 			},

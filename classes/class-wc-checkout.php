@@ -34,18 +34,18 @@ class WC_Checkout {
 			'account_username' => array( 
 				'type' => 'text', 
 				'label' => __('Account username', 'woocommerce'), 
-				'placeholder' => __('Username', 'woocommerce') 
+				'placeholder' => _x('Username', 'placeholder', 'woocommerce') 
 				),
 			'account_password' => array( 
 				'type' => 'password', 
 				'label' => __('Account password', 'woocommerce'), 
-				'placeholder' => __('Password', 'woocommerce'),
+				'placeholder' => _x('Password', 'placeholder', 'woocommerce'),
 				'class' => array('form-row-first')
 				),
 			'account_password-2' => array( 
 				'type' => 'password', 
 				'label' => __('Account password', 'woocommerce'), 
-				'placeholder' => __('Password', 'woocommerce'),
+				'placeholder' => _x('Password', 'placeholder', 'woocommerce'),
 				'class' => array('form-row-last'), 
 				'label_class' => array('hidden')
 				)
@@ -55,7 +55,7 @@ class WC_Checkout {
 				'type' => 'textarea', 
 				'class' => array('notes'), 
 				'label' => __('Order Notes', 'woocommerce'), 
-				'placeholder' => __('Notes about your order, e.g. special notes for delivery.', 'woocommerce') 
+				'placeholder' => _x('Notes about your order, e.g. special notes for delivery.', 'placeholder', 'woocommerce') 
 				)
 			);
 		$this->checkout_fields = apply_filters('woocommerce_checkout_fields', $this->checkout_fields);
@@ -302,6 +302,7 @@ class WC_Checkout {
 					'post_type' 	=> 'shop_order',
 					'post_title' 	=> 'Order &ndash; '.date('F j, Y @ h:i A'),
 					'post_status' 	=> 'publish',
+					'ping_status'	=> 'closed',
 					'post_excerpt' 	=> $this->posted['order_comments'],
 					'post_author' 	=> 1
 				);
@@ -480,6 +481,9 @@ class WC_Checkout {
 				// Order is saved
 				do_action('woocommerce_checkout_order_processed', $order_id, $this->posted);
 				
+				// Prevent timeout
+				set_time_limit(0); 
+				
 				// Process payment
 				if ($woocommerce->cart->needs_payment()) :
 					
@@ -498,7 +502,7 @@ class WC_Checkout {
 							echo json_encode( $result );
 							exit;
 						else :
-							wp_safe_redirect( $result['redirect'] );
+							wp_redirect( $result['redirect'] );
 							exit;
 						endif;
 						
@@ -564,16 +568,19 @@ class WC_Checkout {
 			
 		else :
 		
+			$default_country = apply_filters('default_checkout_country', $woocommerce->countries->get_base_country());
+			$default_state = apply_filters('default_checkout_state', $woocommerce->countries->get_base_state());
+		
 			// If we are here then the user is not logged in - try to use the session data, otherwise default to base
-			if ($input == "billing_country") return ($woocommerce->customer->get_country()) ? $woocommerce->customer->get_country() : $woocommerce->countries->get_base_country();
+			if ($input == "billing_country") return ($woocommerce->customer->get_country()) ? $woocommerce->customer->get_country() : $default_country;
 			
-			if ($input == "billing_state") return ($woocommerce->customer->get_state()) ? $woocommerce->customer->get_state() : $woocommerce->countries->get_base_state();
+			if ($input == "billing_state") return ($woocommerce->customer->get_state()) ? $woocommerce->customer->get_state() : $default_state;
 			
 			if ($input == "billing_postcode") return ($woocommerce->customer->get_postcode()) ? $woocommerce->customer->get_postcode() : '';
 			
-			if ($input == "shipping_country") return ($woocommerce->customer->get_shipping_country()) ? $woocommerce->customer->get_shipping_country() : $woocommerce->countries->get_base_country();
+			if ($input == "shipping_country") return ($woocommerce->customer->get_shipping_country()) ? $woocommerce->customer->get_shipping_country() : $default_country;
 			
-			if ($input == "shipping_state") return ($woocommerce->customer->get_shipping_state()) ? $woocommerce->customer->get_shipping_state() : $woocommerce->countries->get_base_state();
+			if ($input == "shipping_state") return ($woocommerce->customer->get_shipping_state()) ? $woocommerce->customer->get_shipping_state() : $default_state;
 			
 			if ($input == "shipping_postcode") return ($woocommerce->customer->get_shipping_postcode()) ? $woocommerce->customer->get_shipping_postcode() : '';
 			
