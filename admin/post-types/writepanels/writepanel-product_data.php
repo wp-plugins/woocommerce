@@ -69,10 +69,10 @@ function woocommerce_product_data_box() {
 			echo '<div class="options_group pricing show_if_simple show_if_external">';
 			
 				// Price
-				woocommerce_wp_text_input( array( 'id' => '_regular_price', 'label' => __('Regular Price', 'woocommerce') . ' ('.get_woocommerce_currency_symbol().')' ) );
+				woocommerce_wp_text_input( array( 'id' => '_regular_price', 'class' => 'wc_input_price short', 'label' => __('Regular Price', 'woocommerce') . ' ('.get_woocommerce_currency_symbol().')' ) );
 				
 				// Special Price
-				woocommerce_wp_text_input( array( 'id' => '_sale_price', 'label' => __('Sale Price', 'woocommerce') . ' ('.get_woocommerce_currency_symbol().')', 'description' => '<a href="#" class="sale_schedule">' . __('Schedule', 'woocommerce') . '</a>' ) );
+				woocommerce_wp_text_input( array( 'id' => '_sale_price', 'class' => 'wc_input_price short', 'label' => __('Sale Price', 'woocommerce') . ' ('.get_woocommerce_currency_symbol().')', 'description' => '<a href="#" class="sale_schedule">' . __('Schedule', 'woocommerce') . '</a>' ) );
 						
 				// Special Price date range
 				$field = array( 'id' => '_sale_price_dates', 'label' => __('Sale Price Dates', 'woocommerce') );
@@ -269,7 +269,7 @@ function woocommerce_product_data_box() {
 				    		<div class="woocommerce_attribute wc-metabox closed taxonomy <?php echo $attribute_taxonomy_name; ?>" rel="<?php echo $position; ?>" <?php if (!$has_terms) echo 'style="display:none"'; ?>>
 								<h3>
 									<button type="button" class="remove_row button"><?php _e('Remove', 'woocommerce'); ?></button>
-									<div class="handlediv" title="<?php _e('Click to toggle'); ?>"></div>
+									<div class="handlediv" title="<?php _e('Click to toggle', 'woocommerce'); ?>"></div>
 									<strong class="attribute_name"><?php echo ($tax->attribute_label) ? $tax->attribute_label : $tax->attribute_name; ?></strong>
 								</h3>
 								<table cellpadding="0" cellspacing="0" class="woocommerce_attribute_data wc-metabox-content">
@@ -345,7 +345,7 @@ function woocommerce_product_data_box() {
 			    		<div class="woocommerce_attribute wc-metabox closed" rel="<?php echo $position; ?>">
 							<h3>
 								<button type="button" class="remove_row button"><?php _e('Remove', 'woocommerce'); ?></button>
-								<div class="handlediv" title="<?php _e('Click to toggle'); ?>"></div>
+								<div class="handlediv" title="<?php _e('Click to toggle', 'woocommerce'); ?>"></div>
 								<strong class="attribute_name"><?php echo esc_attr( $attribute['name'] ); ?></strong>
 							</h3>
 							<table cellpadding="0" cellspacing="0" class="woocommerce_attribute_data wc-metabox-content">
@@ -536,7 +536,6 @@ function woocommerce_process_product_meta( $post_id, $post ) {
 				    WHERE $wpdb->posts.post_type = 'product'
 				    AND $wpdb->posts.post_status = 'publish' 
 				    AND $wpdb->postmeta.meta_key = '_sku' AND $wpdb->postmeta.meta_value = '%s'
-				    );
 				 ", $new_sku))
 				) :
 				$woocommerce_errors[] = __('Product SKU must be unique.', 'woocommerce');

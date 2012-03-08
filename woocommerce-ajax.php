@@ -686,19 +686,19 @@ function woocommerce_add_order_item() {
 		</td>
 		
 		<td class="quantity" width="1%">
-			<input type="text" name="item_quantity[<?php echo $index; ?>]" placeholder="<?php _e('0', 'woocommerce'); ?>" value="1" size="2" class="quantity" />
+			<input type="text" name="item_quantity[<?php echo $index; ?>]" placeholder="0" value="1" size="2" class="quantity" />
 		</td>
 		
 		<td class="line_subtotal" width="1%">
-			<label><?php _e('Cost', 'woocommerce'); ?>: <input type="text" name="line_subtotal[<?php echo $index; ?>]" placeholder="<?php _e('0.00', 'woocommerce'); ?>" value="<?php echo esc_attr( number_format($_product->get_price_excluding_tax(), 2, '.', '') ); ?>" class="line_subtotal" /></label>
+			<label><?php _e('Cost', 'woocommerce'); ?>: <input type="text" name="line_subtotal[<?php echo $index; ?>]" placeholder="0.00" value="<?php echo esc_attr( number_format($_product->get_price_excluding_tax(), 2, '.', '') ); ?>" class="line_subtotal" /></label>
 			
-			<label><?php _e('Tax', 'woocommerce'); ?>: <input type="text" name="line_subtotal_tax[<?php echo $index; ?>]" placeholder="<?php _e('0.00', 'woocommerce'); ?>" class="line_subtotal_tax" /></label>
+			<label><?php _e('Tax', 'woocommerce'); ?>: <input type="text" name="line_subtotal_tax[<?php echo $index; ?>]" placeholder="0.00" class="line_subtotal_tax" /></label>
 		</td>
 		
 		<td class="line_total" width="1%">
-			<label><?php _e('Cost', 'woocommerce'); ?>: <input type="text" name="line_total[<?php echo $index; ?>]" placeholder="<?php _e('0.00', 'woocommerce'); ?>" value="<?php echo esc_attr( number_format($_product->get_price_excluding_tax(), 2, '.', '') ); ?>" class="line_total" /></label>
+			<label><?php _e('Cost', 'woocommerce'); ?>: <input type="text" name="line_total[<?php echo $index; ?>]" placeholder="0.00" value="<?php echo esc_attr( number_format($_product->get_price_excluding_tax(), 2, '.', '') ); ?>" class="line_total" /></label>
 			
-			<label><?php _e('Tax', 'woocommerce'); ?>: <input type="text" name="line_tax[<?php echo $index; ?>]" placeholder="<?php _e('0.00', 'woocommerce'); ?>" class="line_tax" /></label>
+			<label><?php _e('Tax', 'woocommerce'); ?>: <input type="text" name="line_tax[<?php echo $index; ?>]" placeholder="0.00" class="line_tax" /></label>
 		</td>
 		
 	</tr>
@@ -812,6 +812,76 @@ function woocommerce_delete_order_note() {
 	endif;
 	
 	// Quit out
+	die();
+}
+
+/**
+ * Search for products and return json
+ */
+add_action('wp_ajax_woocommerce_json_search_products', 'woocommerce_json_search_products');
+
+function woocommerce_json_search_products() {
+	
+	check_ajax_referer( 'search-products', 'security' );
+	
+	$term = (string) urldecode(stripslashes(strip_tags($_GET['term'])));
+	
+	if (empty($term)) die();
+	
+	if (is_numeric($term)) {
+		
+		$args = array(
+			'post_type'			=> 'product',
+			'post_status'	 	=> 'publish',
+			'posts_per_page' 	=> -1,
+			'post__in' 			=> array(0, $term),
+			'fields'			=> 'ids'
+		);
+		
+		$posts = get_posts( $args );
+		
+	} else {
+	
+		$args = array(
+			'post_type'			=> array('product', 'product_variation'),
+			'post_status' 		=> 'publish',
+			'posts_per_page' 	=> -1,
+			's' 				=> $term,
+			'fields'			=> 'ids'
+		);
+		
+		$args2 = array(
+			'post_type'			=> array('product', 'product_variation'),
+			'post_status' 		=> 'publish',
+			'posts_per_page' 	=> -1,
+			'meta_query' 		=> array(
+				array(
+				'key' 	=> '_sku',
+				'value' => $term,
+				'compare' => 'LIKE'
+				)
+			),
+			'fields'			=> 'ids'
+		);
+		
+		$posts = array_unique(array_merge( get_posts( $args ), get_posts( $args2 ) ));
+	
+	}
+	
+	$found_products = array();
+
+	if ($posts) foreach ($posts as $post) {
+		
+		$SKU = get_post_meta($post, '_sku', true);
+		
+		if (isset($SKU) && $SKU) $SKU = ' (SKU: ' . $SKU . ')';
+		
+		$found_products[$post] = get_the_title($post) . $SKU;
+		
+	}
+	
+	echo json_encode( $found_products );
+	
 	die();
 }
 

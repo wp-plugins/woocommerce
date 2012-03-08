@@ -113,10 +113,6 @@ function woocommerce_admin_init() {
 		
 		if (in_array($typenow, array('product', 'shop_coupon', 'shop_order'))) add_action('admin_print_styles', 'woocommerce_admin_help_tab');
 		
-	} elseif ( $pagenow=='edit-tags.php' ) {
-	
-		include_once( 'woocommerce-admin-taxonomies.php' );
-		
 	} elseif ( $pagenow=='users.php' || $pagenow=='user-edit.php' || $pagenow=='profile.php' ) {
 	
 		include_once( 'woocommerce-admin-users.php' );
@@ -129,6 +125,7 @@ include_once( 'post-types/shop_coupon.php' );
 include_once( 'post-types/shop_order.php' );
 include_once( 'woocommerce-admin-hooks.php' );
 include_once( 'woocommerce-admin-functions.php' );
+include_once( 'woocommerce-admin-taxonomies.php' );
 
 /**
  * Includes for admin pages - only load functions when needed
@@ -182,6 +179,7 @@ function woocommerce_admin_scripts() {
 	wp_register_script( 'woocommerce_admin', $woocommerce->plugin_url() . '/assets/js/admin/woocommerce_admin'.$suffix.'.js', array('jquery', 'jquery-ui-widget', 'jquery-ui-core'), '1.0' );
 	wp_register_script( 'jquery-ui-datepicker',  $woocommerce->plugin_url() . '/assets/js/admin/ui-datepicker.js', array('jquery','jquery-ui-core'), '1.0' );
 	wp_register_script( 'woocommerce_writepanel', $woocommerce->plugin_url() . '/assets/js/admin/write-panels'.$suffix.'.js', array('jquery', 'jquery-ui-datepicker') );
+	wp_register_script( 'ajax-chosen', $woocommerce->plugin_url() . '/assets/js/ajax-chosen.jquery'.$suffix.'.js', array('jquery', 'chosen'), '1.0' );
 	wp_register_script( 'chosen', $woocommerce->plugin_url() . '/assets/js/chosen.jquery'.$suffix.'.js', array('jquery'), '1.0' );
 	
 	// Get admin screen id
@@ -192,6 +190,7 @@ function woocommerce_admin_scripts() {
     
     	wp_enqueue_script( 'woocommerce_admin' );
     	wp_enqueue_script('farbtastic');
+    	wp_enqueue_script( 'ajax-chosen' );
     	wp_enqueue_script( 'chosen' );
     	wp_enqueue_script('jquery-ui-sortable');
 
@@ -212,6 +211,7 @@ function woocommerce_admin_scripts() {
 		wp_enqueue_script( 'jquery-ui-datepicker' );
 		wp_enqueue_script( 'media-upload' );
 		wp_enqueue_script( 'thickbox' );
+		wp_enqueue_script( 'ajax-chosen' );
 		wp_enqueue_script( 'chosen' );
 		
 		$woocommerce_witepanel_params = array( 
@@ -244,7 +244,7 @@ function woocommerce_admin_scripts() {
 			'add_order_item_nonce' 			=> wp_create_nonce("add-order-item"),
 			'calc_totals_nonce' 			=> wp_create_nonce("calc-totals"),
 			'get_customer_details_nonce' 	=> wp_create_nonce("get-customer-details"),
-			'upsell_crosssell_search_products_nonce' => wp_create_nonce("search-products"),
+			'search_products_nonce' => wp_create_nonce("search-products"),
 			'calendar_image'				=> $woocommerce->plugin_url().'/assets/images/calendar.png',
 			'post_id'						=> $post->ID
 		 );
@@ -441,10 +441,10 @@ function woocommerce_product_updated_messages( $messages ) {
 		4 => __('Product updated.', 'woocommerce'),
 		5 => isset($_GET['revision']) ? sprintf( __('Product restored to revision from %s', 'woocommerce'), wp_post_revision_title( (int) $_GET['revision'], false ) ) : false,
 		6 => sprintf( __('Product published. <a href="%s">View Contact</a>', 'woocommerce'), esc_url( get_permalink($post_ID) ) ),
-		7 => __('Product saved.'),
+		7 => __('Product saved.', 'woocommerce'),
 		8 => sprintf( __('Product submitted. <a target="_blank" href="%s">Preview Product</a>', 'woocommerce'), esc_url( add_query_arg( 'preview', 'true', get_permalink($post_ID) ) ) ),
 		9 => sprintf( __('Product scheduled for: <strong>%1$s</strong>. <a target="_blank" href="%2$s">Preview Product</a>', 'woocommerce'),
-		  date_i18n( __( 'M j, Y @ G:i' ), strtotime( $post->post_date ) ), esc_url( get_permalink($post_ID) ) ),
+		  date_i18n( __( 'M j, Y @ G:i', 'woocommerce' ), strtotime( $post->post_date ) ), esc_url( get_permalink($post_ID) ) ),
 		10 => sprintf( __('Product draft updated. <a target="_blank" href="%s">Preview Product</a>', 'woocommerce'), esc_url( add_query_arg( 'preview', 'true', get_permalink($post_ID) ) ) ),
 	);
 	
@@ -456,10 +456,10 @@ function woocommerce_product_updated_messages( $messages ) {
 		4 => __('Order updated.', 'woocommerce'),
 		5 => isset($_GET['revision']) ? sprintf( __('Order restored to revision from %s', 'woocommerce'), wp_post_revision_title( (int) $_GET['revision'], false ) ) : false,
 		6 => __('Order updated.', 'woocommerce'),
-		7 => __('Order saved.'),
+		7 => __('Order saved.', 'woocommerce'),
 		8 => __('Order submitted.', 'woocommerce'),
 		9 => sprintf( __('Order scheduled for: <strong>%1$s</strong>.', 'woocommerce'),
-		  date_i18n( __( 'M j, Y @ G:i' ), strtotime( $post->post_date ) ) ),
+		  date_i18n( __( 'M j, Y @ G:i', 'woocommerce' ), strtotime( $post->post_date ) ) ),
 		10 => __('Order draft updated.', 'woocommerce')
 	);
 
@@ -471,10 +471,10 @@ function woocommerce_product_updated_messages( $messages ) {
 		4 => __('Coupon updated.', 'woocommerce'),
 		5 => isset($_GET['revision']) ? sprintf( __('Coupon restored to revision from %s', 'woocommerce'), wp_post_revision_title( (int) $_GET['revision'], false ) ) : false,
 		6 => __('Coupon updated.', 'woocommerce'),
-		7 => __('Coupon saved.'),
+		7 => __('Coupon saved.', 'woocommerce'),
 		8 => __('Coupon submitted.', 'woocommerce'),
 		9 => sprintf( __('Coupon scheduled for: <strong>%1$s</strong>.', 'woocommerce'),
-		  date_i18n( __( 'M j, Y @ G:i' ), strtotime( $post->post_date ) ) ),
+		  date_i18n( __( 'M j, Y @ G:i', 'woocommerce' ), strtotime( $post->post_date ) ) ),
 		10 => __('Coupon draft updated.', 'woocommerce')
 	);
 	

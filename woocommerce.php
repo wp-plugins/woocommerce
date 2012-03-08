@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce
 Plugin URI: http://www.woothemes.com/woocommerce/
 Description: An e-commerce toolkit that helps you sell anything. Beautifully.
-Version: 1.5
+Version: 1.5.1
 Author: WooThemes
 Author URI: http://woothemes.com
 Requires at least: 3.1
@@ -29,7 +29,7 @@ class Woocommerce {
 	
 	/** Version ***************************************************************/
 	
-	var $version = '1.5';
+	var $version = '1.5.1';
 	
 	/** URLS ******************************************************************/
 	
@@ -307,7 +307,7 @@ class Woocommerce {
 	function load_plugin_textdomain() {
 		// Note: the first-loaded translation file overrides any following ones if the same translation is present
 		$variable_lang = ( get_option( 'woocommerce_informal_localisation_type' ) == 'yes' ) ? 'informal' : 'formal';
-		load_plugin_textdomain( 'woocommerce', false, dirname( plugin_basename( __FILE__ ) ).'/../../languages/woocommerce');
+		load_textdomain( 'woocommerce', WP_LANG_DIR.'/woocommerce/woocommerce-'.get_locale().'.mo' );
 		load_plugin_textdomain( 'woocommerce', false, dirname( plugin_basename( __FILE__ ) ).'/languages/'.$variable_lang );
 		load_plugin_textdomain( 'woocommerce', false, dirname( plugin_basename( __FILE__ ) ).'/languages');
 	}
@@ -485,7 +485,7 @@ class Woocommerce {
 		
 		$tag_slug = (get_option('woocommerce_product_tag_slug')) ? get_option('woocommerce_product_tag_slug') : _x('product-tag', 'slug', 'woocommerce');
 		
-		$product_base = (get_option('woocommerce_prepend_shop_page_to_products')=='yes') ? trailingslashit($base_slug) : trailingslashit(__('product', 'woocommerce'));
+		$product_base = (get_option('woocommerce_prepend_shop_page_to_products')=='yes') ? trailingslashit($base_slug) : trailingslashit(_x('product', 'slug', 'woocommerce'));
 		
 		if (get_option('woocommerce_prepend_category_to_products')=='yes') $product_base .= trailingslashit('%product_cat%');
 		
@@ -988,12 +988,7 @@ class Woocommerce {
 	 */
 	function plugin_url() { 
 		if($this->plugin_url) return $this->plugin_url;
-		
-		if (is_ssl()) :
-			return $this->plugin_url = str_replace('http://', 'https://', WP_PLUGIN_URL) . "/" . plugin_basename( dirname(__FILE__)); 
-		else :
-			return $this->plugin_url = WP_PLUGIN_URL . "/" . plugin_basename( dirname(__FILE__)); 
-		endif;
+		return $this->plugin_url = plugins_url( basename( plugin_dir_path(__FILE__) ), basename( __FILE__ ) );
 	}
 	
 	/**
@@ -1001,7 +996,8 @@ class Woocommerce {
 	 */
 	function plugin_path() { 	
 		if($this->plugin_path) return $this->plugin_path;
-		return $this->plugin_path = WP_PLUGIN_DIR . "/" . plugin_basename( dirname(__FILE__)); 
+		
+		return $this->plugin_path = plugin_dir_path( __FILE__ );
 	 }
 	 
 	/**
@@ -1153,6 +1149,20 @@ class Woocommerce {
 		else :
 			return $name;
 		endif;
+	}
+	
+	/**
+	 * Get an array of product attribute taxonomies
+	 */
+	function get_attribute_taxonomy_names() {
+		$taxonomy_names = array();
+		$attribute_taxonomies = $this->get_attribute_taxonomies();  
+		if ( $attribute_taxonomies ) {
+			foreach ($attribute_taxonomies as $tax) {
+				$taxonomy_names[] = $this->attribute_taxonomy_name( strtolower(sanitize_title($tax->attribute_name)) );  
+			}
+		}
+		return $taxonomy_names;
 	}
 	
 	/** Coupon Helpers ********************************************************/

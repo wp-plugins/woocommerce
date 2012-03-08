@@ -54,7 +54,24 @@ if (!function_exists('woocommerce_empty_cart')) {
 		
 		if (!isset($woocommerce->cart) || $woocommerce->cart == '' ) $woocommerce->cart = new WC_Cart();
 		
-		$woocommerce->cart->empty_cart();
+		$woocommerce->cart->empty_cart( false );
+	}
+}
+
+/**
+ * Load the cart upon login
+ **/
+function woocommerce_load_persistent_cart( $user_login, $user ) {
+	global $woocommerce;
+	
+	$saved_cart = get_user_meta( $user->ID, '_woocommerce_persistent_cart', true );
+	
+	if ($saved_cart) {
+		if (!isset($_SESSION['cart']) || !is_array($_SESSION['cart']) || sizeof($_SESSION['cart'])==0) {
+			
+			$_SESSION['cart'] = $saved_cart['cart'];
+			
+		}
 	}
 }
 
@@ -134,30 +151,37 @@ function woocommerce_get_template_part( $slug, $name = '' ) {
 /**
  * Get other templates (e.g. product attributes) passing attributes and including the file
  */
-function woocommerce_get_template($template_name, $args = array()) {
+function woocommerce_get_template($template_name, $args = array(), $template_path = '' ) {
 	global $woocommerce;
 	
 	if ( $args && is_array($args) ) 
 		extract( $args );
 	
-	include( woocommerce_locate_template( $template_name ) );
+	$located = woocommerce_locate_template( $template_name, $template_path );
+	
+	do_action( 'woocommerce_before_template_part', $template_name, $template_path, $located );
+	
+	include( $located );
+	
+	do_action( 'woocommerce_after_template_part', $template_name, $template_path, $located );  
 }
 
 /**
  * Locate a template and return the path for inclusion
  */
-function woocommerce_locate_template( $template_name ) {
+function woocommerce_locate_template( $template_name, $template_path = '' ) {
 	global $woocommerce;
 	
+    $template = (!empty($template_path)) ? locate_template( array( $template_path . $template_name , $template_name ) ) : '';
+        
 	// Look in yourtheme/woocommerce/template-name and yourtheme/template-name
-	$template = locate_template( array( $woocommerce->template_url . $template_name , $template_name ) );
+	if (!$template) $template = locate_template( array( $woocommerce->template_url . $template_name , $template_name ) );
 	
 	// Get default template
 	if (!$template) $template = $woocommerce->plugin_path() . '/templates/' . $template_name;
 	
-	return $template;
+	return apply_filters('woocommerce_locate_template', $template, $template_name, $template_path);
 }
-
 /**
  * Currency
  **/
@@ -174,6 +198,7 @@ function get_woocommerce_currency_symbol( $currency = '' ) {
 		case 'SGD' :
 		case 'USD' : $currency_symbol = '&#36;'; break;
 		case 'EUR' : $currency_symbol = '&euro;'; break;
+		case 'RMB' :
 		case 'JPY' : $currency_symbol = '&yen;'; break;
 		case 'TRY' : $currency_symbol = 'TL'; break;
 		case 'NOK' : $currency_symbol = 'kr'; break;
@@ -538,7 +563,7 @@ function woocommerce_product_cat_filter_post_link( $permalink, $post, $leavename
 
     if ( empty( $terms ) ) :
     	// If no terms are assigned to this post, use a string instead (can't leave the placeholder there)
-        $permalink = str_replace( '%product_cat%', __('product', 'woocommerce'), $permalink );
+        $permalink = str_replace( '%product_cat%', _x('product', 'slug', 'woocommerce'), $permalink );
     else :
     	// Replace the placeholder rewrite tag with the first term's slug
         $first_term = array_shift( $terms );

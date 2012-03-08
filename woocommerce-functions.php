@@ -462,7 +462,6 @@ function woocommerce_clear_cart_after_payment() {
 	endif;
 }
 
-
 /**
  * Process the checkout form
  **/
@@ -475,6 +474,8 @@ function woocommerce_checkout_action() {
 			wp_redirect(get_permalink(woocommerce_get_page_id('cart')));
 			exit;
 		endif;
+		
+		if (!defined('WOOCOMMERCE_CHECKOUT')) define('WOOCOMMERCE_CHECKOUT', true);
 		
 		$woocommerce_checkout = $woocommerce->checkout();
 		$woocommerce_checkout->process_checkout();
@@ -798,7 +799,7 @@ function woocommerce_download_product() {
 			
 		endif;
 		
-		if ($access_expires > 0 && strtotime($access_expires) > current_time('timestamp')) :
+		if ($access_expires > 0 && strtotime($access_expires) < current_time('timestamp')) :
 		
 			wp_die( __('Sorry, this download has expired', 'woocommerce') . ' <a href="'.home_url().'">' . __('Go to homepage &rarr;', 'woocommerce') . '</a>' );
 			exit;

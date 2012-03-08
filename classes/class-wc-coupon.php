@@ -22,6 +22,9 @@ class WC_Coupon {
 	var $expiry_date;
 	var $apply_before_tax;
 	var $free_shipping;
+	var $product_categories;
+	var $exclude_product_categories;
+	var $minimum_amount;
 	
 	/** get coupon with $code */
 	function __construct( $code ) {
@@ -43,6 +46,9 @@ class WC_Coupon {
             $this->expiry_date = $coupon_data['expiry_date'];
             $this->apply_before_tax = $coupon_data['apply_before_tax'];
             $this->free_shipping = $coupon_data['free_shipping'];
+            $this->product_categories = $coupon_data['product_categories'];
+            $this->exclude_product_categories = $coupon_data['exclude_product_categories'];
+            $this->minimum_amount = $coupon_data['minimum_amount'];
             return true;
         else:
             $coupon_id = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE BINARY post_title = %s AND post_type= %s", $this->code, 'shop_coupon' ) );
@@ -62,6 +68,9 @@ class WC_Coupon {
                 $this->expiry_date = ($expires = get_post_meta($coupon->ID, 'expiry_date', true)) ? strtotime($expires) : '';
                 $this->apply_before_tax = get_post_meta($coupon->ID, 'apply_before_tax', true);
                 $this->free_shipping = get_post_meta($coupon->ID, 'free_shipping', true);
+                $this->product_categories = array_filter(array_map('trim', (array) get_post_meta($coupon->ID, 'product_categories', true)));
+           		$this->exclude_product_categories = array_filter(array_map('trim', (array) get_post_meta($coupon->ID, 'exclude_product_categories', true)));
+           		$this->minimum_amount = get_post_meta($coupon->ID, 'minimum_amount', true);
                 return true;
             endif;
         endif;
@@ -107,6 +116,13 @@ class WC_Coupon {
 				endif;
 			endif;
 			
+			// Minimum spend
+			if ($this->minimum_amount>0) :
+				if ( $this->minimum_amount >= $woocommerce->cart->subtotal ) :
+					$valid = false;
+				endif;
+			endif;
+			
 			// Product ids - If a product included is found in the cart then its valid
 			if (sizeof( $this->product_ids )>0) :
 				$valid_for_cart = false;
@@ -118,15 +134,42 @@ class WC_Coupon {
 				if (!$valid_for_cart) $valid = false;
 			endif;
 			
+			// Category ids - If a product included is found in the cart then its valid
+			if (sizeof( $this->product_categories )>0) :
+				$valid_for_cart = false;
+				if (sizeof($woocommerce->cart->get_cart())>0) : foreach ($woocommerce->cart->get_cart() as $cart_item_key => $cart_item) :
+					
+					$product_cats = wp_get_post_terms($cart_item['product_id'], 'product_cat', array("fields" => "ids"));
+					
+					if ( sizeof( array_intersect( $product_cats, $this->product_categories ) ) > 0 ) $valid_for_cart = true;
+					
+				endforeach; endif;
+				if (!$valid_for_cart) $valid = false;
+			endif;
+			
 			// Cart discounts cannot be added if non-eligble product is found in cart
 			if ($this->type!='fixed_product' && $this->type!='percent_product') : 
-
+				
+				// Exclude Products
 				if (sizeof( $this->exclude_product_ids )>0) :
 					$valid_for_cart = true;
 					if (sizeof($woocommerce->cart->get_cart())>0) : foreach ($woocommerce->cart->get_cart() as $cart_item_key => $cart_item) :
 						if (in_array($cart_item['product_id'], $this->exclude_product_ids) || in_array($cart_item['variation_id'], $this->exclude_product_ids)) :
 							$valid_for_cart = false;
 						endif;
+					endforeach; endif;
+					if (!$valid_for_cart) $valid = false;
+				endif;
+				
+				// Exclude Categories
+				if (sizeof( $this->exclude_product_categories )>0) :
+					$valid_for_cart = true;
+					if (sizeof($woocommerce->cart->get_cart())>0) : foreach ($woocommerce->cart->get_cart() as $cart_item_key => $cart_item) :
+					
+						$product_cats = wp_get_post_terms($cart_item['product_id'], 'product_cat', array("fields" => "ids"));
+					
+						if ( sizeof( array_intersect( $product_cats, $this->exclude_product_categories ) ) > 0 ) $valid_for_cart = false;
+
 					endforeach; endif;
 					if (!$valid_for_cart) $valid = false;
 				endif;

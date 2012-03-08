@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, store, sh
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.3
 Tested up to: 3.3
-Stable tag: 1.5
+Stable tag: 1.5.1
 
 WooCommerce is a powerful, extendable eCommerce plugin that helps you sell anything. Beautifully.
 
@@ -143,6 +143,29 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 
 == Changelog ==
 
+= 1.5.1 - 08/03/2012 =
+* Persistent (logged-in) customer carts (thanks dominic-p)
+* Error suppression on set_time_out
+* Order-details removed shipping when disabled
+* Updated Turkish translation
+* Layered nav for attribute pages (thanks helgatheviking)
+* Fixed dates in dashboard stats
+* Download expiry was backwards
+* Fix styling of new attribute
+* When passing aggregate orders to paypal, include item names
+* Localisation improvements
+* Fix local method availability
+* Show order even if free
+* Removed duplicate order on tracking page
+* Improved coupon page
+* Added option to limit coupons to a category
+* Hooks for locate template functions (Thanks Lucas)
+* Better language loading (GeertDD and deckerweb #win)
+* Fix for grouped product from price
+* Store less cart data in sessions to reduce file sizes
+* Minimum spend option for coupons (thanks to jason whitaker)
+* 5 digit UK postcode handling
+
 = 1.5 - 01/03/2012 =
 * Quick edit products
 * Bulk edit products
@@ -194,7 +217,7 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 * My account remembers post data upon error
 * Hidden shipping address from account page and mails when disabled
 * Option to limit products which are downloadable and virtual to 1 per cart
-* woocommerce_items_in_cart cookie when cart has contents (can be used for caching plugins) 
+* woocommerce_items_in_cart cookie when cart has contents (can be used for caching plugins)
 
 = 1.4.4 - 18/02/2012 = 
 * Fix for remove coupon links after ajax update of shipping

@@ -91,7 +91,7 @@ function variable_product_type_options() {
 					<div class="woocommerce_variation wc-metabox closed">
 						<h3 class="fixed">
 							<button type="button" class="remove_variation button" rel="<?php echo $variation->ID; ?>"><?php _e('Remove', 'woocommerce'); ?></button>
-							<div class="handlediv" title="<?php _e('Click to toggle'); ?>"></div>
+							<div class="handlediv" title="<?php _e('Click to toggle', 'woocommerce'); ?>"></div>
 							<strong>#<?php echo $variation->ID; ?> &mdash; </strong>
 							<?php
 								foreach ($attributes as $attribute) :
@@ -269,7 +269,7 @@ function variable_product_type_options() {
 				jQuery('.woocommerce_variations').append('<div class="woocommerce_variation wc-metabox">\
 					<h3 class="handle">\
 						<button type="button" class="remove_variation button" rel="' + variation_id + '"><?php _e('Remove', 'woocommerce'); ?></button>\
-						<div class="handlediv" title="<?php _e('Click to toggle'); ?>"></div>\
+						<div class="handlediv" title="<?php _e('Click to toggle', 'woocommerce'); ?>"></div>\
 						<strong>#' + variation_id + ' &mdash; </strong>\
 						<?php
 							if ($attributes) foreach ($attributes as $attribute) :
@@ -383,11 +383,11 @@ function variable_product_type_options() {
 					}
 					
 					if (count==1) {
-						alert( count + ' <?php _e("variation added"); ?>');
+						alert( count + ' <?php _e("variation added", 'woocommerce'); ?>');
 					} else if (count==0 || count>1) {
-						alert( count + ' <?php _e("variations added"); ?>');
+						alert( count + ' <?php _e("variations added", 'woocommerce'); ?>');
 					} else {
-						alert('<?php _e("No variations added"); ?>');
+						alert('<?php _e("No variations added", 'woocommerce'); ?>');
 					}
 					
 					jQuery('#variable_product_options').unblock();
@@ -640,7 +640,7 @@ function process_product_meta_variable( $post_id ) {
 			// Disabled if downloadable and no URL
 			if ($is_downloadable=='yes' && !$variable_file_path[$i]) $post_status = 'private';
 			
-			// Generate a useful post title
+			/*// Generate a useful post title
 			$title = array();
 			
 			foreach ($attributes as $attribute) :
@@ -650,14 +650,16 @@ function process_product_meta_variable( $post_id ) {
 				endif;
 			endforeach;
 			
-			$sku_string = '#'.$variation_id;
-			if ($variable_sku[$i]) $sku_string .= ' SKU: ' . $variable_sku[$i];
+			$sku_string = ($variable_sku[$i]) ? sprintf(__('(SKU: %s)', 'woocommerce'), $variable_sku[$i]) : sprintf(__('(ID: #%s)', 'woocommerce'), $variation_id);
+			*/
+			
+			$variation_post_title = sprintf(__('Variation #%s of %s', 'woocommerce'), $variation_id, get_the_title($post_id));
 			
 			// Update or Add post
 			if (!$variation_id) :
 				
 				$variation = array(
-					'post_title' => '#' . $post_id . ' Variation ('.$sku_string.') - ' . implode(', ', $title),
+					'post_title' => $variation_post_title,
 					'post_content' => '',
 					'post_status' => $post_status,
 					'post_author' => get_current_user_id(),
@@ -668,7 +670,7 @@ function process_product_meta_variable( $post_id ) {
 
 			else :
 				
-				$wpdb->update( $wpdb->posts, array( 'post_status' => $post_status, 'post_title' => '#' . $post_id . ' Variation ('.$sku_string.') - ' . implode(', ', $title) ), array( 'ID' => $variation_id ) );
+				$wpdb->update( $wpdb->posts, array( 'post_status' => $post_status, 'post_title' => $variation_post_title ), array( 'ID' => $variation_id ) );
 			
 			endif;
 

@@ -482,7 +482,7 @@ class WC_Checkout {
 				do_action('woocommerce_checkout_order_processed', $order_id, $this->posted);
 				
 				// Prevent timeout
-				set_time_limit(0); 
+				@set_time_limit(0); 
 				
 				// Process payment
 				if ($woocommerce->cart->needs_payment()) :
@@ -518,17 +518,21 @@ class WC_Checkout {
 					// Empty the Cart
 					$woocommerce->cart->empty_cart();
 					
+					// Get redirect
+					$return_url = get_permalink(woocommerce_get_page_id('thanks'));
+					$return_url = add_query_arg('key', $order->order_key, add_query_arg('order', $order->id, $return_url));
+					
 					// Redirect to success/confirmation/payment page
 					if (is_ajax()) : 
 						echo json_encode( 
 							array(
-								'redirect' => apply_filters( 'woocommerce_checkout_no_payment_needed_redirect', get_permalink(woocommerce_get_page_id('thanks')), $order)
+								'redirect' => apply_filters( 'woocommerce_checkout_no_payment_needed_redirect', $return_url, $order)
 							) 
 						);
 						exit;
 					else :
 						wp_safe_redirect( 
-							apply_filters( 'woocommerce_checkout_no_payment_needed_redirect', get_permalink(woocommerce_get_page_id('thanks')), $order) 
+							apply_filters( 'woocommerce_checkout_no_payment_needed_redirect', $return_url, $order) 
 						);
 						exit;
 					endif;
@@ -567,20 +571,24 @@ class WC_Checkout {
 			endif;
 			
 		else :
-		
-			$default_country = apply_filters('default_checkout_country', $woocommerce->countries->get_base_country());
-			$default_state = apply_filters('default_checkout_state', $woocommerce->countries->get_base_state());
-		
-			// If we are here then the user is not logged in - try to use the session data, otherwise default to base
-			if ($input == "billing_country") return ($woocommerce->customer->get_country()) ? $woocommerce->customer->get_country() : $default_country;
 			
-			if ($input == "billing_state") return ($woocommerce->customer->get_state()) ? $woocommerce->customer->get_state() : $default_state;
+			$default_billing_country 	= apply_filters('default_checkout_country', ($woocommerce->customer->get_country()) ? $woocommerce->customer->get_country() : $woocommerce->countries->get_base_country());
+			
+			$default_billing_state 		= apply_filters('default_checkout_state', ($woocommerce->customer->get_state()) ? $woocommerce->customer->get_state() : $woocommerce->countries->get_base_state());
+			
+			$default_shipping_country 	= apply_filters('default_checkout_country', ($woocommerce->customer->get_shipping_country()) ? $woocommerce->customer->get_shipping_country() : $woocommerce->countries->get_base_country());
+			
+			$default_shipping_state 	= apply_filters('default_checkout_state', ($woocommerce->customer->get_shipping_state()) ? $woocommerce->customer->get_shipping_state() : $woocommerce->countries->get_base_state());
+			
+			if ($input == "billing_country") return $default_billing_country;
+			
+			if ($input == "billing_state") return $default_billing_state;
 			
 			if ($input == "billing_postcode") return ($woocommerce->customer->get_postcode()) ? $woocommerce->customer->get_postcode() : '';
 			
-			if ($input == "shipping_country") return ($woocommerce->customer->get_shipping_country()) ? $woocommerce->customer->get_shipping_country() : $default_country;
+			if ($input == "shipping_country") return $default_shipping_country;
 			
-			if ($input == "shipping_state") return ($woocommerce->customer->get_shipping_state()) ? $woocommerce->customer->get_shipping_state() : $default_state;
+			if ($input == "shipping_state") return $default_shipping_state;
 			
 			if ($input == "shipping_postcode") return ($woocommerce->customer->get_shipping_postcode()) ? $woocommerce->customer->get_shipping_postcode() : '';
 			
