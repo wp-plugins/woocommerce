@@ -1,10 +1,10 @@
 === WooCommerce – excelling eCommerce ===
 Contributors: woothemes, mikejolley, jameskoster
-Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, store, shop, shopping, cart, checkout, widgets, reports
+Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, affiliate, store, sales, sell, shop, shopping, cart, checkout, configurable, variable, widgets, reports, download, downloadable, digital, inventory, stock, reports, shipping, tax
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.3
 Tested up to: 3.3
-Stable tag: 1.5.1
+Stable tag: 1.5.2
 
 WooCommerce is a powerful, extendable eCommerce plugin that helps you sell anything. Beautifully.
 
@@ -142,6 +142,43 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 3. WooCommerce sales reports
 
 == Changelog ==
+
+= 1.5.2 - 15/03/2012 = 
+* Feature - My account ssl (added by justinstern)
+* Feature - Product id rules for coupons apply to a products parent (useful for grouped products)
+* Feature - Billing email sets user email address, other profile fields filled in based on billing info
+* Feature - Option to disable coupons (by GeertDD)
+* Feature - Option to show tax even if zero
+* Feature - variation menu_order for organisation (drag and drop)
+* Feature - Customer email field for coupons - limit to user/billing email
+* Feature - Option to reorder items from past orders by GeertDD
+* Feature - woocommerce_messages shortcode for showing error/success messages on a page
+* Feature - Add to cart shortcode for variations
+* Feature - Disable admin bar for customers when admin access if locked down
+* Tweak - Menu tweaks + new icons
+* Tweak - More granular rights on dashboard widgets by role (thanks jdiderik)
+* Tweak - Upsells/cross sells interface
+* Tweak - Single product title template file now hooked in
+* Tweak - is_visible for variations - means you can hide out of stock variations
+* Tweak - Template Loader support for taxonomy-product_cat-SLUG.php template files
+* Tweak - More logging in paypal class
+* Tweak - Force SSL for get_option('siteurl')
+* Tweak - backorders_require_notification returns false if stock is disabled
+* Tweak - Postcode format code for UK
+* Tweak - based on user feedback, empty default state on checkout to prevent submission errors
+* Tweak - Stock checker works with items on multiple rows
+* Tweak - coupon class loading
+* Tweak - queries with no_found_rows
+* Fix - Minimum spend subtotal
+* Fix - Prevented order save code running multiple times
+* Fix - Prevent ms-files.php accessing protected downloads when multisite is enabled
+* Fix - Download permissions
+* Fix - COD gateway to reduce stock
+* Fix - shipping_method_title in manual orders
+* Fix - notice in GA code
+* Fix - glitch adding variation images
+* Localization - Vietnam locale and support for hiding fields
+* Localization - Danish translation by Frederik Svarre
 
 = 1.5.1 - 08/03/2012 =
 * Persistent (logged-in) customer carts (thanks dominic-p)

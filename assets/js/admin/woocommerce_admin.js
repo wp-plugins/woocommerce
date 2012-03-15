@@ -135,24 +135,32 @@ jQuery(function(){
 	}).change();
 	
 	// Hidden options
-	jQuery('.hide_options_if_checked input:eq(0)').change(function() {
-		
-		if (jQuery(this).is(':checked')) {
-			jQuery(this).closest('fieldset, tr').nextUntil( '.hide_options_if_checked, .show_options_if_checked', '.hidden_option').hide();
-		} else {
-			jQuery(this).closest('fieldset, tr').nextUntil( '.hide_options_if_checked, .show_options_if_checked', '.hidden_option').show();
-		}
-		
-	}).change();
+	jQuery('.hide_options_if_checked').each(function(){
 	
-	jQuery('.show_options_if_checked input:eq(0)').change(function() {
+		jQuery(this).find('input:eq(0)').change(function() {
+			
+			if (jQuery(this).is(':checked')) {
+				jQuery(this).closest('fieldset, tr').nextUntil( '.hide_options_if_checked, .show_options_if_checked', '.hidden_option').hide();
+			} else {
+				jQuery(this).closest('fieldset, tr').nextUntil( '.hide_options_if_checked, .show_options_if_checked', '.hidden_option').show();
+			}
+			
+		}).change();
 		
-		if (jQuery(this).is(':checked')) {
-			jQuery(this).closest('fieldset, tr').nextUntil( '.hide_options_if_checked, .show_options_if_checked', '.hidden_option').show();
-		} else {
-			jQuery(this).closest('fieldset, tr').nextUntil( '.hide_options_if_checked, .show_options_if_checked', '.hidden_option').hide();
-		}
+	});
+	
+	jQuery('.show_options_if_checked').each(function(){
+	
+		jQuery(this).find('input:eq(0)').change(function() {
+			
+			if (jQuery(this).is(':checked')) {
+				jQuery(this).closest('fieldset, tr').nextUntil( '.hide_options_if_checked, .show_options_if_checked', '.hidden_option').show();
+			} else {
+				jQuery(this).closest('fieldset, tr').nextUntil( '.hide_options_if_checked, .show_options_if_checked', '.hidden_option').hide();
+			}
+			
+		}).change();
 		
-	}).change();
-    
+	});
+
 });

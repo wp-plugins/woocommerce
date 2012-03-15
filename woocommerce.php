@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce
 Plugin URI: http://www.woothemes.com/woocommerce/
 Description: An e-commerce toolkit that helps you sell anything. Beautifully.
-Version: 1.5.1
+Version: 1.5.2
 Author: WooThemes
 Author URI: http://woothemes.com
 Requires at least: 3.1
@@ -29,7 +29,7 @@ class Woocommerce {
 	
 	/** Version ***************************************************************/
 	
-	var $version = '1.5.1';
+	var $version = '1.5.2';
 	
 	/** URLS ******************************************************************/
 	
@@ -116,7 +116,7 @@ class Woocommerce {
 		if (!is_admin() || defined('DOING_AJAX')) :
 			add_action( 'wp', array( &$this, 'ssl_redirect'));
 			
-			$filters = array( 'post_thumbnail_html', 'widget_text', 'wp_get_attachment_url', 'wp_get_attachment_image_attributes', 'wp_get_attachment_url', 'option_siteurl', 'option_home', 'option_url', 'option_wpurl', 'option_stylesheet_url', 'option_template_url', 'script_loader_src', 'style_loader_src' );
+			$filters = array( 'post_thumbnail_html', 'widget_text', 'wp_get_attachment_url', 'wp_get_attachment_image_attributes', 'wp_get_attachment_url', 'option_siteurl', 'option_homeurl', 'option_home', 'option_url', 'option_wpurl', 'option_stylesheet_url', 'option_template_url', 'script_loader_src', 'style_loader_src', 'template_directory_uri', 'stylesheet_directory_uri', 'site_url' );
 			foreach ($filters as $filter) add_filter($filter, array( &$this, 'force_ssl'));
 		endif;
 		
@@ -228,21 +228,37 @@ class Woocommerce {
 	 */
 	function template_loader( $template ) {
 		
-		if ( is_single() && get_post_type() == 'product' ) 
-			$find = 'single-product.php';
-		elseif ( is_tax('product_cat') )
-			$find = 'taxonomy-product_cat.php';
-		elseif ( is_tax('product_tag') )
-			$find = 'taxonomy-product_tag.php';
-		elseif ( is_post_type_archive('product') ||  is_page( woocommerce_get_page_id('shop') ))
-			$find = 'archive-product.php';
-		else
-			$find = false;
+		$find 	= array( 'woocommerce.php' );
+		$file 	= '';
+		
+		if ( is_single() && get_post_type() == 'product' ) {
 			
-		if ($find) :
-			$template = locate_template( array( 'woocommerce.php', $find, $this->template_url . $find ) );
-			if ( ! $template ) $template = $this->plugin_path() . '/templates/' . $find;
-		endif;
+			$file 	= 'single-product.php';
+			$find[] = $file;
+			$find[] = $this->template_url . $file;
+
+		} elseif ( is_tax('product_cat') || is_tax('product_tag') ) {
+			
+			$term = get_queried_object();
+			
+			$file 	= 'taxonomy-' . $term->taxonomy . '.php';
+			$find[] 	= 'taxonomy-' . $term->taxonomy . '-' . $term->slug . '.php';
+			$find[] 	= $this->template_url . 'taxonomy-' . $term->taxonomy . '-' . $term->slug . '.php';
+			$find[] 	= $file;
+			$find[] 	= $this->template_url . $file;
+						
+		} elseif ( is_post_type_archive('product') ||  is_page( woocommerce_get_page_id('shop') )) {
+			
+			$file 	= 'archive-product.php';
+			$find[] = $file;
+			$find[] = $this->template_url . $file;
+			
+		}
+		
+		if ($file) {
+			$template = locate_template( $find );
+			if ( ! $template ) $template = $this->plugin_path() . '/templates/' . $file;
+		}
 		
 		return $template;
 	}
@@ -360,22 +376,34 @@ class Woocommerce {
 	 * Redirect to https if Force SSL is enabled
 	 **/
 	function ssl_redirect() {
-		if (!is_ssl() && get_option('woocommerce_force_ssl_checkout')=='yes' && is_checkout()) :
-			wp_safe_redirect( str_replace('http:', 'https:', get_permalink(woocommerce_get_page_id('checkout'))), 301 );
-			exit;
-		// Break out of SSL if we leave the checkout (anywhere but thanks page)
-		elseif (is_ssl() && get_option('woocommerce_force_ssl_checkout')=='yes' && get_option('woocommerce_unforce_ssl_checkout')=='yes' && $_SERVER['REQUEST_URI'] && !is_checkout() && !is_page(woocommerce_get_page_id('thanks')) && !is_ajax()) :
-			
-			if ( 0 === strpos($_SERVER['REQUEST_URI'], 'http') ) {
-				wp_redirect(preg_replace('|^https://|', 'http://', $_SERVER['REQUEST_URI']));
-				exit();
-			} else {
-				wp_redirect('http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
-				exit();
-			}
+		if (get_option('woocommerce_force_ssl_checkout')=='no') return;
 		
-			exit;
-		endif;
+		if (!is_ssl()) {
+			if (is_checkout()) {
+				wp_redirect( str_replace('http:', 'https:', get_permalink(woocommerce_get_page_id('checkout'))), 301 );
+				exit;
+			} elseif (is_account_page()) {
+				if ( 0 === strpos($_SERVER['REQUEST_URI'], 'http') ) {
+					wp_redirect(preg_replace('|^http://|', 'https://', $_SERVER['REQUEST_URI']));
+					exit;
+				} else {
+					wp_redirect('https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+					exit;
+				}
+				exit;
+			}
+		} else {
+			// Break out of SSL if we leave the checkout/my accounts (anywhere but thanks)
+			if (get_option('woocommerce_unforce_ssl_checkout')=='yes' && $_SERVER['REQUEST_URI'] && !is_checkout() && !is_page(woocommerce_get_page_id('thanks')) && !is_ajax() && !is_account_page()) {
+				if ( 0 === strpos($_SERVER['REQUEST_URI'], 'http') ) {
+					wp_redirect(preg_replace('|^https://|', 'http://', $_SERVER['REQUEST_URI']));
+					exit;
+				} else {
+					wp_redirect('http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+					exit;
+				}
+			}
+		}
 	}
 	
 	/**
@@ -703,8 +731,7 @@ class Woocommerce {
 				'query_var' 			=> true,			
 				'supports' 				=> array( 'title', 'editor', 'excerpt', 'thumbnail', 'comments', 'custom-fields' ),
 				'has_archive' 			=> $base_slug,
-				'show_in_nav_menus' 	=> false,
-				'menu_icon'				=> $this->plugin_url() . '/assets/images/icons/menu_icon_products.png'
+				'show_in_nav_menus' 	=> false
 			)
 		);
 		
@@ -832,7 +859,7 @@ class Woocommerce {
 				'rewrite' 				=> false,
 				'query_var' 			=> false,			
 				'supports' 				=> array( 'title' ),
-				'show_in_nav_menus'		=> false,
+				'show_in_nav_menus'		=> false
 			)
 		);
 	}
@@ -913,6 +940,7 @@ class Woocommerce {
 			'countries' 					=> $states,
 			'select_state_text' 			=> __('Select an option&hellip;', 'woocommerce'),
 			'required_text'					=> esc_attr__( 'required', 'woocommerce' ),
+			'required_rating_text'			=> esc_attr__( 'Please select a rating', 'woocommerce' ),
 			'plugin_url' 					=> $this->plugin_url(),
 			'ajax_url' 						=> (!is_ssl()) ? str_replace('https', 'http', admin_url('admin-ajax.php')) : admin_url('admin-ajax.php'),
 			'get_variation_nonce' 			=> wp_create_nonce("get-variation"),

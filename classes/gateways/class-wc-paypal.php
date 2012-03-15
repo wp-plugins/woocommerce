@@ -120,7 +120,8 @@ class WC_Paypal extends WC_Payment_Gateway {
 			'send_shipping' => array(
 							'title' => __( 'Shipping details', 'woocommerce' ), 
 							'type' => 'checkbox', 
-							'label' => __( 'Send shipping details to PayPal. Since PayPal verifies addresses sent to it this can cause errors, therefore we recommend disabling this option.', 'woocommerce' ), 
+							'label' => __( 'Send shipping details to PayPal.', 'woocommerce' ), 
+							'description' => __( 'PayPal verifies addresses therefore this setting can cause errors (we recommend keeping it disabled).', 'woocommerce' ),
 							'default' => 'no'
 						), 
 			'testmode' => array(
@@ -216,15 +217,15 @@ class WC_Paypal extends WC_Payment_Gateway {
 			$paypal_args['address_override'] = 1;
 			
 			// If we are sending shipping, send shipping address instead of billing
-			$paypal_args['first_name']	= $order->shipping_first_name;
-			$paypal_args['last_name']	= $order->shipping_last_name;
-			$paypal_args['company']		= $order->shipping_company;
-			$paypal_args['address1']	= $order->shipping_address_1;
-			$paypal_args['address2']	= $order->shipping_address_2;
-			$paypal_args['city']		= $order->shipping_city;
-			$paypal_args['state']		= $order->shipping_state;
-			$paypal_args['zip']			= $order->shipping_postcode;
-			$paypal_args['country']		= $order->shipping_country;
+			$paypal_args['first_name']		= $order->shipping_first_name;
+			$paypal_args['last_name']		= $order->shipping_last_name;
+			$paypal_args['company']			= $order->shipping_company;
+			$paypal_args['address1']		= $order->shipping_address_1;
+			$paypal_args['address2']		= $order->shipping_address_2;
+			$paypal_args['city']			= $order->shipping_city;
+			$paypal_args['state']			= $order->shipping_state;
+			$paypal_args['country']			= $order->shipping_country;
+			$paypal_args['zip']				= $order->shipping_postcode;
 		else :
 			$paypal_args['no_shipping'] = 1;
 		endif;
@@ -356,6 +357,8 @@ class WC_Paypal extends WC_Payment_Gateway {
 		
 		$paypal_args = $this->get_paypal_args( $order );
 		
+		$paypal_args = http_build_query( $paypal_args );
+		
 		if ( $this->testmode == 'yes' ):
 			$paypal_adr = $this->testurl . '?test_ipn=1&';		
 		else :
@@ -364,7 +367,7 @@ class WC_Paypal extends WC_Payment_Gateway {
 
 		return array(
 			'result' 	=> 'success',
-			'redirect'	=> $paypal_adr . http_build_query( $paypal_args )
+			'redirect'	=> $paypal_adr . $paypal_args
 			//'redirect'	=> add_query_arg('order', $order->id, add_query_arg('key', $order->order_key, get_permalink(woocommerce_get_page_id('pay'))))
 		);
 		
@@ -412,6 +415,8 @@ class WC_Paypal extends WC_Payment_Gateway {
 		
 		// Post back to get a response
         $response = wp_remote_post( $paypal_adr, $params );
+        
+        if ($this->debug=='yes') $this->log->add( 'paypal', 'IPN Response: ' . print_r($response, true) );
         
         // check to see if the request was valid
         if ( !is_wp_error($response) && $response['response']['code'] >= 200 && $response['response']['code'] < 300 && (strcmp( $response['body'], "VERIFIED") == 0)) {
@@ -494,19 +499,19 @@ class WC_Paypal extends WC_Payment_Gateway {
 					if (!in_array($posted['txn_type'], $accepted_types)) :
 						if ($this->debug=='yes') $this->log->add( 'paypal', 'Aborting, Invalid type:' . $posted['txn_type'] );
 					endif;
+					
+					 // Store PP Details
+	                update_post_meta( (int) $posted['custom'], 'Payer PayPal address', $posted['payer_email']);
+	                update_post_meta( (int) $posted['custom'], 'Transaction ID', $posted['txn_id']);
+	                update_post_meta( (int) $posted['custom'], 'Payer first name', $posted['first_name']);
+	                update_post_meta( (int) $posted['custom'], 'Payer last name', $posted['last_name']);
+	                update_post_meta( (int) $posted['custom'], 'Payment type', $posted['payment_type']); 
 	            	
 	            	// Payment completed
 	                $order->add_order_note( __('IPN payment completed', 'woocommerce') );
 	                $order->payment_complete();
 	                
 	                if ($this->debug=='yes') $this->log->add( 'paypal', 'Payment complete.' );
-	                
-	                // Store PP Details
-	                update_post_meta( (int) $posted['custom'], 'Payer PayPal address', $posted['payer_email']);
-	                update_post_meta( (int) $posted['custom'], 'Transaction ID', $posted['txn_id']);
-	                update_post_meta( (int) $posted['custom'], 'Payer first name', $posted['first_name']);
-	                update_post_meta( (int) $posted['custom'], 'Payer last name', $posted['last_name']);
-	                update_post_meta( (int) $posted['custom'], 'Payment type', $posted['payment_type']); 
 	                
 	            break;
 	            case 'denied' :
@@ -517,6 +522,24 @@ class WC_Paypal extends WC_Payment_Gateway {
 	                $order->update_status('failed', sprintf(__('Payment %s via IPN.', 'woocommerce'), strtolower($posted['payment_status']) ) );
 	            break;
 	            case "refunded" :
+	            
+	            	// Only handle full refunds, not partial
+	            	if ($order->get_order_total() == ($posted['mc_gross']*-1)) {
+	            	
+		            	// Mark order as refunded
+		            	$order->update_status('refunded', sprintf(__('Payment %s via IPN.', 'woocommerce'), strtolower($posted['payment_status']) ) );
+		            	
+						$message = woocommerce_mail_template( 
+							__('Order refunded/reversed', 'woocommerce'),
+							sprintf(__('Order #%s has been marked as refunded - PayPal reason code: %s', 'woocommerce'), $order->id, $posted['reason_code'] )
+						);
+					
+						// Send the mail
+						woocommerce_mail( get_option('woocommerce_new_order_email_recipient'), sprintf(__('Payment for order #%s refunded/reversed', 'woocommerce'), $order->id), $message );
+					
+					}
+	            
+	            break;
 	            case "reversed" :
 	            case "chargeback" :
 	            	

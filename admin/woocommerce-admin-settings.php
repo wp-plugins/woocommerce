@@ -124,22 +124,33 @@ $woocommerce_settings['general'] = apply_filters('woocommerce_general_settings',
 		'checkboxgroup'		=> 'end',
 		'show_if_checked' => 'yes',
 	),
-	
+
+	array(
+		'name' => __( 'Coupons', 'woocommerce' ),
+		'desc'          => __( 'Enable the use of coupons', 'woocommerce' ),
+		'id'            => 'woocommerce_enable_coupons',
+		'std'           => 'yes',
+		'type'          => 'checkbox',
+		'checkboxgroup' => 'start',
+		'show_if_checked' => 'option'
+	),
+
 	array(  
+		'desc' 		=> __( 'Enable coupon form on checkout', 'woocommerce' ),
+		'id' 		=> 'woocommerce_enable_coupon_form_on_checkout',
+		'std' 		=> 'no',
+		'type' 		=> 'checkbox',
+		'checkboxgroup'	=> 'end',
+		'show_if_checked' => 'yes'
+	),
+
+	array(
 		'name' => __( 'Checkout', 'woocommerce' ),
 		'desc' 		=> __( 'Enable Guest Checkout (no account required)', 'woocommerce' ),
 		'id' 		=> 'woocommerce_enable_guest_checkout',
 		'std' 		=> 'yes',
 		'type' 		=> 'checkbox',
 		'checkboxgroup'	=> 'start'
-	),
-	
-	array(  
-		'desc' 		=> __( 'Enable coupon form on checkout', 'woocommerce' ),
-		'id' 		=> 'woocommerce_enable_coupon_form_on_checkout',
-		'std' 		=> 'no',
-		'type' 		=> 'checkbox',
-		'checkboxgroup'		=> ''
 	),
 	
 	array(  
@@ -178,6 +189,14 @@ $woocommerce_settings['general'] = apply_filters('woocommerce_general_settings',
 	array(  
 		'desc' 		=> __( 'Prevent customers from accessing WordPress admin', 'woocommerce' ),
 		'id' 		=> 'woocommerce_lock_down_admin',
+		'std' 		=> 'no',
+		'type' 		=> 'checkbox',
+		'checkboxgroup'		=> ''
+	),
+	
+	array(  
+		'desc' 		=> __( 'Allow customers to reorder items from past orders', 'woocommerce' ),
+		'id' 		=> 'woocommerce_allow_customers_to_reorder',
 		'std' 		=> 'no',
 		'type' 		=> 'checkbox',
 		'checkboxgroup'		=> 'end'
@@ -822,6 +841,14 @@ $woocommerce_settings['tax'] = apply_filters('woocommerce_tax_settings', array(
 		'std' 		=> 'yes',
 		'type' 		=> 'checkbox',
 		'checkboxgroup'		=> ''
+	),
+
+	array(
+		'desc'          => __( 'Display taxes even when the amount if zero', 'woocommerce' ),
+		'id'            => 'woocommerce_display_cart_taxes_if_zero',
+		'std'           => 'no',
+		'type'          => 'checkbox',
+		'checkboxgroup' => '',
 	),
 
 	array(  

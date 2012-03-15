@@ -59,6 +59,16 @@ if (!function_exists('woocommerce_empty_cart')) {
 }
 
 /**
+ * WooCommerce disable admin bar
+ *
+ **/
+if (!function_exists('woocommerce_disable_admin_bar')) {
+	function woocommerce_disable_admin_bar() {
+		add_filter('show_admin_bar', '__return_false');
+	}
+}
+
+/**
  * Load the cart upon login
  **/
 function woocommerce_load_persistent_cart( $user_login, $user ) {
@@ -482,15 +492,6 @@ function woocommerce_downloadable_product_permissions( $order_id ) {
 				$download_id = ($item['variation_id']>0) ? $item['variation_id'] : $item['id'];
 				
 				$user_email = $order->billing_email;
-				
-				if ($order->user_id>0) :
-					$user_info = get_userdata($order->user_id);
-					if ($user_info->user_email) :
-						$user_email = $user_info->user_email;
-					endif;
-				else :
-					$order->user_id = 0;
-				endif;
 				
 				$limit = trim(get_post_meta($download_id, '_download_limit', true));
 				$expiry = trim(get_post_meta($download_id, '_download_expiry', true));

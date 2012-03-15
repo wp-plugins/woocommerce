@@ -26,19 +26,19 @@ if (!function_exists('woocommerce_content')) {
 if (!function_exists('woocommerce_archive_product_content')) {
 	function woocommerce_archive_product_content() {
 		
-		if (!is_search()) :
+		if (!is_search()) {
 			$shop_page = get_post( woocommerce_get_page_id('shop') );
 			$shop_page_title = apply_filters('the_title', (get_option('woocommerce_shop_page_title')) ? get_option('woocommerce_shop_page_title') : $shop_page->post_title);
-			$shop_page_content = $shop_page->post_content;
-		else :
+			if( is_object( $shop_page ) ) $shop_page_content = $shop_page->post_content;
+    } else {
 			$shop_page_title = __('Search Results:', 'woocommerce') . ' &ldquo;' . get_search_query() . '&rdquo;'; 
 			if (get_query_var('paged')) $shop_page_title .= ' &mdash; ' . __('Page', 'woocommerce') . ' ' . get_query_var('paged');
 			$shop_page_content = '';
-		endif;
+    }
 		
 		?><h1 class="page-title"><?php echo $shop_page_title ?></h1>
 		
-		<?php echo apply_filters('the_content', $shop_page_content); ?>
+		<?php if( ! empty( $shop_page_content ) ) echo apply_filters('the_content', $shop_page_content); ?>
 		
 		<?php woocommerce_get_template_part( 'loop', 'shop' ); ?>
 		
@@ -86,8 +86,6 @@ if (!function_exists('woocommerce_single_product_content')) {
 				<?php do_action('woocommerce_before_single_product_summary'); ?>
 				
 				<div class="summary">
-					
-					<h1 itemprop="name" class="product_title page-title"><?php the_title(); ?></h1>
 					
 					<?php do_action( 'woocommerce_single_product_summary'); ?>
 		
@@ -252,6 +250,11 @@ if (!function_exists('woocommerce_output_product_data_tabs')) {
 		woocommerce_get_template('single-product/tabs.php');
 	}
 }
+if (!function_exists('woocommerce_template_single_title')) {
+	function woocommerce_template_single_title() {
+		woocommerce_get_template('single-product/title.php');
+	}
+}
 if (!function_exists('woocommerce_template_single_price')) {
 	function woocommerce_template_single_price() {
 		woocommerce_get_template('single-product/price.php');
@@ -315,6 +318,8 @@ if (!function_exists('woocommerce_variable_add_to_cart')) {
 		    if($variation instanceof WC_Product_Variation) {
 		
 		    	if (get_post_status( $variation->get_variation_id() ) != 'publish') continue; // Disabled
+		    	
+		    	if (!$variation->is_visible()) continue; // Visible setting - may be hidden if out of stock
 		
 		        $variation_attributes = $variation->get_variation_attributes();
 		        $availability = $variation->get_availability();
@@ -698,26 +703,21 @@ if (!function_exists('woocommerce_form_field')) {
 				elseif (is_user_logged_in()) :
 					$current_cc = get_user_meta( get_current_user_id(), $country_key, true );
 				else :
-					$current_cc = $woocommerce->countries->get_base_country();
+					$current_cc = apply_filters('default_checkout_country', ($woocommerce->customer->get_country()) ? $woocommerce->customer->get_country() : $woocommerce->countries->get_base_country());
 				endif;
-
-				if (!$current_cc) $current_cc = $woocommerce->customer->get_country();
-				
-				// Get State
-				$current_r = ($value) ? $value : $woocommerce->customer->get_state();
 
 				$states = $woocommerce->countries->states;	
 					
-				if (isset( $states[$current_cc][$current_r] )) :
+				if (isset( $states[$current_cc][$value] )) :
 					// Dropdown
 					$field .= '<select name="'.$key.'" id="'.$key.'" class="state_select"><option value="">'.__('Select a state&hellip;', 'woocommerce').'</option>';
 					foreach($states[$current_cc] as $ckey=>$cvalue) :
-						$field .= '<option value="'.$ckey.'" '.selected($current_r, $ckey, false).'>'.__($cvalue, 'woocommerce').'</option>';
+						$field .= '<option value="'.$ckey.'" '.selected($value, $ckey, false).'>'.__($cvalue, 'woocommerce').'</option>';
 					endforeach;
 					$field .= '</select>';
 				else :
 					// Input
-					$field .= '<input type="text" class="input-text" value="'.$current_r.'"  placeholder="'.$args['placeholder'].'" name="'.$key.'" id="'.$key.'" />';
+					$field .= '<input type="text" class="input-text" value="'.$value.'"  placeholder="'.$args['placeholder'].'" name="'.$key.'" id="'.$key.'" />';
 				endif;
 	
 				$field .= '</p>'.$after;

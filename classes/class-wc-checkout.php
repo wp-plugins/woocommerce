@@ -304,7 +304,8 @@ class WC_Checkout {
 					'post_status' 	=> 'publish',
 					'ping_status'	=> 'closed',
 					'post_excerpt' 	=> $this->posted['order_comments'],
-					'post_author' 	=> 1
+					'post_author' 	=> 1,
+					'post_password'	=> uniqid('order_')	// Protects the post just in case
 				);
 
 				// Cart items
@@ -403,8 +404,22 @@ class WC_Checkout {
 						update_post_meta( $order_id, '_' . $key, $this->posted[$key] );
 						
 						// User
-						if ($user_id>0) :
+						if ($user_id>0 && !empty($this->posted[$key])) :
 							update_user_meta( $user_id, $key, $this->posted[$key] );
+							
+							// Special fields
+							switch ($key) {
+								case "billing_emaill" :
+									if (!email_exists($this->posted[$key])) wp_update_user( array ( 'ID' => $user_id, 'user_email' => $this->posted[$key] ) ) ;
+								break;
+								case "billing_first_name" :
+									wp_update_user( array ( 'ID' => $user_id, 'first_name' => $this->posted[$key] ) ) ;
+								break;
+								case "billing_last_name" :
+									wp_update_user( array ( 'ID' => $user_id, 'last_name' => $this->posted[$key] ) ) ;
+								break;
+							}
+
 						endif;
 						
 					endforeach;
@@ -548,7 +563,20 @@ class WC_Checkout {
 		
 		// If we reached this point then there were errors
 		if (is_ajax()) : 
+		
+			ob_start();
 			$woocommerce->show_messages();
+			$messages = ob_get_clean();
+			
+			echo json_encode( 
+				array(
+					'result'	=> 'failure',
+					'messages' 	=> $messages,
+					'refresh' 	=> (isset($_SESSION['refresh_totals'])) ? 'true' : 'false'
+				) 
+			);
+			
+			unset($_SESSION['refresh_totals']);
 			exit;
 		endif;
 	}
@@ -574,11 +602,12 @@ class WC_Checkout {
 			
 			$default_billing_country 	= apply_filters('default_checkout_country', ($woocommerce->customer->get_country()) ? $woocommerce->customer->get_country() : $woocommerce->countries->get_base_country());
 			
-			$default_billing_state 		= apply_filters('default_checkout_state', ($woocommerce->customer->get_state()) ? $woocommerce->customer->get_state() : $woocommerce->countries->get_base_state());
+			// ($woocommerce->customer->get_state()) ? $woocommerce->customer->get_state() : $woocommerce->countries->get_base_state()
+			$default_billing_state 		= apply_filters('default_checkout_state', '');
 			
 			$default_shipping_country 	= apply_filters('default_checkout_country', ($woocommerce->customer->get_shipping_country()) ? $woocommerce->customer->get_shipping_country() : $woocommerce->countries->get_base_country());
 			
-			$default_shipping_state 	= apply_filters('default_checkout_state', ($woocommerce->customer->get_shipping_state()) ? $woocommerce->customer->get_shipping_state() : $woocommerce->countries->get_base_state());
+			$default_shipping_state 	= apply_filters('default_checkout_state', '');
 			
 			if ($input == "billing_country") return $default_billing_country;
 			

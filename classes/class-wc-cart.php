@@ -55,6 +55,7 @@ class WC_Cart {
 		$this->get_cart_from_session();
 		
 		add_action('woocommerce_check_cart_items', array(&$this, 'check_cart_items'), 1);
+		add_action('woocommerce_after_checkout_validation', array(&$this, 'check_customer_coupons'), 1);
     }
 
  	/*-----------------------------------------------------------------------------------*/
@@ -68,7 +69,9 @@ class WC_Cart {
 			global $woocommerce;
 			
 			// Load the coupons
-			$this->applied_coupons = (isset($_SESSION['coupons'])) ? array_unique(array_filter((array) $_SESSION['coupons'])) : array();
+			if ( get_option( 'woocommerce_enable_coupons' ) == 'yes' ) {
+				$this->applied_coupons = (isset($_SESSION['coupons'])) ? array_unique(array_filter((array) $_SESSION['coupons'])) : array();
+			}
 			
 			// Load the cart
 			if ( isset($_SESSION['cart']) && is_array($_SESSION['cart']) ) :
@@ -109,7 +112,7 @@ class WC_Cart {
 				$woocommerce->cart_has_contents_cookie( true );
 			else 
 				$woocommerce->cart_has_contents_cookie( false );
-				
+			
 			// Load totals
 			$this->cart_contents_total 	= isset($_SESSION['cart_contents_total']) ? $_SESSION['cart_contents_total'] : 0;
 			$this->cart_contents_weight = isset($_SESSION['cart_contents_weight']) ? $_SESSION['cart_contents_weight'] : 0;
@@ -127,14 +130,15 @@ class WC_Cart {
 			$this->shipping_tax_total 	= isset($_SESSION['shipping_tax_total']) ? $_SESSION['shipping_tax_total'] : 0;
 			$this->shipping_label		= isset($_SESSION['shipping_label']) ? $_SESSION['shipping_label'] : '';
 			
-			// Queue re-calc if total is not set
-			if (!$this->total && sizeof($this->cart_contents)) add_action('wp', array(&$this, 'calculate_totals'), 1);
+			// Queue re-calc if subtotal is not set
+			if (!$this->subtotal && sizeof($this->cart_contents)>0) $this->set_session();
 		}
 		
 		/**
 		 * Sets the php session data for the cart and coupons and re-calculates totals
 		 */
 		function set_session() {
+			
 			// Re-calc totals
 			$this->calculate_totals();
 			
@@ -182,7 +186,7 @@ class WC_Cart {
 			$this->cart_contents = array();
 			$this->reset();
 			
-			unset( $_SESSION['cart_contents_total'], $_SESSION['cart_contents_weight'], $_SESSION['cart_contents_count'], $_SESSION['cart_contents_tax'], $_SESSION['total'], $_SESSION['subtotal'], $_SESSION['subtotal_ex_tax'], $_SESSION['tax_total'], $_SESSION['taxes'], $_SESSION['shipping_taxes'], $_SESSION['discount_cart'], $_SESSION['discount_total'], $_SESSION['shipping_total'], $_SESSION['shipping_tax_total'], $_SESSION['shipping_label'], $_SESSION['coupons'], $_SESSION['cart'] );
+			unset( $_SESSION['coupons'], $_SESSION['cart'] );
 			
 			if ($clear_persistent_cart && get_current_user_id()) $this->persistent_cart_destroy();
 			
@@ -224,27 +228,113 @@ class WC_Cart {
 			if (is_wp_error($result)) $woocommerce->add_error( $result->get_error_message() );
 		}
 		
+		/**
+		 * Check for user coupons (now we have billing email)
+		 **/
+		function check_customer_coupons( $posted ) {
+			global $woocommerce;
+			
+			if (!empty($this->applied_coupons)) foreach ($this->applied_coupons as $key => $code) {
+				$coupon = new WC_Coupon( $code );
+				
+				if (is_array($coupon->customer_email) && sizeof($coupon->customer_email)>0) {
+					if (is_user_logged_in()) {
+						$current_user = wp_get_current_user();
+						$check_emails[] = $current_user->user_email;
+					}
+					$check_emails[] = $posted['billing_email'];
+					
+					if (!in_array($check_emails, $coupon->customer_email)) {
+						$woocommerce->add_error( sprintf(__('Sorry, it seems the coupon "%s" is not yours - it has now been removed from your order.', 'woocommerce'), $code) );
+						// Remove the coupon
+						unset( $this->applied_coupons[$key] );
+						$_SESSION['coupons'] = $this->applied_coupons;
+						$_SESSION['refresh_totals'] = true;
+					}
+				}
+				
+			}
+		}
+		
 		/** 
 		 * looks through the cart to check each item is in stock 
 		 */
 		function check_cart_item_stock() {
 			$error = new WP_Error();
-			foreach ($this->get_cart() as $cart_item_key => $values) :
+			
+			$product_qty_in_cart = array();
+			
+			// First stock check loop
+			foreach ($this->get_cart() as $cart_item_key => $values) {
+				
 				$_product = $values['data'];
-				if ($_product->managing_stock()) :
-					if ($_product->is_in_stock() && $_product->has_enough_stock( $values['quantity'] )) :
-						// :)
-					else :
+				
+				/**
+				 * Check stock based on inventory
+				 */
+				if ($_product->managing_stock()) {
+					
+					/**
+					 * Check the stock for this item individually
+					 */
+					if (!$_product->is_in_stock() || !$_product->has_enough_stock( $values['quantity'] )) {
 						$error->add( 'out-of-stock', sprintf(__('Sorry, we do not have enough "%s" in stock to fulfill your order (%s in stock). Please edit your cart and try again. We apologise for any inconvenience caused.', 'woocommerce'), $_product->get_title(), $_product->stock ) );
 						return $error;
-					endif;
-				else :
-					if (!$_product->is_in_stock()) :
+					}
+					
+					/**
+					 * Put the item in the array to merge stock levels for items on multiple rows
+					 */
+					if ($values['variation_id']>0) {
+						if ($_product->variation_has_stock) {
+							// Variation has stock levels defined so its handled individually
+							$product_qty_in_cart[$values['variation_id']] = (isset($product_qty_in_cart[$values['variation_id']])) ? $product_qty_in_cart[$values['variation_id']] + $values['quantity'] : $values['quantity'];
+						} else {
+							// Variation has no stock levels defined so use parents
+							$product_qty_in_cart[$values['product_id']] = (isset($product_qty_in_cart[$values['product_id']])) ? $product_qty_in_cart[$values['product_id']] + $values['quantity'] : $values['quantity'];
+						}
+					} else {
+						$product_qty_in_cart[$values['product_id']] = (isset($product_qty_in_cart[$values['product_id']])) ? $product_qty_in_cart[$values['product_id']] + $values['quantity'] : $values['quantity'];
+					}
+				
+				/**
+				 * Check stock based on stock-status
+				 */
+				} else {
+					if (!$_product->is_in_stock()) {
 						$error->add( 'out-of-stock', sprintf(__('Sorry, we do not have enough "%s" in stock to fulfill your order. Please edit your cart and try again. We apologise for any inconvenience caused.', 'woocommerce'), $_product->get_title() ) );
 						return $error;
-					endif;
-				endif;
-			endforeach;
+					}
+				}
+			}
+			
+			// This time check merged rows
+			foreach ($this->get_cart() as $cart_item_key => $values) {
+				
+				$_product = $values['data'];
+
+				if ($_product->managing_stock()) {
+				
+					if ($values['variation_id'] && $_product->variation_has_stock && isset($product_qty_in_cart[$values['variation_id']])) {
+						
+						if (!$_product->has_enough_stock( $product_qty_in_cart[$values['variation_id']] )) {
+							$error->add( 'out-of-stock', sprintf(__('Sorry, we do not have enough "%s" in stock to fulfill your order (%s in stock). Please edit your cart and try again. We apologise for any inconvenience caused.', 'woocommerce'), $_product->get_title(), $_product->stock ) );
+							return $error;
+						}
+					
+					} elseif (isset($product_qty_in_cart[$values['product_id']])) {
+						
+						if (!$_product->has_enough_stock( $product_qty_in_cart[$values['product_id']] )) {
+							$error->add( 'out-of-stock', sprintf(__('Sorry, we do not have enough "%s" in stock to fulfill your order (%s in stock). Please edit your cart and try again. We apologise for any inconvenience caused.', 'woocommerce'), $_product->get_title(), $_product->stock ) );
+							return $error;
+						}
+						
+					}
+				
+				}
+				
+			}
+
 			return true;
 		}
 		
@@ -441,13 +531,13 @@ class WC_Cart {
 		 * @param   int     variation_id
 		 * @param   array   variation attribute values
 		 */
-		function add_to_cart( $product_id, $quantity = 1, $variation_id = '', $variation = '' ) {
+		function add_to_cart( $product_id, $quantity = 1, $variation_id = '', $variation = '', $cart_item_data = array() ) {
 			global $woocommerce;
 			
 			if ($quantity < 1) return false;
 			
 			// Load cart item data - may be added by other plugins
-			$cart_item_data = (array) apply_filters('woocommerce_add_cart_item_data', array(), $product_id);
+			$cart_item_data = (array) apply_filters('woocommerce_add_cart_item_data', $cart_item_data, $product_id);
 			
 			// Generate a ID based on product ID, variation ID, variation data, and other cart item data
 			$cart_id = $this->generate_cart_id( $product_id, $variation_id, $variation, $cart_item_data );
@@ -552,6 +642,7 @@ class WC_Cart {
 		 * Reset totals
 		 */
 		private function reset() {
+		
 			$this->total = 0;
 			$this->cart_contents_total = 0;
 			$this->cart_contents_weight = 0;
@@ -566,6 +657,8 @@ class WC_Cart {
 			$this->discount_cart = 0;
 			$this->shipping_total = 0;
 			$this->taxes = array();
+			
+			unset( $_SESSION['cart_contents_total'], $_SESSION['cart_contents_weight'], $_SESSION['cart_contents_count'], $_SESSION['cart_contents_tax'], $_SESSION['total'], $_SESSION['subtotal'], $_SESSION['subtotal_ex_tax'], $_SESSION['tax_total'], $_SESSION['taxes'], $_SESSION['shipping_taxes'], $_SESSION['discount_cart'], $_SESSION['discount_total'], $_SESSION['shipping_total'], $_SESSION['shipping_tax_total'], $_SESSION['shipping_label'] );
 		}
 		
 		/** 
@@ -592,7 +685,7 @@ class WC_Cart {
 							// Specific products get the discount
 							if (sizeof($coupon->product_ids)>0) {
 								
-								if ((in_array($values['product_id'], $coupon->product_ids) || in_array($values['variation_id'], $coupon->product_ids))) 
+								if (in_array($values['product_id'], $coupon->product_ids) || in_array($values['variation_id'], $coupon->product_ids) || in_array($values['data']->get_parent(), $coupon->product_ids)) 
 									$this_item_is_discounted = true;
 							
 							// Category discounts
@@ -610,7 +703,7 @@ class WC_Cart {
 				
 							// Specific product ID's excluded from the discount
 							if (sizeof($coupon->exclude_product_ids)>0) 
-								if ((in_array($values['product_id'], $coupon->exclude_product_ids) || in_array($values['variation_id'], $coupon->exclude_product_ids)))
+								if (in_array($values['product_id'], $coupon->exclude_product_ids) || in_array($values['variation_id'], $coupon->exclude_product_ids) || in_array($values['data']->get_parent(), $coupon->exclude_product_ids))
 									$this_item_is_discounted = false;
 							
 							// Specific categories excluded from the discount
@@ -736,7 +829,7 @@ class WC_Cart {
 					// Specific products get the discount
 					if (sizeof($coupon->product_ids)>0) {
 						
-						if ((in_array($values['product_id'], $coupon->product_ids) || in_array($values['variation_id'], $coupon->product_ids))) 
+						if (in_array($values['product_id'], $coupon->product_ids) || in_array($values['variation_id'], $coupon->product_ids) || in_array($values['data']->get_parent(), $coupon->product_ids)) 
 							$this_item_is_discounted = true;
 					
 					// Category discounts
@@ -754,7 +847,7 @@ class WC_Cart {
 		
 					// Specific product ID's excluded from the discount
 					if (sizeof($coupon->exclude_product_ids)>0) 
-						if ((in_array($values['product_id'], $coupon->exclude_product_ids) || in_array($values['variation_id'], $coupon->exclude_product_ids)))
+						if (in_array($values['product_id'], $coupon->exclude_product_ids) || in_array($values['variation_id'], $coupon->exclude_product_ids) || in_array($values['data']->get_parent(), $coupon->exclude_product_ids))
 							$this_item_is_discounted = false;
 					
 					// Specific categories excluded from the discount
@@ -827,7 +920,9 @@ class WC_Cart {
 			global $woocommerce;
 			
 			$this->reset();
+			
 			do_action('woocommerce_before_calculate_totals', $this);
+			
 			// Get count of all items + weights + subtotal (we may need this for discounts)
 			if (sizeof($this->cart_contents)>0) foreach ($this->cart_contents as $cart_item_key => $values) :
 				
@@ -1222,7 +1317,10 @@ class WC_Cart {
 		 */
 		function add_discount( $coupon_code ) {
 			global $woocommerce;
-			
+
+			// Coupons are globally disabled
+			if ( get_option( 'woocommerce_enable_coupons' ) == 'no' ) return false;
+
 			$the_coupon = new WC_Coupon($coupon_code);
 			
 			if ($the_coupon->id) :
@@ -1252,7 +1350,9 @@ class WC_Cart {
 				endforeach;
 				
 				$this->applied_coupons[] = $coupon_code;
+				
 				$this->set_session();
+				
 				$woocommerce->add_message( __('Discount code applied successfully.', 'woocommerce') );
 				return true;
 			
