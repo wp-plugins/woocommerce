@@ -1129,9 +1129,23 @@ function woocommerce_ecommerce_tracking( $order_id ) {
 		<?php if ($order->get_items()) foreach($order->get_items() as $item) : $_product = $order->get_product_from_item( $item ); ?>
 			_gaq.push(['_addItem',
 				'<?php echo $order_id; ?>',           	// order ID - required
-				'<?php echo $_product->sku; ?>',      	// SKU/code - required
+				'<?php if (!empty($_product->sku)) 
+							echo __('SKU:', 'woocommerce') . ' ' . $_product->sku; 
+					   else 
+					   		echo $_product->id;
+				?>', // SKU/code - required
 				'<?php echo $item['name']; ?>',        	// product name
-				'<?php if (isset($_product->variation_data)) echo woocommerce_get_formatted_variation( $_product->variation_data, true ); ?>',   // category or variation
+				'<?php if (isset($_product->variation_data)){
+                            echo woocommerce_get_formatted_variation( $_product->variation_data, true ); 
+                       } else {
+                            $out = array();
+                            $categories = get_the_terms($_product->id, 'product_cat');
+                            foreach ( $categories as $category ){
+                                $out[] = $category->name;
+                            }
+                            echo join( "/", $out);
+                       }
+                 ?>',   // category or variation
 				'<?php echo ($item['line_total']/$item['qty']); ?>',         // unit price - required
 				'<?php echo $item['qty']; ?>'           // quantity - required
 			]);
@@ -1231,7 +1245,7 @@ function woocommerce_add_comment_rating($comment_id) {
 		global $post;
 		if (!$_POST['rating'] || $_POST['rating'] > 5 || $_POST['rating'] < 0) $_POST['rating'] = 5; 
 		add_comment_meta( $comment_id, 'rating', esc_attr($_POST['rating']), true );
-		delete_transient( esc_attr($post->ID) . '_woocommerce_average_rating' );
+		delete_transient( 'wc_average_rating_' . esc_attr($post->ID) );
 	endif;
 }
 
