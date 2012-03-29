@@ -54,32 +54,35 @@ function woocommerce_redirects() {
  **/
 function woocommerce_nav_menu_item_classes( $menu_items, $args ) {
 	
-	if (!is_woocommerce()) return $menu_items;
+	if ( ! is_woocommerce() ) return $menu_items;
 	
 	$shop_page 		= (int) woocommerce_get_page_id('shop');
 	$page_for_posts = (int) get_option( 'page_for_posts' );
 
-	foreach ( (array) $menu_items as $key => $menu_item ) :
+	foreach ( (array) $menu_items as $key => $menu_item ) {
 
 		$classes = (array) $menu_item->classes;
 
 		// Unset active class for blog page
-		if ( $page_for_posts == $menu_item->object_id ) :
+		if ( $page_for_posts == $menu_item->object_id ) {
 			$menu_items[$key]->current = false;
 			unset( $classes[ array_search('current_page_parent', $classes) ] );
 			unset( $classes[ array_search('current-menu-item', $classes) ] );
 
 		// Set active state if this is the shop page link
-		elseif ( is_shop() && $shop_page == $menu_item->object_id ) :
+		} elseif ( is_shop() && $shop_page == $menu_item->object_id ) {
 			$menu_items[$key]->current = true;
 			$classes[] = 'current-menu-item';
 			$classes[] = 'current_page_item';
 		
-		endif;
+		// Set parent state if this is a product page
+		} elseif ( is_singular( 'product' ) && $shop_page == $menu_item->object_id ) {
+			$classes[] = 'current_page_parent';
+		}
 
 		$menu_items[$key]->classes = array_unique( $classes );
 	
-	endforeach;
+	}
 
 	return $menu_items;
 }
@@ -1036,22 +1039,21 @@ function woocommerce_download_product() {
 function woocommerce_google_tracking() {
 	global $woocommerce;
 	
-	if (!get_option('woocommerce_ga_standard_tracking_enabled')) return;
-	if (is_admin()) return; // Don't track admin
+	if ( is_admin() || current_user_can('manage_options') || get_option('woocommerce_ga_standard_tracking_enabled') == "no" ) return;
 	
 	$tracking_id = get_option('woocommerce_ga_id');
 	
-	if (!$tracking_id) return;
+	if ( ! $tracking_id ) return;
 	
-	$loggedin 	= (is_user_logged_in()) ? 'yes' : 'no';
-	if (is_user_logged_in()) :
+	$loggedin 	= ( is_user_logged_in() ) ? 'yes' : 'no';
+	if ( is_user_logged_in() ) {
 		$user_id 		= get_current_user_id();
 		$current_user 	= get_user_by('id', $user_id);
 		$username 		= $current_user->user_login;
-	else :
+	} else {
 		$user_id 		= '';
 		$username 		= __('Guest', 'woocommerce');
-	endif;
+	}
 	?>
 	<script type="text/javascript">
 	
@@ -1080,12 +1082,11 @@ function woocommerce_google_tracking() {
 function woocommerce_ecommerce_tracking( $order_id ) {
 	global $woocommerce;
 	
-	if (!get_option('woocommerce_ga_ecommerce_tracking_enabled')) return;
-	if (current_user_can('manage_options')) return; // Don't track admin
+	if ( is_admin() || current_user_can('manage_options') || get_option('woocommerce_ga_ecommerce_tracking_enabled') == "no" ) return;
 	
 	$tracking_id = get_option('woocommerce_ga_id');
 	
-	if (!$tracking_id) return;
+	if ( ! $tracking_id ) return;
 	
 	// Doing eCommerce tracking so unhook standard tracking from the footer
 	remove_action('wp_footer', 'woocommerce_google_tracking');
@@ -1094,14 +1095,14 @@ function woocommerce_ecommerce_tracking( $order_id ) {
 	$order = new WC_Order($order_id);
 	
 	$loggedin 	= (is_user_logged_in()) ? 'yes' : 'no';
-	if (is_user_logged_in()) :
+	if (is_user_logged_in()) {
 		$user_id 		= get_current_user_id();
 		$current_user 	= get_user_by('id', $user_id);
 		$username 		= $current_user->user_login;
-	else :
+	} else {
 		$user_id 		= '';
 		$username 		= __('Guest', 'woocommerce');
-	endif;
+	}
 	?>
 	<script type="text/javascript">
 		var _gaq = _gaq || [];
@@ -1243,8 +1244,8 @@ function woocommerce_products_rss_feed() {
 function woocommerce_add_comment_rating($comment_id) {
 	if ( isset($_POST['rating']) ) :
 		global $post;
-		if (!$_POST['rating'] || $_POST['rating'] > 5 || $_POST['rating'] < 0) $_POST['rating'] = 5; 
-		add_comment_meta( $comment_id, 'rating', esc_attr($_POST['rating']), true );
+		if ( ! $_POST['rating'] || $_POST['rating'] > 5 || $_POST['rating'] < 0 ) return;
+		add_comment_meta( $comment_id, 'rating', (int) esc_attr($_POST['rating']), true );
 		delete_transient( 'wc_average_rating_' . esc_attr($post->ID) );
 	endif;
 }
@@ -1253,10 +1254,10 @@ function woocommerce_check_comment_rating($comment_data) {
 	global $woocommerce;
 	
 	// If posting a comment (not trackback etc) and not logged in
-	if ( isset($_POST['rating']) && !$woocommerce->verify_nonce('comment_rating') )
+	if ( isset( $_POST['rating'] ) && ! $woocommerce->verify_nonce('comment_rating') )
 		wp_die( __('You have taken too long. Please go back and refresh the page.', 'woocommerce') );
 		
-	elseif ( isset($_POST['rating']) && empty($_POST['rating']) && $comment_data['comment_type']== '' ) {
+	elseif ( isset( $_POST['rating'] ) && empty( $_POST['rating'] ) && $comment_data['comment_type'] == '' && get_option('woocommerce_review_rating_required') == 'yes' ) {
 		wp_die( __('Please rate the product.', 'woocommerce') );
 		exit;
 	}

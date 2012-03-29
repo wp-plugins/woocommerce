@@ -65,6 +65,10 @@ function woocommerce_order_data_meta_box($post) {
 						endforeach;
 					?>
 				</select></p>
+				
+				<p class="form-field last"><label for="order_date"><?php _e('Order Date:', 'woocommerce') ?></label>
+					<input type="text" class="date-picker-field" name="order_date" id="order_date" maxlength="10" value="<?php echo date('Y-m-d', strtotime( $post->post_date ) ); ?>" /> @ <input type="text" class="hour" placeholder="<?php _e('h', 'woocommerce') ?>" name="order_date_hour" id="order_date_hour" maxlength="2" size="2" value="<?php echo date('H', strtotime( $post->post_date ) ); ?>" />:<input type="text" class="minute" placeholder="<?php _e('m', 'woocommerce') ?>" name="order_date_minute" id="order_date_minute" maxlength="2" size="2" value="<?php echo date('i', strtotime( $post->post_date ) ); ?>" />
+				</p>
 	
 				<p class="form-field form-field-wide"><label for="customer_user"><?php _e('Customer:', 'woocommerce') ?></label>
 				<select id="customer_user" name="customer_user" class="chosen_select">
@@ -140,7 +144,7 @@ function woocommerce_order_data_meta_box($post) {
 							
 							foreach ( $billing_data as $key => $field ) : if (isset($field['show']) && !$field['show']) continue;
 								$field_name = 'billing_'.$key;
-								echo '<p><strong>'.$field['label'].':</strong> '.$order->$field_name.'</p>';
+								if ( $order->$field_name ) echo '<p><strong>'.$field['label'].':</strong> '.$order->$field_name.'</p>';
 							endforeach;
 						
 						echo '</div>';
@@ -215,7 +219,7 @@ function woocommerce_order_data_meta_box($post) {
 							
 							foreach ( $shipping_data as $key => $field ) : if (isset($field['show']) && !$field['show']) continue;
 								$field_name = 'shipping_'.$key;
-								echo '<p><strong>'.$field['label'].':</strong> '.$order->$field_name.'</p>';
+								if ( $order->$field_name ) echo '<p><strong>'.$field['label'].':</strong> '.$order->$field_name.'</p>';
 							endforeach;
 						
 						echo '</div>';
@@ -236,6 +240,8 @@ function woocommerce_order_data_meta_box($post) {
 						endforeach;
 						
 						echo '</div>';
+						
+						do_action('woocommerce_admin_order_data_after_shipping_address');
 					?>
 				</div>
 			</div>
@@ -265,13 +271,13 @@ function woocommerce_order_items_meta_box($post) {
 					<th class="name"><?php _e('Item', 'woocommerce'); ?></th>
 					<?php do_action('woocommerce_admin_order_item_headers'); ?>
 					
-					<th class="tax_class"><?php _e('Tax Class', 'woocommerce'); ?>&nbsp;<a class="tips" tip="<?php _e('Tax class for the line item', 'woocommerce'); ?>." href="#">[?]</a></th>
+					<th class="tax_class"><?php _e('Tax Class', 'woocommerce'); ?>&nbsp;<a class="tips" data-tip="<?php _e('Tax class for the line item', 'woocommerce'); ?>." href="#">[?]</a></th>
 
 					<th class="quantity"><?php _e('Qty', 'woocommerce'); ?></th>
 					
-					<th class="line_subtotal"><?php _e('Line&nbsp;Subtotal', 'woocommerce'); ?>&nbsp;<a class="tips" tip="<?php _e('Line cost and line tax before pre-tax discounts', 'woocommerce'); ?>" href="#">[?]</a></th>
+					<th class="line_subtotal"><?php _e('Line&nbsp;Subtotal', 'woocommerce'); ?>&nbsp;<a class="tips" data-tip="<?php _e('Line cost and line tax before pre-tax discounts', 'woocommerce'); ?>" href="#">[?]</a></th>
 					
-					<th class="line_total"><?php _e('Line&nbsp;Total', 'woocommerce'); ?>&nbsp;<a class="tips" tip="<?php _e('Line cost and line tax after pre-tax discounts', 'woocommerce'); ?>" href="#">[?]</a></th>
+					<th class="line_total"><?php _e('Line&nbsp;Total', 'woocommerce'); ?>&nbsp;<a class="tips" data-tip="<?php _e('Line cost and line tax after pre-tax discounts', 'woocommerce'); ?>" href="#">[?]</a></th>
 
 				</tr>
 			</thead>
@@ -295,7 +301,7 @@ function woocommerce_order_items_meta_box($post) {
 					?>
 					<tr class="item" rel="<?php echo $loop; ?>">
 						<td class="product-id">
-							<img class="tips" tip="<?php
+							<img class="tips" data-tip="<?php
 								echo '<strong>'.__('Product ID:', 'woocommerce').'</strong> '. $item['id'];
 								echo '<br/><strong>'.__('Variation ID:', 'woocommerce').'</strong> '; if ($item['variation_id']) echo $item['variation_id']; else echo '-';
 								echo '<br/><strong>'.__('Product SKU:', 'woocommerce').'</strong> '; if ($_product->sku) echo $_product->sku; else echo '-';
@@ -393,7 +399,7 @@ function woocommerce_order_items_meta_box($post) {
 				$args = array(
 					'post_type' 		=> 'product',
 					'posts_per_page' 	=> -1,
-					'post_status'		=> 'publish',
+					'post_status'		=> array( 'publish', 'private' ),
 					'post_parent'		=> 0,
 					'order'				=> 'ASC',
 					'orderby'			=> 'title'
@@ -449,13 +455,13 @@ function woocommerce_order_items_meta_box($post) {
 function woocommerce_order_actions_meta_box($post) {
 	?>
 	<ul class="order_actions">
-		<li><input type="submit" class="button button-primary tips" name="save" value="<?php _e('Save Order', 'woocommerce'); ?>" tip="<?php _e('Save/update the order', 'woocommerce'); ?>" /></li>
+		<li><input type="submit" class="button button-primary tips" name="save" value="<?php _e('Save Order', 'woocommerce'); ?>" data-tip="<?php _e('Save/update the order', 'woocommerce'); ?>" /></li>
 
-		<li><input type="submit" class="button tips" name="reduce_stock" value="<?php _e('Reduce stock', 'woocommerce'); ?>" tip="<?php _e('Reduces stock for each item in the order; useful after manually creating an order or manually marking an order as paid.', 'woocommerce'); ?>" /></li>
+		<li><input type="submit" class="button tips" name="reduce_stock" value="<?php _e('Reduce stock', 'woocommerce'); ?>" data-tip="<?php _e('Reduces stock for each item in the order; useful after manually creating an order or manually marking an order as paid.', 'woocommerce'); ?>" /></li>
 		
-		<li><input type="submit" class="button tips" name="restore_stock" value="<?php _e('Restore stock', 'woocommerce'); ?>" tip="<?php _e('Restores stock for each item in the order; useful after refunding or canceling the entire order.', 'woocommerce'); ?>" /></li>
+		<li><input type="submit" class="button tips" name="restore_stock" value="<?php _e('Restore stock', 'woocommerce'); ?>" data-tip="<?php _e('Restores stock for each item in the order; useful after refunding or canceling the entire order.', 'woocommerce'); ?>" /></li>
 		
-		<li><input type="submit" class="button tips" name="invoice" value="<?php _e('Email invoice', 'woocommerce'); ?>" tip="<?php _e('Email the order to the customer. Unpaid orders will include a payment link.', 'woocommerce'); ?>" /></li>
+		<li><input type="submit" class="button tips" name="invoice" value="<?php _e('Email invoice', 'woocommerce'); ?>" data-tip="<?php _e('Email the order to the customer. Unpaid orders will include a payment link.', 'woocommerce'); ?>" /></li>
 		
 		<?php do_action('woocommerce_order_actions', $post->ID); ?>
 		
@@ -526,7 +532,7 @@ function woocommerce_order_totals_meta_box($post) {
 		<div class="clear"></div>
 	</div>
 	<div class="totals_group">
-		<h4><?php _e('Tax Rows', 'woocommerce'); ?> <a class="tips" tip="<?php _e('These rows contain taxes for this order. This allows you to display multiple or compound taxes rather than a single total.', 'woocommerce'); ?>" href="#">[?]</a></h4>
+		<h4><?php _e('Tax Rows', 'woocommerce'); ?> <a class="tips" data-tip="<?php _e('These rows contain taxes for this order. This allows you to display multiple or compound taxes rather than a single total.', 'woocommerce'); ?>" href="#">[?]</a></h4>
 		<div id="tax_rows">
 			<?php 
 				$loop = 0;
@@ -663,6 +669,15 @@ function woocommerce_process_shop_order_meta( $post_id, $post ) {
 			update_post_meta( $post_id, '_payment_method', stripslashes( $_POST['_payment_method'] ));
 			update_post_meta( $post_id, '_payment_method_title', stripslashes( $_POST['_payment_method'] ));
 		}
+	
+	// Update date
+		if ( empty( $_POST['order_date'] ) ) {
+			$date = current_time('timestamp');
+		} else {
+			$date = strtotime( $_POST['order_date'] . ' ' . (int) $_POST['order_date_hour'] . ':' . (int) $_POST['order_date_minute'] . ':00' );
+		}
+		
+		$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->posts SET post_date = %s WHERE ID = %s", date('Y-m-d H:i:s', $date), $post_id ) );
 	
 	// Tax rows
 		$order_taxes = array();

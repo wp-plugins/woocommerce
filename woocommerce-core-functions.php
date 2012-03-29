@@ -248,7 +248,7 @@ function woocommerce_price( $price, $args = array() ) {
 	$num_decimals = (int) get_option('woocommerce_price_num_decimals');
 	$currency_pos = get_option('woocommerce_currency_pos');
 	$currency_symbol = get_woocommerce_currency_symbol();
-	$price = number_format( (double) $price, $num_decimals, get_option('woocommerce_price_decimal_sep'), get_option('woocommerce_price_thousand_sep') );
+	$price = number_format( (double) $price, $num_decimals, stripslashes(get_option('woocommerce_price_decimal_sep')), stripslashes(get_option('woocommerce_price_thousand_sep')) );
 	
 	if (get_option('woocommerce_price_trim_zeros')=='yes' && $num_decimals>0) :
 		$price = woocommerce_trim_zeros($price);
@@ -814,4 +814,32 @@ function woocommerce_set_term_order($term_id, $index, $taxonomy, $recursive=fals
 	}
 	
 	return $index;
+}
+
+
+/**
+ * let_to_num function.
+ * 
+ * This function transforms the php.ini notation for numbers (like '2M') to an integer
+ *
+ * @access public
+ * @param $size
+ * @return int
+ */
+function woocommerce_let_to_num( $size ) {
+    $l 		= substr( $size, -1 );
+    $ret 	= substr( $size, 0, -1 );
+    switch( strtoupper( $l ) ) {
+	    case 'P':
+	        $ret *= 1024;
+	    case 'T':
+	        $ret *= 1024;
+	    case 'G':
+	        $ret *= 1024;
+	    case 'M':
+	        $ret *= 1024;
+	    case 'K':
+	        $ret *= 1024;
+    }
+    return $ret;
 }

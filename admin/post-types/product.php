@@ -76,8 +76,8 @@ function woocommerce_edit_product_columns($columns){
 	
 	$columns["product_cat"] = __("Categories", 'woocommerce');
 	$columns["product_tags"] = __("Tags", 'woocommerce');
-	$columns["featured"] = '<img src="' . $woocommerce->plugin_url() . '/assets/images/featured_head.png" alt="' . __("Featured", 'woocommerce') . '" class="tips" tip="' . __("Featured", 'woocommerce') . '" />';
-	$columns["product_type"] = '<img src="' . $woocommerce->plugin_url() . '/assets/images/product_type_head.png" alt="' . __("Type", 'woocommerce') . '" class="tips" tip="' . __("Type", 'woocommerce') . '" />';
+	$columns["featured"] = '<img src="' . $woocommerce->plugin_url() . '/assets/images/featured_head.png" alt="' . __("Featured", 'woocommerce') . '" class="tips" data-tip="' . __("Featured", 'woocommerce') . '" />';
+	$columns["product_type"] = '<img src="' . $woocommerce->plugin_url() . '/assets/images/product_type_head.png" alt="' . __("Type", 'woocommerce') . '" class="tips" data-tip="' . __("Type", 'woocommerce') . '" />';
 	$columns["date"] = __("Date", 'woocommerce');
 	
 	return $columns;
@@ -181,24 +181,24 @@ function woocommerce_custom_product_columns( $column ) {
 		break;
 		case "product_type" :
 			if( $product->product_type == 'grouped' ):
-				echo '<span class="product-type tips '.$product->product_type.'" tip="' . __('Grouped', 'woocommerce') . '"></span>';
+				echo '<span class="product-type tips '.$product->product_type.'" data-tip="' . __('Grouped', 'woocommerce') . '"></span>';
 			elseif ( $product->product_type == 'external' ):
-				echo '<span class="product-type tips '.$product->product_type.'" tip="' . __('External/Affiliate', 'woocommerce') . '"></span>';
+				echo '<span class="product-type tips '.$product->product_type.'" data-tip="' . __('External/Affiliate', 'woocommerce') . '"></span>';
 			elseif ( $product->product_type == 'simple' ):
 				
 				if ($product->is_virtual()) {
-					echo '<span class="product-type tips virtual" tip="' . __('Virtual', 'woocommerce') . '"></span>';
+					echo '<span class="product-type tips virtual" data-tip="' . __('Virtual', 'woocommerce') . '"></span>';
 				} elseif ($product->is_downloadable()) {
-					echo '<span class="product-type tips downloadable" tip="' . __('Downloadable', 'woocommerce') . '"></span>';
+					echo '<span class="product-type tips downloadable" data-tip="' . __('Downloadable', 'woocommerce') . '"></span>';
 				} else {
-					echo '<span class="product-type tips '.$product->product_type.'" tip="' . __('Simple', 'woocommerce') . '"></span>';
+					echo '<span class="product-type tips '.$product->product_type.'" data-tip="' . __('Simple', 'woocommerce') . '"></span>';
 				}
 				
 			elseif ( $product->product_type == 'variable' ):
-				echo '<span class="product-type tips '.$product->product_type.'" tip="' . __('Variable', 'woocommerce') . '"></span>';
+				echo '<span class="product-type tips '.$product->product_type.'" data-tip="' . __('Variable', 'woocommerce') . '"></span>';
 			else:
 				// Assuming that we have other types in future
-				echo '<span class="product-type tips '.$product->product_type.'" tip="' . ucwords($product->product_type) . '"></span>';
+				echo '<span class="product-type tips '.$product->product_type.'" data-tip="' . ucwords($product->product_type) . '"></span>';
 			endif;
 		break;
 		case "price":
@@ -481,25 +481,34 @@ function woocommerce_admin_product_quick_edit( $column_name, $post_type ) {
 				<br class="clear" />
 			</div>
 			
+			<?php if ( get_option('woocommerce_enable_weight') == "yes" || get_option('woocommerce_enable_dimensions') == "yes" ) : ?>
 			<div class="dimension_fields">
-				<label>  
-				    <span class="title"><?php _e('Weight', 'woocommerce'); ?></span>  
-				    <span class="input-text-wrap">  
-						<input type="text" name="_weight" class="text weight" placeholder="0.00" value="">
-					</span> 
-				</label>
-				<br class="clear" />
-				<div class="inline-edit-group dimensions">
-					<div>
-					    <span class="title"><?php _e('L/W/H', 'woocommerce'); ?></span>  
+			
+				<?php if ( get_option('woocommerce_enable_weight') == "yes" ) : ?>
+					<label>  
+					    <span class="title"><?php _e('Weight', 'woocommerce'); ?></span>  
 					    <span class="input-text-wrap">  
-							<input type="text" name="_length" class="text length" placeholder="<?php _e('Length', 'woocommerce'); ?>" value="">
-							<input type="text" name="_width" class="text width" placeholder="<?php _e('Width', 'woocommerce'); ?>" value="">
-							<input type="text" name="_height" class="text height" placeholder="<?php _e('Height', 'woocommerce'); ?>" value="">
-						</span>  
-					</div> 
-				</div>
+							<input type="text" name="_weight" class="text weight" placeholder="0.00" value="">
+						</span> 
+					</label>
+					<br class="clear" />
+				<?php endif; ?>
+				
+				<?php if ( get_option('woocommerce_enable_dimensions') == "yes" ) : ?>
+					<div class="inline-edit-group dimensions">
+						<div>
+						    <span class="title"><?php _e('L/W/H', 'woocommerce'); ?></span>  
+						    <span class="input-text-wrap">  
+								<input type="text" name="_length" class="text length" placeholder="<?php _e('Length', 'woocommerce'); ?>" value="">
+								<input type="text" name="_width" class="text width" placeholder="<?php _e('Width', 'woocommerce'); ?>" value="">
+								<input type="text" name="_height" class="text height" placeholder="<?php _e('Height', 'woocommerce'); ?>" value="">
+							</span>  
+						</div> 
+					</div>
+				<?php endif; ?>
+				
 			</div>
+			<?php endif; ?>
 			
 			<label class="alignleft">  
 			    <span class="title"><?php _e('Visibility', 'woocommerce'); ?></span>  
@@ -690,50 +699,57 @@ function woocommerce_admin_product_bulk_edit( $column_name, $post_type ) {
 					<input type="text" name="_sale_price" class="text sale_price" placeholder="<?php _e('Sale price', 'woocommerce'); ?>" value="">
 				</label>
 			</div>
-			<div class="inline-edit-group">  
-				<label class="alignleft">  
-				    <span class="title"><?php _e('Weight', 'woocommerce'); ?></span>  
-				    <span class="input-text-wrap">  
-				    	<select class="change_weight change_to" name="change_weight">
-						<?php
-							$options = array(
-								'' 	=> __('— No Change —', 'woocommerce'),
-								'1' => __('Change to:', 'woocommerce')
-							);
-							foreach ($options as $key => $value) {
-								echo '<option value="'.$key.'">'. $value .'</option>';
-							}
-						?>
-						</select> 
-					</span> 
-				</label>
-				<label class="alignright">
-					<input type="text" name="_weight" class="text weight" placeholder="0.00" value="">
-				</label>
-			</div>
-			<div class="inline-edit-group dimensions">
-				<label class="alignleft">  
-				    <span class="title"><?php _e('L/W/H', 'woocommerce'); ?></span>  
-				    <span class="input-text-wrap">  
-				    	<select class="change_dimensions change_to" name="change_dimensions">
-						<?php
-							$options = array(
-								'' 	=> __('— No Change —', 'woocommerce'),
-								'1' => __('Change to:', 'woocommerce')
-							);
-							foreach ($options as $key => $value) {
-								echo '<option value="'.$key.'">'. $value .'</option>';
-							}
-						?>
-						</select> 
-					</span>  
-				</label>
-				<div class="alignright">
-					<input type="text" name="_length" class="text length" placeholder="<?php _e('Length', 'woocommerce'); ?>" value="">
-					<input type="text" name="_width" class="text width" placeholder="<?php _e('Width', 'woocommerce'); ?>" value="">
-					<input type="text" name="_height" class="text height" placeholder="<?php _e('Height', 'woocommerce'); ?>" value="">
+			
+			<?php if ( get_option('woocommerce_enable_weight') == "yes" ) : ?>
+				<div class="inline-edit-group">  
+					<label class="alignleft">  
+					    <span class="title"><?php _e('Weight', 'woocommerce'); ?></span>  
+					    <span class="input-text-wrap">  
+					    	<select class="change_weight change_to" name="change_weight">
+							<?php
+								$options = array(
+									'' 	=> __('— No Change —', 'woocommerce'),
+									'1' => __('Change to:', 'woocommerce')
+								);
+								foreach ($options as $key => $value) {
+									echo '<option value="'.$key.'">'. $value .'</option>';
+								}
+							?>
+							</select> 
+						</span> 
+					</label>
+					<label class="alignright">
+						<input type="text" name="_weight" class="text weight" placeholder="0.00" value="">
+					</label>
 				</div>
-			</div>
+			<?php endif; ?>
+			
+			<?php if ( get_option('woocommerce_enable_dimensions') == "yes" ) : ?>
+				<div class="inline-edit-group dimensions">
+					<label class="alignleft">  
+					    <span class="title"><?php _e('L/W/H', 'woocommerce'); ?></span>  
+					    <span class="input-text-wrap">  
+					    	<select class="change_dimensions change_to" name="change_dimensions">
+							<?php
+								$options = array(
+									'' 	=> __('— No Change —', 'woocommerce'),
+									'1' => __('Change to:', 'woocommerce')
+								);
+								foreach ($options as $key => $value) {
+									echo '<option value="'.$key.'">'. $value .'</option>';
+								}
+							?>
+							</select> 
+						</span>  
+					</label>
+					<div class="alignright">
+						<input type="text" name="_length" class="text length" placeholder="<?php _e('Length', 'woocommerce'); ?>" value="">
+						<input type="text" name="_width" class="text width" placeholder="<?php _e('Width', 'woocommerce'); ?>" value="">
+						<input type="text" name="_height" class="text height" placeholder="<?php _e('Height', 'woocommerce'); ?>" value="">
+					</div>
+				</div>
+			<?php endif; ?>
+			
 			<label>  
 			    <span class="title"><?php _e('Visibility', 'woocommerce'); ?></span>  
 			    <span class="input-text-wrap"> 

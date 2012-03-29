@@ -230,11 +230,15 @@ class WC_Email {
 		
 		$order = $pay_for_order;
 		
-		$email_heading = sprintf(__('Invoice for Order #%s', 'woocommerce'), $order->id);
-		
 		$blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
 		
-		$subject = apply_filters( 'woocommerce_email_subject_customer_invoice', sprintf( __( '[%s] Pay for Order', 'woocommerce' ), $blogname ), $order );
+		if ( $order->status == 'processing' || $order->status == 'completed' ) {
+			$email_heading = sprintf( __('Your order on %s', 'woocommerce'), $blogname );
+			$subject = apply_filters( 'woocommerce_email_subject_customer_invoice_paid', sprintf( __( '[%s] Your order', 'woocommerce' ), $blogname ), $order );
+		} else {
+			$email_heading = sprintf( __('Invoice for Order %s', 'woocommerce'), $order->get_order_number() );
+			$subject = apply_filters( 'woocommerce_email_subject_customer_invoice', sprintf( __( '[%s] Pay for Order', 'woocommerce' ), $blogname ), $order );
+		}
 	
 		// Buffer
 		ob_start();
@@ -316,7 +320,7 @@ class WC_Email {
 		
 		$sku = ($product->sku) ? '(' . $product->sku . ') ' : '';
 
-		if ($product->variation_id) 
+		if ( ! empty( $product->variation_id ) ) 
 			$title = sprintf(__('Variation #%s of %s', 'woocommerce'), $product->variation_id, get_the_title($product->id)) . ' ' . $sku;
 		else 
 			$title = sprintf(__('Product #%s - %s', 'woocommerce'), $product->id, get_the_title($product->id)) . ' ' . $sku;
@@ -344,7 +348,7 @@ class WC_Email {
 
 		$sku = ($product->sku) ? '(' . $product->sku . ') ' : '';
 
-		if ($product->variation_id) 
+		if ( ! empty( $product->variation_id ) ) 
 			$title = sprintf(__('Variation #%s of %s', 'woocommerce'), $product->variation_id, get_the_title($product->id)) . ' ' . $sku;
 		else 
 			$title = sprintf(__('Product #%s - %s', 'woocommerce'), $product->id, get_the_title($product->id)) . ' ' . $sku;
@@ -385,7 +389,7 @@ class WC_Email {
 		
 		$sku = ($product->sku) ? ' (' . $product->sku . ')' : '';
 
-		if ($product->variation_id) 
+		if ( ! empty( $product->variation_id ) ) 
 			$title = sprintf(__('Variation #%s of %s', 'woocommerce'), $product->variation_id, get_the_title($product->id)) . $sku;
 		else 
 			$title = sprintf(__('Product #%s - %s', 'woocommerce'), $product->id, get_the_title($product->id)) . $sku;

@@ -336,8 +336,8 @@ class WC_Product {
 	
 	/** Returns whether or not the product is stock managed */
 	function managing_stock() {
-		if (!isset($this->manage_stock) || $this->manage_stock=='no') return false;
-		if (get_option('woocommerce_manage_stock')=='yes') return true;
+		if ( ! isset( $this->manage_stock ) || $this->manage_stock == 'no' ) return false;
+		if ( get_option('woocommerce_manage_stock') == 'yes' ) return true;
 		return false;
 	}
 	
@@ -422,6 +422,7 @@ class WC_Product {
 					if ($this->backorders_allowed()) :
 						if ($this->backorders_require_notification()) :
 							$availability = __('Available on backorder', 'woocommerce');
+							$class = 'available-on-backorder';
 						else :
 							$availability = __('In stock', 'woocommerce');
 						endif;
@@ -434,6 +435,7 @@ class WC_Product {
 			else :
 				if ($this->backorders_allowed()) :
 					$availability = __('Available on backorder', 'woocommerce');
+					$class = 'available-on-backorder';
 				else :
 					$availability = __('Out of stock', 'woocommerce');
 					$class = 'out-of-stock';
@@ -441,7 +443,7 @@ class WC_Product {
 			endif;
 		endif;
 		
-		return array( 'availability' => $availability, 'class' => $class);
+		return apply_filters( 'woocommerce_get_availability', array( 'availability' => $availability, 'class' => $class), $this );
 	}
 	
 	/** Returns whether or not the product is featured */

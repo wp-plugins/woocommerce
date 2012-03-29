@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, affiliate
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.3
 Tested up to: 3.3
-Stable tag: 1.5.2.1
+Stable tag: 1.5.3
 
 WooCommerce is a powerful, extendable eCommerce plugin that helps you sell anything. Beautifully.
 
@@ -142,6 +142,51 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 3. WooCommerce sales reports
 
 == Changelog ==
+
+= 1.5.3 - 29/03/2012 =
+* Feature - Debug/status page with some handy functions to resolve common issues
+* Feature - Control default catalog sort order from Catalog Settings
+* Feature - Option to use post instead of get to submit paypal standard - form also has target="_top" to work when in iframes
+* Feature - Local delivery postcode limiting
+* Feature - Visual editor for excerpt (thanks Andrew Benbow - http://www.chromeorange.co.uk/)
+* Feature - Allow shortcodes in excerpts
+* Feature - Update/set order dates
+* Feature - 'Invoice' for completed/pending emails re-sends download links etc
+* Feature - Option to enable/disable review star rating
+* Tweak - Improved stock check upon add to cart
+* Tweak - get order number function complete with filter
+* Tweak - View cart link in 'you already have this in your cart' message
+* Tweak - When viewing a product, give shop menu item a class
+* Tweak - Layered nav dropdown code to filter displayed terms based on view
+* Tweak - Improved wording of stock panel to make less confusing
+* Tweak - tip -> data-tip
+* Tweak - Revised load order so that localisation is done at init
+* Tweak - Hook for product availability
+* Tweak - Order items table (for emails) moved to template file
+* Tweak - Queries on report pages to replace get_posts to resolve issues on stores with a shed load of orders
+* Tweak - Remove case sensitively from order tracking and force email lowercase on checkout
+* Tweak - woocommerce_update_variation_values trigger in JS
+* Tweak - Optimised price filter query (Thanks Lucas Stark)
+* Tweak - woocommerce_attribute_label filter
+* Tweak - When min and max price are the same, don't show price filter
+* Tweak - Hooks for countries and states
+* Tweak - Updated UK locale
+* Tweak - Locale settings change placeholder dynamically like the label
+* Tweak - PayPal standard - separate option for address_override
+* Tweak - Only show weight/dimensions in bulk/quick edit when enabled
+* Tweak - Add total sales meta to products even if unsold
+* Fix - Search/filter compatibility with relevanssi
+* Fix - Ecommerce tracking enable/disable option
+* Fix - After tax coupons for categories
+* Fix - Multiple variation image upload
+* Fix - User email check for coupons
+* Fix - Put chosen frontend script back
+* Fix - Make download links use billing email, not user email
+* Fix - ' in prices (thousand separator)
+* Fix - Admin menu highlighting when adding orders
+* Localization - Removed translations from reports page tab URLS
+* Localization - Spanish update by Héctor Carranza
+* Localization - Added Russian translation by Orlov Sergei
 
 = 1.5.2.1 - 16/03/2012 =
 * Fix - Redirect when no payment is required

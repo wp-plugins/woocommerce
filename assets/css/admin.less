@@ -138,6 +138,9 @@
 .icon32-woocommerce-reports {
 	background-position: -591px -6px !important;
 }
+.icon32-woocommerce-status {
+	background-position: -417px -6px !important;
+}
 
 .wrap.woocommerce div.updated, .wrap.woocommerce div.error {
 	margin-top: 10px;
@@ -149,6 +152,38 @@ mark.amount {
 input.wc-error {
 	color: #D8000C;
 	background-color: #FFBABA;
+}
+
+/* Status page */
+table.wc_status_table {
+	th {
+		font-weight: bold;
+	}
+	td {
+		padding: 5px 7px;
+		mark {
+			background: transparent none;
+		}
+		mark.yes {
+			color: green;
+		}
+		mark.no {
+			color: #999;
+		}	
+		mark.error {
+			color: red;
+		}
+		ul {
+			margin: 0;
+		}
+	}
+}
+#debug-report {
+	font-family: monospace;
+	display: none;
+	width: 100%;
+	margin-bottom: 20px;
+	height: 200px;
 }
 
 /* Bulk/Quick edit */
@@ -230,7 +265,7 @@ input.wc-error {
 		}
 		.form-field {
 			float: left;
-			width: 50%;
+			width: 48%;
 			padding: 0;
 			margin: 9px 0 0 0;
 			label {
@@ -248,10 +283,28 @@ input.wc-error {
 					display: none;
 				}
 			}
+			.chzn-container {
+				width: 100% !important;
+			}
+			.date-picker-field {
+				width: 9em;
+			}
+			.hour, .minute {
+				width: 2.5em;
+			}
+		}
+		.form-field.last {
+			float: right;
 		}
 		.form-field-wide {
 			width: 100%;
 			clear: both;
+			input, textarea {
+				width: 100%;
+			}
+			select {
+				width: 100%;
+			}
 		}
 	}
 	.order_data_right {
@@ -1171,6 +1224,9 @@ img.help_tip {
 	vertical-align: middle;
 	margin: 0 0 0 9px;
 }
+.postbox img.help_tip {
+	margin-top: -4px;
+}
 	
 .woocommerce {
 	table.form-table {
@@ -1898,6 +1954,9 @@ table.bar_chart {
 	li.search-field input {
 		width: 100% !important;
 	}
+}
+.form-field-wide .chzn-container {
+	width: 100% !important;
 }
 .chzn-container .chzn-drop {
   background: #fff;

@@ -10,7 +10,7 @@
 
 <?php do_action('woocommerce_email_before_order_table', $order, false); ?>
 
-<h2><?php echo __('Order #', 'woocommerce') . $order->id; ?></h2>
+<h2><?php echo __('Order:', 'woocommerce') . ' ' . $order->get_order_number(); ?></h2>
 
 <table cellspacing="0" cellpadding="6" style="width: 100%; border: 1px solid #eee;" border="1" bordercolor="#eee">
 	<thead>
@@ -33,7 +33,19 @@
 	?>
 	</tfoot>
 	<tbody>
-		<?php echo $order->email_order_items_table(); ?>
+		<?php 
+			switch ( $order->status ) {
+				case "completed" :
+					echo $order->email_order_items_table( true, false, true );
+				break;
+				case "processing" :
+					echo $order->email_order_items_table( get_option('woocommerce_downloads_grant_access_after_payment')=='yes' ? true : false, true, true ); 
+				break;
+				default :
+					echo $order->email_order_items_table( false, true, false ); 
+				break;
+			}
+		?>
 	</tbody>
 </table>
 

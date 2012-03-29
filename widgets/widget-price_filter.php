@@ -34,49 +34,42 @@ function woocommerce_price_filter_init() {
 /**
  * Price Filter post filter
  */
-function woocommerce_price_filter( $filtered_posts ) {
+function woocommerce_price_filter($filtered_posts) {
+    global $wpdb;
+    
+    if ( isset( $_GET['max_price'] ) && isset( $_GET['min_price'] ) ) {
 
-	if (isset($_GET['max_price']) && isset($_GET['min_price'])) :
-		
-		$matched_products = array();
-		
-		$matched_products_query = get_posts(array(
-			'post_type' => array(
-				'product_variation',
-				'product'
-			),
-			'post_status' => 'publish',
-			'posts_per_page' => -1,
-			'meta_query' => array(
-				array(
-					'key' => '_price',
-					'value' => array( $_GET['min_price'], $_GET['max_price'] ),
-					'type' => 'NUMERIC',
-					'compare' => 'BETWEEN'
-				)
-			)
-		));
+        $matched_products = array();
+        $min 	= floatval( $_GET['min_price'] );
+        $max 	= floatval( $_GET['max_price'] );
+        
+        $matched_products_query = $wpdb->get_results( $wpdb->prepare("
+        	SELECT DISTINCT ID, post_parent, post_type FROM $wpdb->posts
+			INNER JOIN $wpdb->postmeta ON ID = post_id
+			WHERE post_type IN ( 'product', 'product_variation' ) AND post_status = 'publish' AND meta_key = %s AND meta_value BETWEEN %d AND %d
+		", '_price', $min, $max ), OBJECT_K );
 
-		if ($matched_products_query) :
-			foreach ($matched_products_query as $product) :
-				if ($product->post_type == 'product') $matched_products[] = $product->ID;
-				if ($product->post_parent>0 && !in_array($product->post_parent, $matched_products))
-					$matched_products[] = $product->post_parent;
-			endforeach;
-		endif;
-		
-		// Filter the id's
-		if (sizeof($filtered_posts)==0) :
-			$filtered_posts = $matched_products;
-			$filtered_posts[] = 0;
-		else :
-			$filtered_posts = array_intersect($filtered_posts, $matched_products);
-			$filtered_posts[] = 0;
-		endif;
-		
-	endif;
-	
-	return (array) $filtered_posts;
+        if ( $matched_products_query ) {
+            foreach ( $matched_products_query as $product ) {
+                if ( $product->post_type == 'product' )
+                    $matched_products[] = $product->ID;
+                if ( $product->post_parent > 0 && ! in_array( $product->post_parent, $matched_products ) )
+                    $matched_products[] = $product->post_parent;
+            }
+        }
+
+        // Filter the id's
+        if ( sizeof( $filtered_posts ) == 0) {
+            $filtered_posts = $matched_products;
+            $filtered_posts[] = 0;
+        } else {
+            $filtered_posts = array_intersect( $filtered_posts, $matched_products );
+            $filtered_posts[] = 0;
+        }
+
+    }
+
+    return (array) $filtered_posts;
 }
 
 /**
@@ -112,13 +105,13 @@ class WooCommerce_Widget_Price_Filter extends WP_Widget {
 		
 		global $_chosen_attributes, $wpdb, $woocommerce, $wp_query;
 		
-		if (!is_tax( 'product_cat' ) && !is_post_type_archive('product') && !is_tax( 'product_tag' )) return;
+		if (!is_tax( 'product_cat' ) && !is_post_type_archive('product') && !is_tax( 'product_tag' )) return; // Not on product page - return
+		
+		if ( sizeof( $woocommerce->query->unfiltered_product_ids ) == 0 ) return; // None shown - return
 
 		$title = $instance['title'];
 		$title = apply_filters('widget_title', $title, $instance, $this->id_base);
-		
-		echo $before_widget . $before_title . $title . $after_title;
-		
+				
 		// Remember current filters/search
 		$fields = '';
 		
@@ -137,7 +130,7 @@ class WooCommerce_Widget_Price_Filter extends WP_Widget {
 		$min = $max = 0;
 		$post_min = $post_max = '';
 		
-		if (sizeof($woocommerce->query->layered_nav_product_ids)==0) :
+		if ( sizeof( $woocommerce->query->layered_nav_product_ids ) == 0 ) :
 
 			$max = ceil($wpdb->get_var("SELECT max(meta_value + 0) 
 			FROM $wpdb->posts
@@ -159,9 +152,13 @@ class WooCommerce_Widget_Price_Filter extends WP_Widget {
 		
 		endif;
 		
+		if ( $min == $max ) return;
+		
 		if (isset($_SESSION['min_price'])) $post_min = $_SESSION['min_price'];
 		if (isset($_SESSION['max_price'])) $post_max = $_SESSION['max_price'];
-		
+
+		echo $before_widget . $before_title . $title . $after_title;
+
 		echo '<form method="get">
 			<div class="price_slider_wrapper">
 				<div class="price_slider" style="display:none;"></div>

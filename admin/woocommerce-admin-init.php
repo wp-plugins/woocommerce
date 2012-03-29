@@ -19,19 +19,44 @@ add_action('admin_menu', 'woocommerce_admin_menu', 9);
 function woocommerce_admin_menu() {
 	global $menu, $woocommerce;
 	
-	if ( current_user_can( 'manage_woocommerce' ) ) $menu[] = array( '', 'read', 'separator-woocommerce', '', 'wp-menu-separator woocommerce' );
+	if ( current_user_can( 'manage_woocommerce' ) ) 
+		$menu[] = array( '', 'read', 'separator-woocommerce', '', 'wp-menu-separator woocommerce' );
 	
     $main_page = add_menu_page(__('WooCommerce', 'woocommerce'), __('WooCommerce', 'woocommerce'), 'manage_woocommerce', 'woocommerce' , 'woocommerce_settings_page', null, 55);
+    
     add_submenu_page('woocommerce', __('WooCommerce Settings', 'woocommerce'),  __('Settings', 'woocommerce') , 'manage_woocommerce', 'woocommerce', 'woocommerce_settings_page');
+    
     $reports_page = add_submenu_page('woocommerce', __('Reports', 'woocommerce'),  __('Reports', 'woocommerce') , 'view_woocommerce_reports', 'woocommerce_reports', 'woocommerce_reports_page');
+    
     add_submenu_page('edit.php?post_type=product', __('Attributes', 'woocommerce'), __('Attributes', 'woocommerce'), 'manage_woocommerce_products', 'woocommerce_attributes', 'woocommerce_attributes_page');
     
-    add_action('load-'.$main_page, 'woocommerce_admin_help_tab');
-    add_action('load-'.$reports_page, 'woocommerce_admin_help_tab');
+    $status_page = add_submenu_page( 'tools.php', __('WooCommerce Debug', 'woocommerce'),  __('WC Debug', 'woocommerce') , 'manage_woocommerce', 'woocommerce_debug', 'woocommerce_debug_page');
     
-    $print_css_on = array( 'toplevel_page_woocommerce', 'woocommerce_page_woocommerce_reports', 'product_page_woocommerce_attributes', 'edit-tags.php', 'edit.php', 'index.php', 'post-new.php', 'post.php' );
+    add_action('load-' . $main_page, 'woocommerce_admin_help_tab');
+    add_action('load-' . $reports_page, 'woocommerce_admin_help_tab');
     
-    foreach ($print_css_on as $page) add_action( 'admin_print_styles-'. $page, 'woocommerce_admin_css' ); 
+    $print_css_on = array( 'toplevel_page_woocommerce', 'woocommerce_page_woocommerce_reports', 'tools_page_woocommerce_debug', 'product_page_woocommerce_attributes', 'edit-tags.php', 'edit.php', 'index.php', 'post-new.php', 'post.php' );
+    
+    foreach ( $print_css_on as $page ) 
+    	add_action( 'admin_print_styles-'. $page, 'woocommerce_admin_css' ); 
+}
+
+/**
+ * Highlights the correct top level admin menu item for post type add screens.
+ */
+add_action( 'admin_head', 'woocommerce_admin_menu_highlight' );
+
+function woocommerce_admin_menu_highlight() {
+	global $parent_file, $submenu_file, $post_type;
+
+	$to_highlight = array( 'shop_order', 'shop_coupon' );
+
+	if ( isset( $post_type ) ) {
+		if (  in_array( $post_type, $to_highlight ) ) {
+			$submenu_file = 'edit.php?post_type=' . $post_type;
+			$parent_file  = 'woocommerce';
+		}
+	}
 }
 
 /**
@@ -143,6 +168,10 @@ function woocommerce_attributes_page() {
 	include_once( 'woocommerce-admin-attributes.php' );
 	woocommerce_attributes();
 }
+function woocommerce_debug_page() {
+	include_once( 'woocommerce-admin-debug.php' );
+	woocommerce_debug();
+}
 
 /**
  * Installation functions
@@ -192,7 +221,7 @@ function woocommerce_admin_scripts() {
     	wp_enqueue_script('farbtastic');
     	wp_enqueue_script( 'ajax-chosen' );
     	wp_enqueue_script( 'chosen' );
-    	wp_enqueue_script('jquery-ui-sortable');
+    	wp_enqueue_script( 'jquery-ui-sortable' );
 
     endif;
     
@@ -423,7 +452,7 @@ function woocommerce_exclude_image_from_product_page_field_save( $post, $attachm
 }
 
 function woocommerce_exclude_image_from_product_page_field_add( $post_id ) {
-	add_post_meta( $post_id, '_woocommerce_exclude_image', 0);
+	add_post_meta( $post_id, '_woocommerce_exclude_image', 0, true );
 }
 
 /**
