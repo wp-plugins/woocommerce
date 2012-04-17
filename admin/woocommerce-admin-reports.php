@@ -9,8 +9,8 @@
 
 function woocommerce_reports() {
 
-	$current_tab = (isset($_GET['tab'])) ? $_GET['tab'] : 'sales';
-	$current_chart = (isset($_GET['chart'])) ? $_GET['chart'] : 0;
+	$current_tab 	= ( isset( $_GET['tab'] ) ) 	? urldecode( $_GET['tab'] ) : 'sales';
+	$current_chart 	= ( isset( $_GET['chart'] ) )	? urldecode( $_GET['chart'] ) : 0;
 	
 	$charts = apply_filters('woocommerce_reports_charts', array(
 		'sales' => array(
@@ -65,10 +65,10 @@ function woocommerce_reports() {
 	));
     ?>
 	<div class="wrap woocommerce">
-		<div class="icon32 icon32-woocommerce-reports" id="icon-woocommerce"><br></div><h2 class="nav-tab-wrapper woo-nav-tab-wrapper">
+		<div class="icon32 icon32-woocommerce-reports" id="icon-woocommerce"><br /></div><h2 class="nav-tab-wrapper woo-nav-tab-wrapper">
 			<?php
 				foreach ($charts as $name => $value) :
-					echo '<a href="'.admin_url('admin.php?page=woocommerce_reports&tab='.$name).'" class="nav-tab ';
+					echo '<a href="'.admin_url( 'admin.php?page=woocommerce_reports&tab=' . urlencode($name) ).'" class="nav-tab ';
 					if( $current_tab == $name ) echo 'nav-tab-active';
 					echo '">'.ucfirst($name).'</a>';
 				endforeach;
@@ -79,7 +79,7 @@ function woocommerce_reports() {
 		<?php if (sizeof($charts[$current_tab])>1) : ?><ul class="subsubsub"><li><?php
 			$links = array();
 			foreach ($charts[$current_tab] as $key => $chart) :
-				$link = '<a href="admin.php?page=woocommerce_reports&tab='.$current_tab.'&amp;chart='.$key.'" class="';
+				$link = '<a href="admin.php?page=woocommerce_reports&tab=' . urlencode($current_tab) . '&amp;chart=' . urlencode($key) . '" class="';
 				if ($key==$current_chart) $link .= 'current';
 				$link .= '">'.$chart['title'].'</a>';
 				$links[] = $link;
@@ -1493,11 +1493,11 @@ function woocommerce_stock_overview() {
 					if ($low_in_stock) :
 						echo '<ul class="stock_list">';
 						foreach ($low_in_stock as $product) :
-							$stock = get_post_meta($product->ID, '_stock', true);
-							if ($stock<=$nostockamount) continue;
+							$stock = (int) get_post_meta($product->ID, '_stock', true);
+							if ( $stock <= $nostockamount ) continue;
 							echo '<li><a href="';
 							if ($product->post_type=='product') echo admin_url('post.php?post='.$product->ID.'&action=edit'); else echo admin_url('post.php?post='.$product->post_parent.'&action=edit');
-							echo '"><small>'.$stock.__(' in stock', 'woocommerce').'</small> '.$product->post_title.'</a></li>';
+							echo '"><small>' . sprintf( _n('%d in stock', '%d in stock', $stock, 'woocommerce'), $stock ) . '</small> ' . $product->post_title . '</a></li>';
 						endforeach;
 						echo '</ul>';
 					else :
@@ -1515,11 +1515,11 @@ function woocommerce_stock_overview() {
 					if ($low_in_stock) :
 						echo '<ul class="stock_list">';
 						foreach ($low_in_stock as $product) :
-							$stock = get_post_meta($product->ID, '_stock', true);
-							if ($stock>$nostockamount) continue;
+							$stock = (int) get_post_meta($product->ID, '_stock', true);
+							if ( $stock > $nostockamount ) continue;
 							echo '<li><a href="';
 							if ($product->post_type=='product') echo admin_url('post.php?post='.$product->ID.'&action=edit'); else echo admin_url('post.php?post='.$product->post_parent.'&action=edit');
-							echo '"><small>'.$stock.__(' in stock', 'woocommerce').'</small> '.$product->post_title.'</a></li>';
+							echo '"><small>' . sprintf( _n('%d in stock', '%d in stock', $stock, 'woocommerce'), $stock ) . '</small> ' . $product->post_title . '</a></li>';
 						endforeach;
 						echo '</ul>';
 					else :

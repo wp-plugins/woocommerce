@@ -223,7 +223,7 @@ class WC_Cart {
 		 */
 		function check_cart_items() {
 			global $woocommerce;
-			
+
 			// Check item stock
 			$result = $this->check_cart_item_stock();
 			
@@ -513,7 +513,7 @@ class WC_Cart {
 		 * @return array contents of the cart
 		 */
 		function get_cart() {
-			return (array) $this->cart_contents;
+			return array_filter( (array) $this->cart_contents );
 		}
 		
 		/**
@@ -560,7 +560,7 @@ class WC_Cart {
 	     * @param array $cart_item_data other cart item data passed which affects this items uniqueness in the cart
 	     * @return string cart item key
 	     */
-	    function generate_cart_id( $product_id, $variation_id = '', $variation = '', $cart_item_data = '' ) {
+	    function generate_cart_id( $product_id, $variation_id = '', $variation = '', $cart_item_data = array() ) {
 	        
 	        $id_parts = array( $product_id );
 	        
@@ -574,7 +574,7 @@ class WC_Cart {
 	            $id_parts[] = $variation_key;
 	        }
 	        
-	        if ( is_array( $cart_item_data ) ) {
+	        if ( is_array( $cart_item_data ) && ! empty( $cart_item_data ) ) {
 	            $cart_item_data_key = '';
 	            foreach ( $cart_item_data as $key => $value ) {
 	            	if ( is_array( $value ) ) $value = http_build_query( $value );
@@ -673,22 +673,26 @@ class WC_Cart {
 			// If cart_item_key is set, the item is already in the cart
 			if ( $cart_item_key ) {
 	
-				$quantity = $quantity + $this->cart_contents[$cart_item_key]['quantity'];
+				$new_quantity = $quantity + $this->cart_contents[$cart_item_key]['quantity'];
 	
-				$this->set_quantity( $cart_item_key, $quantity );
+				$this->set_quantity( $cart_item_key, $new_quantity );
 	
 			} else {
+			
+				$cart_item_key = $cart_id;
 				
 				// Add item after merging with $cart_item_data - hook to allow plugins to modify cart item
-				$this->cart_contents[$cart_id] = apply_filters( 'woocommerce_add_cart_item', array_merge( $cart_item_data, array(
+				$this->cart_contents[$cart_item_key] = apply_filters( 'woocommerce_add_cart_item', array_merge( $cart_item_data, array(
 					'product_id'	=> $product_id,
 					'variation_id'	=> $variation_id,
 					'variation' 	=> $variation,
 					'quantity' 		=> $quantity,
 					'data'			=> $product_data
-				) ) );
+				) ), $cart_item_key );
 			
 			}
+			
+			do_action( 'woocommerce_add_to_cart', $cart_item_key, $product_id, $quantity, $variation_id, $variation, $cart_item_data );
 			
 			$woocommerce->cart_has_contents_cookie( true );
 
@@ -709,7 +713,7 @@ class WC_Cart {
 				unset( $this->cart_contents[$cart_item_key] );
 			} else {
 				$this->cart_contents[$cart_item_key]['quantity'] = $quantity;
-				do_action( 'woocommerce_after_cart_item_quantity_update', $this->cart_contents[$cart_item_key], $quantity );
+				do_action( 'woocommerce_after_cart_item_quantity_update', $cart_item_key, $quantity );
 			}
 			
 			$this->set_session();
@@ -1317,22 +1321,62 @@ class WC_Cart {
 	/* Shipping related functions */
 	/*-----------------------------------------------------------------------------------*/ 
 
-		/** 
-		 * Use the shipping class to calculate shipping
+		/**
+		 * calculate_shipping function.
+		 * 
+		 * Uses the shipping class to calculate shipping then gets the totals when its finished.
+		 *
+		 * @access public
+		 * @return void
 		 */
 		function calculate_shipping() {
 			global $woocommerce;
 			
-			if ( $this->needs_shipping() ) {
-				$woocommerce->shipping->calculate_shipping();
+			if ( $this->needs_shipping() && $this->show_shipping() ) {
+				$woocommerce->shipping->calculate_shipping( $this->get_shipping_packages() );
 			} else {
 				$woocommerce->shipping->reset_shipping(); 
 			}
 			
+			// Get totals for the chosen shipping method
 			$this->shipping_total 		= $woocommerce->shipping->shipping_total;	// Shipping Total
 			$this->shipping_label 		= $woocommerce->shipping->shipping_label;	// Shipping Label
 			$this->shipping_taxes		= $woocommerce->shipping->shipping_taxes;	// Shipping Taxes
 			$this->shipping_tax_total 	= $this->tax->get_tax_total( $this->shipping_taxes );	// Shipping tax amount
+		}
+		
+		/**
+		 * get_shipping_packages function.
+		 *
+		 * Get packages to calculate shipping for - this lets us calculate costs 
+		 * for carts that are shipped to multiple locations.
+		 *
+		 * Shipping methods are responsble for looping through these packages.
+		 *
+		 * By default we pass the cart itself as a package - plugins can change this
+		 * through the filter and break it up.
+		 * 
+		 * @since 1.5.4
+		 * @access public
+		 * @return array of cart items
+		 */
+		function get_shipping_packages() {
+			global $woocommerce;
+			
+			// Packages array for storing 'carts'
+			$packages = array();
+			
+			$packages[0]['contents'] 				= $this->get_cart();	// Items in the package
+			$packages[0]['contents_cost'] 			= 0;					// Cost of items in the package
+			$packages[0]['destination']['country'] 	= $woocommerce->customer->get_shipping_country();
+			$packages[0]['destination']['state'] 	= $woocommerce->customer->get_shipping_state();
+			$packages[0]['destination']['postcode'] = $woocommerce->customer->get_shipping_postcode();
+			
+			foreach ( $this->get_cart() as $item ) 
+				if ( $item['data']->needs_shipping() ) 
+					$packages[0]['contents_cost'] += $item['line_total'];
+			
+			return apply_filters( 'woocommerce_cart_shipping_packages', $packages );
 		}
 		
 		/** 
@@ -1354,6 +1398,31 @@ class WC_Cart {
 			}
 			
 			return apply_filters( 'woocomerce_cart_needs_shipping', $needs_shipping );
+		}
+		
+		/** 
+		 * show_shipping
+		 *
+		 * Sees if the customer has entered enough data to calc the shipping yet
+		 *
+		 * @return bool
+		 */
+		function show_shipping() {
+			global $woocommerce;
+			
+			if ( get_option('woocommerce_calc_shipping')=='no' ) return false;
+			if ( ! is_array( $this->cart_contents ) ) return false;
+			
+			if ( get_option( 'woocommerce_shipping_cost_requires_address' ) == 'yes' ) {
+				if ( empty( $_SESSION['calculated_shipping'] ) ) {
+					if ( ! $woocommerce->customer->get_shipping_country() || ! $woocommerce->customer->get_shipping_state() ) return false;
+				}
+			}
+		
+			$show_shipping = true;
+			
+			return apply_filters( 'woocomerce_cart_ready_to_calc_shipping', $show_shipping );
+
 		}
 		
 		/** 

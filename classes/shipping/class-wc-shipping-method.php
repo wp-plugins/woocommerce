@@ -19,6 +19,7 @@ class WC_Shipping_Method extends WC_Settings_API {
 	var $countries;
 	var $type;
 	var $fee				= 0;
+	var $minimum_fee		= null;
 	var $min_amount			= null;
 	var $enabled			= false;
 	
@@ -117,38 +118,38 @@ class WC_Shipping_Method extends WC_Settings_API {
 		$this->rates[] = new WC_Shipping_Rate( $id, $label, $total_cost, $taxes );
 	}
 	
-    function is_available() {
+    function is_available( $package ) {
     	global $woocommerce;
     	
     	if ($this->enabled=="no") 
     		return false;
     	
-		if (isset($woocommerce->cart->cart_contents_total) && isset($this->min_amount) && $this->min_amount && $this->min_amount > $woocommerce->cart->cart_contents_total) 
+		if ( isset( $woocommerce->cart->cart_contents_total ) && isset( $this->min_amount ) && $this->min_amount && $this->min_amount > $woocommerce->cart->cart_contents_total ) 
 			return false;
 		
 		$ship_to_countries = '';
 		
-		if ($this->availability == 'specific') :
+		if ( $this->availability == 'specific' ) :
 			$ship_to_countries = $this->countries;
 		else :
-			if (get_option('woocommerce_allowed_countries')=='specific') :
+			if ( get_option('woocommerce_allowed_countries') == 'specific' ) :
 				$ship_to_countries = get_option('woocommerce_specific_allowed_countries');
 			endif;
 		endif; 
 		
-		if (is_array($ship_to_countries)) :
-			if (!in_array($woocommerce->customer->get_shipping_country(), $ship_to_countries)) return false;
+		if ( is_array( $ship_to_countries ) ) :
+			if ( ! in_array( $package['destination']['country'], $ship_to_countries ) ) return false;
 		endif;
 		
 		return apply_filters( 'woocommerce_shipping_' . $this->id . '_is_available', true );
     } 
     
     function get_fee( $fee, $total ) {
-		if (strstr($fee, '%')) :
-			return ($total/100) * str_replace('%', '', $fee);
-		else :
-			return $fee;
+		if ( strstr( $fee, '%' ) ) :
+			$fee = ( $total / 100 ) * str_replace( '%', '', $fee );
 		endif;
+		if ( ! empty( $this->minimum_fee ) && $this->minimum_fee > $fee ) $fee = $this->minimum_fee;
+		return $fee;
 	}	
 }
 

@@ -128,7 +128,9 @@ if (!function_exists('woocommerce_show_messages')) {
 				'errors' => $woocommerce->get_errors()
 			));
 			
-		} elseif ( $woocommerce->message_count() > 0 ) {
+		}
+		
+		if ( $woocommerce->message_count() > 0 ) {
 		
 			woocommerce_get_template('shop/messages.php', array(
 				'messages' => $woocommerce->get_messages()
@@ -764,4 +766,32 @@ if (!function_exists('woocommerce_form_field')) {
 
 		if ($args['return']) return $field; else echo $field;
 	}
+}
+
+/**
+ * Product search forms
+ */
+function get_product_search_form( $echo = true ) {
+	do_action( 'get_product_search_form' );
+
+	$search_form_template = locate_template('product-searchform.php');
+	if ( '' != $search_form_template ) {
+		require($search_form_template);
+		return;
+	}
+
+	$form = '<form role="search" method="get" id="searchform" action="' . esc_url( home_url( '/' ) ) . '">
+		<div>
+			<label class="screen-reader-text" for="s">' . __('Search for:', 'woocommerce') . '</label>
+			<input type="text" value="' . get_search_query() . '" name="s" id="s" placeholder="' . __('Search for products', 'woocommerce') . '" />
+			<input type="submit" id="searchsubmit" value="'. esc_attr__('Search') .'" />
+			<input type="hidden" name="post_type" value="product" />
+		</div>
+	</form>';
+
+	if ( $echo )
+		echo apply_filters('get_product_search_form', $form);
+	else
+		return apply_filters('get_product_search_form', $form);
+		
 }

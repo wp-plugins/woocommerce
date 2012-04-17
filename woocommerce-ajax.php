@@ -80,9 +80,9 @@ function woocommerce_ajax_update_shipping_method() {
 	
 	check_ajax_referer( 'update-shipping-method', 'security' );
 	
-	if (!defined('WOOCOMMERCE_CART')) define('WOOCOMMERCE_CART', true);
+	if ( ! defined('WOOCOMMERCE_CART') ) define( 'WOOCOMMERCE_CART', true );
 	
-	if (isset($_POST['shipping_method'])) $_SESSION['_chosen_shipping_method'] = $_POST['shipping_method'];
+	if ( isset( $_POST['shipping_method'] ) ) $_SESSION['_chosen_shipping_method'] = $_POST['shipping_method'];
 	
 	$woocommerce->cart->calculate_totals();
 	
@@ -248,6 +248,39 @@ function woocommerce_mark_order_processing() {
 
 }
 add_action('wp_ajax_woocommerce-mark-order-processing', 'woocommerce_mark_order_processing');
+
+/**
+ * Add a new attribute via ajax function
+ */
+add_action('wp_ajax_woocommerce_add_new_attribute', 'woocommerce_add_new_attribute');
+
+function woocommerce_add_new_attribute() {
+	
+	check_ajax_referer( 'add-attribute', 'security' );
+	
+	$taxonomy = esc_attr( $_POST['taxonomy'] );
+	$term = stripslashes( $_POST['term'] );
+	
+	if ( taxonomy_exists( $taxonomy ) ) {
+		
+		$result = wp_insert_term( $term, $taxonomy );
+		
+		if ( is_wp_error($result) ) {
+   			echo json_encode(array(
+				'error'			=> $result->get_error_message()
+			));
+   		} else {
+	   		echo json_encode(array(
+				'term_id'		=> $result['term_id'],
+				'name'			=> $term,
+				'slug'  		=> sanitize_title( $term ),
+			));
+		}
+	}
+	
+	die();
+	
+}
 
 /**
  * Delete variation via ajax function
@@ -515,41 +548,54 @@ function woocommerce_grant_access_to_download() {
 	$limit = trim(get_post_meta($product_id, '_download_limit', true));
 	$expiry = trim(get_post_meta($product_id, '_download_expiry', true));
 	
-	$limit = (empty($limit)) ? '' : (int) $limit;
-	$expiry = (empty($expiry)) ? '' : (int) $expiry;
+    $limit = (empty($limit)) ? '' : (int) $limit;
+
+    // Default value is NULL in the table schema
+	$expiry = (empty($expiry)) ? null : (int) $expiry;
 	
 	if ($expiry) $expiry = date("Y-m-d", strtotime('NOW + ' . $expiry . ' DAY'));
 				
 	$wpdb->hide_errors();
 
-	$success = $wpdb->insert( $wpdb->prefix . 'woocommerce_downloadable_product_permissions', array( 
-		'product_id' => $product_id, 
-		'user_id' => $order->user_id,
-		'user_email' => $user_email,
-		'order_id' => $order->id,
-		'order_key' => $order->order_key,
-		'downloads_remaining' => $limit,
-		'access_granted'		=> current_time('mysql'),
-		'access_expires'		=> $expiry,
-		'download_count'		=> 0
-	), array( 
-		'%s', 
-		'%s', 
-		'%s', 
-		'%s', 
-		'%s',
-		'%s',
-		'%s',
-		'%s',
-		'%d'
-	) );
-	
+    $data = array(
+        'product_id' 			=> $product_id, 
+        'user_id' 				=> $order->user_id,
+        'user_email' 			=> $user_email,
+        'order_id' 				=> $order->id,
+        'order_key' 			=> $order->order_key,
+        'downloads_remaining' 	=> $limit,
+        'access_granted'		=> current_time('mysql'),
+        'download_count'		=> 0
+    );
+
+    $format = array(
+        '%s', 
+        '%s', 
+        '%s', 
+        '%s', 
+        '%s',
+        '%s',
+        '%s',
+        '%d'
+    );
+
+    if ( ! is_null($expiry)) {
+        $data['access_expires'] = $expiry;
+        $format[] = '%s';
+    }
+
+    // Downloadable product - give access to the customer
+    $success = $wpdb->insert( $wpdb->prefix . 'woocommerce_downloadable_product_permissions', 
+        $data,
+        $format
+    );	
+
 	if ($success) {
 		echo json_encode(array(
 			'success'		=> 1,
 			'download_id'  	=> $product_id,
 			'title'			=> get_the_title($product_id),
-			'expires'		=> $expiry,
+			'expires'		=> is_null($expiry) ? '' : $expiry,
 			'remaining'		=> $limit
 		));
 	}
@@ -637,14 +683,14 @@ function woocommerce_add_order_item() {
 	endif;
 	?>
 	<tr class="item" rel="<?php echo $index; ?>">
-		<td class="product-id">
-			<img class="tips" data-tip="<?php
+		<td class="thumb">
+			<a href="<?php echo esc_url( admin_url('post.php?post='. $_product->id .'&action=edit') ); ?>" class="tips" data-tip="<?php
 				echo '<strong>'.__('Product ID:', 'woocommerce').'</strong> '. $_product->id;
 				echo '<br/><strong>'.__('Variation ID:', 'woocommerce').'</strong> '; if (isset($_product->variation_id) && $_product->variation_id) echo $_product->variation_id; else echo '-';
 				echo '<br/><strong>'.__('Product SKU:', 'woocommerce').'</strong> '; if ($_product->sku) echo $_product->sku; else echo '-';
-			?>" src="<?php echo $woocommerce->plugin_url(); ?>/assets/images/tip.png" />
+			?>"><?php echo $_product->get_image(); ?></a>
 		</td>
-		<td class="sku">
+		<td class="sku" width="1%">
 			<?php if ($_product->sku) echo $_product->sku; else echo '-'; ?>
 			<input type="hidden" class="item_id" name="item_id[<?php echo $index; ?>]" value="<?php echo esc_attr( $_product->id ); ?>" />
 			<input type="hidden" name="item_name[<?php echo $index; ?>]" value="<?php echo esc_attr( $_product->get_title() ); ?>" />
@@ -829,7 +875,7 @@ function woocommerce_json_search_products( $x = '', $post_types = array('product
 	
 	if (empty($term)) die();
 	
-	if (is_numeric($term)) {
+	if ( is_numeric( $term ) ) {
 		
 		$args = array(
 			'post_type'			=> $post_types,
@@ -839,7 +885,15 @@ function woocommerce_json_search_products( $x = '', $post_types = array('product
 			'fields'			=> 'ids'
 		);
 		
-		$posts = get_posts( $args );
+		$args2 = array(
+			'post_type'			=> $post_types,
+			'post_status'	 	=> 'publish',
+			'posts_per_page' 	=> -1,
+			'post_parent' 		=> $term,
+			'fields'			=> 'ids'
+		);
+		
+		$posts = array_unique(array_merge( get_posts( $args ), get_posts( $args2 ) ));
 		
 	} else {
 	
@@ -877,7 +931,7 @@ function woocommerce_json_search_products( $x = '', $post_types = array('product
 		
 		if (isset($SKU) && $SKU) $SKU = ' (SKU: ' . $SKU . ')';
 		
-		$found_products[$post] = get_the_title($post) . $SKU;
+		$found_products[$post] = get_the_title( $post ) . ' &ndash; #' . $post . $SKU;
 		
 	}
 	
@@ -926,7 +980,7 @@ function woocommerce_upsell_crosssell_search_products() {
 	
 	endif;
 	
-	$posts = get_posts( $args );
+	$posts = apply_filters('woocommerce_upsell_crosssell_search_products', get_posts( $args ));
 	
 	if ($posts) : foreach ($posts as $post) : 
 		

@@ -254,7 +254,10 @@ class WC_Order {
 		endif;
 		return $this->taxes;
 	}
-	
+
+
+	/** Total Getters *******************************************************/
+
 	/** Gets shipping and product tax */
 	function get_total_tax() {
 		return $this->order_tax + $this->order_shipping_tax;
@@ -292,8 +295,7 @@ class WC_Order {
 	function get_order_total() {
 		return $this->order_total;
 	}
-	
-	
+		
 	/** Get item subtotal - this is the cost before discount */
 	function get_item_subtotal( $item, $inc_tax = false, $round = true ) {
 		if ($inc_tax) :
@@ -354,6 +356,9 @@ class WC_Order {
 		_deprecated_function( __FUNCTION__, '1.4', 'get_row_cost()' );
 		return $this->get_line_total( $item, $inc_tax );
 	}
+	
+	/** End Total Getters *******************************************************/
+
 	
 	/** Gets line subtotal - formatted for display */
 	function get_formatted_line_subtotal( $item ) {
@@ -612,7 +617,10 @@ class WC_Order {
 		$comment_author_url 	= '';
 		$comment_content 		= esc_attr( $note );
 		$comment_agent			= 'WooCommerce';
-		$commentdata 			= compact('comment_post_ID', 'comment_author', 'comment_author_email', 'comment_author_url', 'comment_content', 'comment_agent');
+		$comment_type			= '';
+		$comment_parent			= 0;
+		$comment_approved 		= 1;
+		$commentdata 			= compact( 'comment_post_ID', 'comment_author', 'comment_author_email', 'comment_author_url', 'comment_content', 'comment_agent', 'comment_type', 'comment_parent', 'comment_approved' );
 		
 		$comment_id = wp_insert_comment( $commentdata );
 		
@@ -746,43 +754,59 @@ class WC_Order {
 	 */
 	function reduce_order_stock() {
 		
-		if (get_option('woocommerce_manage_stock')=='yes' && sizeof($this->get_items())>0) :
+		if ( get_option('woocommerce_manage_stock') == 'yes' && sizeof( $this->get_items() ) > 0 ) {
 		
 			// Reduce stock levels and do any other actions with products in the cart
-			foreach ($this->get_items() as $item) :
+			foreach ( $this->get_items() as $item ) {
 			
-				if ($item['id']>0) :
+				if ($item['id']>0) {
 					$_product = $this->get_product_from_item( $item );
 					
-					if ( $_product && $_product->exists && $_product->managing_stock() ) :
+					if ( $_product && $_product->exists && $_product->managing_stock() ) {
 					
 						$old_stock = $_product->stock;
 						
 						$new_quantity = $_product->reduce_stock( $item['qty'] );
 						
 						$this->add_order_note( sprintf( __('Item #%s stock reduced from %s to %s.', 'woocommerce'), $item['id'], $old_stock, $new_quantity) );
-							
-						if ($new_quantity<0) :
-							do_action('woocommerce_product_on_backorder', array( 'product' => $_product, 'order_id' => $this->id, 'quantity' => $item['qty']));
-						endif;
 						
-						// stock status notifications
-						if (get_option('woocommerce_notify_no_stock_amount') && get_option('woocommerce_notify_no_stock_amount')>=$new_quantity) :
-							do_action('woocommerce_no_stock', $_product);
-						elseif (get_option('woocommerce_notify_low_stock_amount') && get_option('woocommerce_notify_low_stock_amount')>=$new_quantity) :
-							do_action('woocommerce_low_stock', $_product);
-						endif;
+						$this->send_stock_notifications( $_product, $new_quantity, $item['qty'] );
 						
-					endif;
+					}
 					
-				endif;
+				}
 			 	
-			endforeach;
+			}
+			
+			do_action( 'woocommerce_reduce_order_stock', $this );
 			
 			$this->add_order_note( __('Order item stock reduced successfully.', 'woocommerce') );
-		
-		endif;
 			
+		}
+			
+	}
+	
+	/**
+	 * send_stock_notifications function.
+	 */
+	function send_stock_notifications( $product, $new_stock, $qty_ordered ) {
+		
+		// Backorders
+		if ( $new_stock < 0 )
+			do_action( 'woocommerce_product_on_backorder', array( 'product' => $product, 'order_id' => $this->id, 'quantity' => $qty_ordered ) );
+		
+		// stock status notifications
+		$notification_sent = false;
+		
+		if ( get_option( 'woocommerce_notify_no_stock' ) == 'yes' && get_option('woocommerce_notify_no_stock_amount') >= $new_stock ) {
+			do_action( 'woocommerce_no_stock', $product );
+			$notification_sent = true;
+		}
+		if ( ! $notification_sent && get_option( 'woocommerce_notify_low_stock' ) == 'yes' && get_option('woocommerce_notify_low_stock_amount') >= $new_stock ) {
+			do_action( 'woocommerce_low_stock', $product );
+			$notification_sent = true;
+		}
+
 	}
 	
 	/**

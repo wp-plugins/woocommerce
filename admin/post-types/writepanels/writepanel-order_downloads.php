@@ -257,18 +257,30 @@ function woocommerce_order_downloads_save( $post_id, $post ) {
 		$order_key = get_post_meta($post->ID, '_order_key', true);
 		$customer_email = get_post_meta($post->ID, '_billing_email', true);
 		$customer_user = (int) get_post_meta($post->ID, '_customer_user', true);
+		$download_ids_count = sizeof( $download_ids );
+		for ($i=0; $i<$download_ids_count; $i++) :
 
-		for ($i=0; $i<sizeof($download_ids); $i++) :
-			
-			$wpdb->update( $wpdb->prefix . "woocommerce_downloadable_product_permissions", array( 
+            $data = array(
 				'user_id'				=> $customer_user,
 				'user_email' 			=> $customer_email,
 				'downloads_remaining'	=> $downloads_remaining[$i],
-				'access_expires'		=> ($access_expires[$i]) ? date('Y-m-d', strtotime($access_expires[$i])) : ''
-			), array( 
+            );
+
+            $format = array( '%d', '%s', '%s');
+
+            $expiry  = array_key_exists($i, $access_expires) ? date('Y-m-d', strtotime($access_expires[$i])) : null;
+
+            if ( ! is_null($expiry)) {
+                $data['access_expires'] = $expiry;
+                $format[] = '%s';
+            }
+
+            $wpdb->update( $wpdb->prefix . "woocommerce_downloadable_product_permissions",
+			    $data,
+                array( 
 				'order_id' 		=> $post_id,
 				'product_id' 	=> $download_ids[$i] 
-			), array( '%d', '%s', '%s', '%s' ), array( '%d', '%d' ) );
+			), $format, array( '%d', '%d' ) );
 			
 		endfor;
 		

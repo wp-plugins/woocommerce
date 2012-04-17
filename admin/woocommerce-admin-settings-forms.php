@@ -14,9 +14,9 @@
  */
 function woocommerce_update_options($options) {
     
-    if(!isset($_POST) || !$_POST) return false;
+    if ( empty( $_POST ) ) return false;
     
-    foreach ($options as $value) {
+    foreach ( $options as $value ) {
     	if (isset($value['id']) && $value['id']=='woocommerce_tax_rates') :
     		
     		// Tax rates saving
@@ -28,8 +28,8 @@ function woocommerce_update_options($options) {
     		$tax_postcode 		= (isset($_POST['tax_postcode'])) ? $_POST['tax_postcode'] : array();
     		$tax_compound 		= (isset($_POST['tax_compound'])) ? $_POST['tax_compound'] : array();
     		$tax_label 			= (isset($_POST['tax_label'])) ? $_POST['tax_label'] : array();
-			
-			for ($i=0; $i<sizeof($tax_classes); $i++) :
+			$tax_classes_count	= sizeof( $tax_classes );
+			for ($i=0; $i<$tax_classes_count; $i++) :
 				
 				if (isset($tax_classes[$i]) && isset($tax_countries[$i]) && isset($tax_rate[$i]) && is_numeric($tax_rate[$i])) :
 					
@@ -84,8 +84,8 @@ function woocommerce_update_options($options) {
     		$tax_postcode 		= (isset($_POST['local_tax_postcode'])) ? $_POST['local_tax_postcode'] : array();
     		$tax_compound 		= (isset($_POST['local_tax_compound'])) ? $_POST['local_tax_compound'] : array();
     		$tax_label 			= (isset($_POST['local_tax_label'])) ? $_POST['local_tax_label'] : array();
-			
-			for ($i=0; $i<sizeof($tax_classes); $i++) :
+			$tax_classes_count	= sizeof( $tax_classes );
+			for ($i=0; $i<$tax_classes_count; $i++) :
 			
 				if (isset($tax_classes[$i]) && isset($tax_countries[$i]) && isset($tax_rate[$i]) && is_numeric($tax_rate[$i])) :
 					
@@ -247,9 +247,13 @@ function woocommerce_admin_fields($options) {
                     <td class="forminp"><select name="<?php echo esc_attr( $value['id'] ); ?>" id="<?php echo esc_attr( $value['id'] ); ?>" style="<?php echo esc_attr( $value['css'] ); ?>" class="<?php if (isset($value['class'])) echo $value['class']; ?>">
                         <?php
                         foreach ($value['options'] as $key => $val) {
-                        ?>
-                            <option value="<?php echo esc_attr( $key ); ?>" <?php if (get_option($value['id']) == $key) { ?> selected="selected" <?php } ?>><?php echo $val ?></option>
-                        <?php
+                        	$_current = get_option( $value['id'] );
+							if ( ! $_current ) {
+								$_current = $value['std'];
+							}
+                        	?>
+                        	<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $_current, $key ); ?>><?php echo $val ?></option>
+                        	<?php
                         }
                         ?>
                        </select> <?php echo $description; ?>
@@ -286,7 +290,7 @@ function woocommerce_admin_fields($options) {
 	            <legend class="screen-reader-text"><span><?php echo $value['name'] ?></span></legend>
 					<label for="<?php echo $value['id'] ?>">
 					<input name="<?php echo esc_attr( $value['id'] ); ?>" id="<?php echo esc_attr( $value['id'] ); ?>" type="checkbox" value="1" <?php checked(get_option($value['id']), 'yes'); ?> />
-					<?php echo $value['desc'] ?></label><br>
+					<?php echo $value['desc'] ?></label><br />
 				<?php
 				
 				if (!isset($value['checkboxgroup']) || (isset($value['checkboxgroup']) && $value['checkboxgroup']=='end')) :
@@ -376,7 +380,7 @@ function woocommerce_admin_fields($options) {
                     <td class="forminp">
                     	<!--<a class="button export_rates"><?php _e('Export rates', 'woocommerce'); ?></a>
                     	<a class="button import_rates"><?php _e('Import rates', 'woocommerce'); ?></a>
-                    	<p style="margin-top:0;" class="description"><?php echo sprintf(__('Define tax rates for countries and states below, or alternatively upload a CSV file containing your rates to <code>wp-content/woocommerce_tax_rates.csv</code> instead. <a href="%s">Download sample csv.</a>', 'woocommerce'), ''); ?></p>-->
+                    	<p style="margin-top:0;" class="description"><?php printf(__('Define tax rates for countries and states below, or alternatively upload a CSV file containing your rates to <code>wp-content/woocommerce_tax_rates.csv</code> instead. <a href="%s">Download sample csv.</a>', 'woocommerce'), ''); ?></p>-->
                     	<table class="taxrows widefat" cellspacing="0">
 		            		<thead>
 		            			<tr>
@@ -448,7 +452,7 @@ function woocommerce_admin_fields($options) {
 				    <td class="forminp">
 				    	<!--<a class="button export_rates"><?php _e('Export rates', 'woocommerce'); ?></a>
 				    	<a class="button import_rates"><?php _e('Import rates', 'woocommerce'); ?></a>
-				    	<p style="margin-top:0;" class="description"><?php echo sprintf(__('Define local tax rates below, or alternatively upload a CSV file containing your rates to <code>wp-content/woocommerce_local_tax_rates.csv</code> instead. <a href="%s">Download sample csv.</a>', 'woocommerce'), ''); ?></p>-->
+				    	<p style="margin-top:0;" class="description"><?php printf(__('Define local tax rates below, or alternatively upload a CSV file containing your rates to <code>wp-content/woocommerce_local_tax_rates.csv</code> instead. <a href="%s">Download sample csv.</a>', 'woocommerce'), ''); ?></p>-->
 				    	<table class="taxrows widefat" cellspacing="0">
 				    		<thead>
 				    			<tr>

@@ -3,10 +3,10 @@
  * Plugin Name: WooCommerce
  * Plugin URI: http://www.woothemes.com/woocommerce/
  * Description: An e-commerce toolkit that helps you sell anything. Beautifully.
- * Version: 1.5.3
+ * Version: 1.5.4
  * Author: WooThemes
  * Author URI: http://woothemes.com
- * Requires at least: 3.1
+ * Requires at least: 3.3
  * Tested up to: 3.3
  * 
  * Text Domain: woocommerce
@@ -32,7 +32,7 @@ class Woocommerce {
 	
 	/** Version ***************************************************************/
 	
-	var $version = '1.5.3';
+	var $version = '1.5.4';
 	
 	/** URLS ******************************************************************/
 	
@@ -59,10 +59,6 @@ class Woocommerce {
 	/** Taxonomies ************************************************************/
 	
 	var $attribute_taxonomies; // Stores the attribute taxonomies used in the store
-
-	/** Cache *****************************************************************/
-
-	private $_cache;
 	
 	/** Body Classes **********************************************************/
 	
@@ -893,7 +889,6 @@ class Woocommerce {
 	 * Init frontend CSS
 	 */
 	function init_styles() {
-		$suffix = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ? '' : '.min';
 		$chosen_en = ( get_option('woocommerce_enable_chosen') == 'yes' ) ? true : false;
 		$lightbox_en = ( get_option('woocommerce_enable_lightbox') == 'yes' ) ? true : false;
 		
@@ -904,8 +899,8 @@ class Woocommerce {
 			wp_enqueue_style( 'woocommerce_frontend_styles' );
 		}
     
-    	if ($lightbox_en) wp_enqueue_style( 'woocommerce_fancybox_styles', $this->plugin_url() . '/assets/css/fancybox'.$suffix.'.css' );
-    	if ($chosen_en) wp_enqueue_style( 'woocommerce_chosen_styles', $this->plugin_url() . '/assets/css/chosen'.$suffix.'.css' );
+    	if ($lightbox_en) wp_enqueue_style( 'woocommerce_fancybox_styles', $this->plugin_url() . '/assets/css/fancybox.css' );
+    	if ($chosen_en) wp_enqueue_style( 'woocommerce_chosen_styles', $this->plugin_url() . '/assets/css/chosen.css' );
 	}
 	
 	/**
@@ -1043,7 +1038,7 @@ class Woocommerce {
 	function plugin_path() { 	
 		if ( $this->plugin_path ) return $this->plugin_path;
 		
-		return $this->plugin_path = plugin_dir_path( __FILE__ );
+		return $this->plugin_path = untrailingslashit( plugin_dir_path( __FILE__ ) );
 	}
 	 
 	/**
@@ -1285,40 +1280,19 @@ class Woocommerce {
 		return false;
 	}
 	
-	/** Cache Helpers *********************************************************/
+	/** Shortcode Helpers *********************************************************/
 	
 	/**
-	 * Cache API
+	 * Shortcode Wrapper
 	 */
-	function cache( $id, $data, $args=array() ) {
-
-		if ( ! isset( $this->_cache[ $id ] ) ) $this->_cache[ $id ] = array();
-		
-		if ( empty( $args ) ) $this->_cache[ $id ][0] = $data;
-		else $this->_cache[ $id ][ serialize($args) ] = $data;
-		
-		return $data;
-		
-	}
-	function cache_get( $id, $args=array() ) {
-
-		if ( ! isset( $this->_cache[ $id ] ) ) return null;
-		
-		if ( empty( $args ) && isset( $this->_cache[ $id ][0] ) ) return $this->_cache[ $id ][0];
-		elseif ( isset( $this->_cache[ $id ][ serialize($args) ] ) ) return $this->_cache[ $id ][ serialize($args) ];
-	}
-	
-	/**
-	 * Shortcode cache
-	 */
-	function shortcode_wrapper($function, $atts=array()) {
-		if ( $content = $this->cache_get( $function . '-shortcode', $atts ) ) return $content;
-		
+	function shortcode_wrapper( $function, $atts = array() ) {
 		ob_start();
 		call_user_func( $function, $atts );
-		return $this->cache( $function . '-shortcode', ob_get_clean(), $atts);
+		return ob_get_clean();
 	}
-	
+
+	/** Cache Helpers *********************************************************/
+
 	/**
 	 * nocache
 	 *
@@ -1357,6 +1331,7 @@ class Woocommerce {
 		
 		$wpdb->query("DELETE FROM `$wpdb->options` WHERE `option_name` LIKE ('_transient_wc_uf_pid_%')");
 		$wpdb->query("DELETE FROM `$wpdb->options` WHERE `option_name` LIKE ('_transient_wc_ln_count_%')");
+		$wpdb->query("DELETE FROM `$wpdb->options` WHERE `option_name` LIKE ('_transient_wc_ship_%')");
 
 		if ($post_id>0) {
 			$post_id = (int) $post_id;

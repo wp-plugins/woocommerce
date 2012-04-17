@@ -289,6 +289,9 @@ class WC_Checkout {
 	
 	                    // Change role
 	                    wp_update_user( array ('ID' => $user_id, 'role' => 'customer') ) ;
+	                    
+	                    // Action
+	                    do_action( 'woocommerce_created_customer', $user_id );
 	
 	                    // send the user a confirmation and their login details
 	                    $mailer = $woocommerce->mailer();
@@ -297,7 +300,7 @@ class WC_Checkout {
 	                    // set the WP login cookie
 	                    $secure_cookie = is_ssl() ? true : false;
 	                    wp_set_auth_cookie($user_id, true, $secure_cookie);
-					
+
 					else :
 						$woocommerce->add_error( $reg_errors->get_error_message() );
 	                	break;                    
@@ -492,7 +495,7 @@ class WC_Checkout {
 				update_post_meta( $order_id, '_customer_user', 			(int) $user_id );
 				update_post_meta( $order_id, '_order_items', 			$order_items );
 				update_post_meta( $order_id, '_order_taxes', 			$order_taxes );
-				update_post_meta( $order_id, '_order_currency', 		get_option('woocommerce_currency') );
+				update_post_meta( $order_id, '_order_currency', 		get_woocommerce_currency() );
 				update_post_meta( $order_id, '_prices_include_tax', 	get_option('woocommerce_prices_include_tax') );
 				
 				do_action('woocommerce_checkout_update_order_meta', $order_id, $this->posted);

@@ -36,7 +36,7 @@ function woocommerce_product_data_box() {
 			
 			<li class="attributes_tab attribute_options"><a href="#woocommerce_attributes"><?php _e('Attributes', 'woocommerce'); ?></a></li>
 			
-			<li class="grouping_tab show_if_simple grouping_options"><a href="#grouping_product_data"><?php _e('Grouping', 'woocommerce'); ?></a></li>
+			<li class="grouping_tab show_if_simple show_if_external grouping_options"><a href="#grouping_product_data"><?php _e('Grouping', 'woocommerce'); ?></a></li>
 			
 			<?php do_action('woocommerce_product_write_panel_tabs'); ?>
 
@@ -254,25 +254,25 @@ function woocommerce_product_data_box() {
 					$i = -1;
 					
 					// Taxonomies
-					if ( $attribute_taxonomies ) :
-				    	foreach ($attribute_taxonomies as $tax) : $i++;
+					if ( $attribute_taxonomies ) {
+				    	foreach ( $attribute_taxonomies as $tax ) { $i++;
 				    		
 				    		// Get name of taxonomy we're now outputting (pa_xxx)
-				    		$attribute_taxonomy_name = $woocommerce->attribute_taxonomy_name($tax->attribute_name);
+				    		$attribute_taxonomy_name = $woocommerce->attribute_taxonomy_name( $tax->attribute_name );
 				    		
 				    		// Ensure it exists
-				    		if (!taxonomy_exists($attribute_taxonomy_name)) continue;		    	
+				    		if ( ! taxonomy_exists($attribute_taxonomy_name ) ) continue;		    	
 				    		
 				    		// Get product data values for current taxonomy - this contains ordering and visibility data	
-				    		if (isset($attributes[$attribute_taxonomy_name])) $attribute = $attributes[$attribute_taxonomy_name];
+				    		if ( isset( $attributes[$attribute_taxonomy_name] ) ) $attribute = $attributes[$attribute_taxonomy_name];
 				    		
-				    		$position = (isset($attribute['position'])) ? $attribute['position'] : 0;
+				    		$position = ( isset( $attribute['position'] ) ) ? $attribute['position'] : 0;
 				    		
 				    		// Get terms of this taxonomy associated with current product
 				    		$post_terms = wp_get_post_terms( $thepostid, $attribute_taxonomy_name );
 				    		
 				    		// Any set?
-				    		$has_terms = (is_wp_error($post_terms) || !$post_terms || sizeof($post_terms)==0) ? 0 : 1;
+				    		$has_terms = ( is_wp_error( $post_terms ) || ! $post_terms || sizeof( $post_terms ) == 0 ) ? 0 : 1;
 				    		
 				    		?>
 				    		<div class="woocommerce_attribute wc-metabox closed taxonomy <?php echo $attribute_taxonomy_name; ?>" rel="<?php echo $position; ?>" <?php if (!$has_terms) echo 'style="display:none"'; ?>>
@@ -295,7 +295,7 @@ function woocommerce_product_data_box() {
 											<td rowspan="3">
 												<label><?php _e('Value(s)', 'woocommerce'); ?>:</label>
 												<?php if ($tax->attribute_type=="select") : ?>
-													<select multiple="multiple" data-placeholder="<?php _e('Select terms', 'woocommerce'); ?>" class="multiselect" name="attribute_values[<?php echo $i; ?>][]">
+													<select multiple="multiple" data-placeholder="<?php _e('Select terms', 'woocommerce'); ?>" class="multiselect attribute_values" name="attribute_values[<?php echo $i; ?>][]">
 														<?php
 							        					$all_terms = get_terms( $attribute_taxonomy_name, 'orderby=name&hide_empty=0' );
 						        						if ($all_terms) :
@@ -306,7 +306,11 @@ function woocommerce_product_data_box() {
 														endif;
 														?>			
 													</select>
+													
 													<button class="button plus select_all_attributes"><?php _e('Select all', 'woocommerce'); ?></button> <button class="button minus select_no_attributes"><?php _e('Select none', 'woocommerce'); ?></button>
+													
+													<button class="button fr plus add_new_attribute" data-attribute="<?php echo $attribute_taxonomy_name; ?>"><?php _e('Add new', 'woocommerce'); ?></button>
+														
 												<?php elseif ($tax->attribute_type=="text") : ?>
 													<input type="text" name="attribute_values[<?php echo $i; ?>]" value="<?php 
 														
@@ -339,8 +343,8 @@ function woocommerce_product_data_box() {
 								</table>
 							</div>
 				    		<?php
-				    	endforeach;
-				    endif;
+				    	}
+				    }
 					
 					// Custom Attributes
 					if ($attributes && sizeof($attributes)>0) foreach ($attributes as $attribute) : 
@@ -412,7 +416,7 @@ function woocommerce_product_data_box() {
 		<div id="upsells_and_crosssells_product_data" class="panel woocommerce_options_panel">
 			
 			<p class="form-field"><label for="upsell_ids"><?php _e('Up-Sells', 'woocommerce'); ?></label>
-			<select id="upsell_ids" name="upsell_ids[]" class="ajax_chosen_select_products" multiple="multiple" data-placeholder="<?php _e('Search for a product...', 'woocommerce'); ?>">
+			<select id="upsell_ids" name="upsell_ids[]" class="ajax_chosen_select_products" multiple="multiple" data-placeholder="<?php _e('Search for a product&hellip;', 'woocommerce'); ?>">
 				<?php
 					$product_ids = get_post_meta( $post->ID, '_upsell_ids', true );
 					if ($product_ids) {
@@ -431,7 +435,7 @@ function woocommerce_product_data_box() {
 			</select> <img class="help_tip" data-tip='<?php _e('Up-sells are products which you recommend instead of the currently viewed product, for example, products that are more profitable or better quality or more expensive.', 'woocommerce') ?>' src="<?php echo $woocommerce->plugin_url(); ?>/assets/images/help.png" /></p>
 		
 			<p class="form-field"><label for="crosssell_ids"><?php _e('Cross-Sells', 'woocommerce'); ?></label>
-			<select id="crosssell_ids" name="crosssell_ids[]" class="ajax_chosen_select_products" multiple="multiple" data-placeholder="<?php _e('Search for a product...', 'woocommerce'); ?>">
+			<select id="crosssell_ids" name="crosssell_ids[]" class="ajax_chosen_select_products" multiple="multiple" data-placeholder="<?php _e('Search for a product&hellip;', 'woocommerce'); ?>">
 				<?php
 					$product_ids = get_post_meta( $post->ID, '_crosssell_ids', true );
 					if ($product_ids) {
@@ -571,52 +575,56 @@ function woocommerce_process_product_meta( $post_id, $post ) {
 	$attributes = array();
 	
 	if (isset($_POST['attribute_names'])) :
-		 $attribute_names = $_POST['attribute_names'];
-		 $attribute_values = $_POST['attribute_values'];
-		 if (isset($_POST['attribute_visibility'])) $attribute_visibility = $_POST['attribute_visibility'];
-		 if (isset($_POST['attribute_variation'])) $attribute_variation = $_POST['attribute_variation'];
-		 $attribute_is_taxonomy = $_POST['attribute_is_taxonomy'];
-		 $attribute_position = $_POST['attribute_position'];
-
-		 for ($i=0; $i<sizeof($attribute_names); $i++) :
-		 	if (!($attribute_names[$i])) continue;
-		 	
-		 	$is_visible = (isset($attribute_visibility[$i])) ? 1 : 0;
-		 	$is_variation = (isset($attribute_variation[$i])) ? 1 : 0;
-		 	
-		 	$is_taxonomy = ($attribute_is_taxonomy[$i]) ? 1 : 0;
-		 	
-		 	if ($is_taxonomy) :
-		 		// Format values
-		 		if (is_array($attribute_values[$i])) :
-			 		$values = array_map('htmlspecialchars', array_map('stripslashes', $attribute_values[$i]));
-			 	else :
-			 		$values = htmlspecialchars(stripslashes($attribute_values[$i]));
-			 		// Text based, separate by pipe
-			 		$values = explode('|', $values);
-			 		$values = array_map('trim', $values);
-			 	endif;
+		$attribute_names = $_POST['attribute_names'];
+		$attribute_values = $_POST['attribute_values'];
+		if (isset($_POST['attribute_visibility'])) $attribute_visibility = $_POST['attribute_visibility'];
+		if (isset($_POST['attribute_variation'])) $attribute_variation = $_POST['attribute_variation'];
+		$attribute_is_taxonomy = $_POST['attribute_is_taxonomy'];
+		$attribute_position = $_POST['attribute_position'];
+		
+		$attribute_names_count = sizeof( $attribute_names );
+		
+		for ($i=0; $i<$attribute_names_count; $i++) :
+			if (!($attribute_names[$i])) continue;
+			
+			$is_visible = (isset($attribute_visibility[$i])) ? 1 : 0;
+			$is_variation = (isset($attribute_variation[$i])) ? 1 : 0;
+			
+			$is_taxonomy = ($attribute_is_taxonomy[$i]) ? 1 : 0;
+			
+			if ( $is_taxonomy ) {
+				if ( isset( $attribute_values[$i] ) ) {
+				
+			 		// Format values
+			 		if ( is_array( $attribute_values[$i] ) ) {
+				 		$values = array_map('htmlspecialchars', array_map('stripslashes', $attribute_values[$i]));
+				 	} else {
+				 		$values = htmlspecialchars(stripslashes($attribute_values[$i]));
+				 		// Text based, separate by pipe
+				 		$values = explode('|', $values);
+				 		$values = array_map('trim', $values);
+				 	}
+				 	
+				 	// Remove empty items in the array
+				 	$values = array_filter( $values );
 			 	
-			 	// Remove empty items in the array
-			 	$values = array_filter( $values );
-		 	
-		 		// Update post terms
-		 		if (taxonomy_exists( $attribute_names[$i] )) :
-		 			wp_set_object_terms( $post_id, $values, $attribute_names[$i] );
-		 		endif;
-
-		 		if ($values) :
-			 		// Add attribute to array, but don't set values
-			 		$attributes[ sanitize_title( $attribute_names[$i] ) ] = array(
-				 		'name' 			=> htmlspecialchars(stripslashes($attribute_names[$i])), 
-				 		'value' 		=> '',
-				 		'position' 		=> $attribute_position[$i],
-				 		'is_visible' 	=> $is_visible,
-				 		'is_variation' 	=> $is_variation,
-				 		'is_taxonomy' 	=> $is_taxonomy
-				 	);
-			 	endif;
-		 	else :
+			 		// Update post terms
+			 		if ( taxonomy_exists( $attribute_names[$i] ) )
+			 			wp_set_object_terms( $post_id, $values, $attribute_names[$i] );
+			
+			 		if ( $values ) {
+				 		// Add attribute to array, but don't set values
+				 		$attributes[ sanitize_title( $attribute_names[$i] ) ] = array(
+					 		'name' 			=> htmlspecialchars(stripslashes($attribute_names[$i])), 
+					 		'value' 		=> '',
+					 		'position' 		=> $attribute_position[$i],
+					 		'is_visible' 	=> $is_visible,
+					 		'is_variation' 	=> $is_variation,
+					 		'is_taxonomy' 	=> $is_taxonomy
+					 	);
+				 	}
+			 	}
+		 	} else {
 		 		if (!$attribute_values[$i]) continue;
 		 		// Format values
 		 		$values = esc_html(stripslashes($attribute_values[$i]));
@@ -634,7 +642,7 @@ function woocommerce_process_product_meta( $post_id, $post ) {
 			 		'is_variation' 	=> $is_variation,
 			 		'is_taxonomy' 	=> $is_taxonomy
 			 	);
-		 	endif;
+		 	}
 		 	
 		 endfor; 
 	endif;	

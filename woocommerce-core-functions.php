@@ -10,6 +10,97 @@
  */
  
 /**
+ * woocommerce_get_dimension function.
+ * 
+ * Normalise dimensions, unify to cm then convert to wanted unit value
+ *
+ * Usage: woocommerce_get_dimension(55, 'in');
+ *
+ * @access public
+ * @param mixed $dim
+ * @param mixed $unit 'in', 'm', 'cm', 'm'
+ * @return void
+ */
+function woocommerce_get_dimension( $dim, $to_unit ) {
+	
+	$from_unit 	= strtolower( get_option('woocommerce_dimension_unit') );
+	$to_unit	= strtolower( $to_unit );
+	
+	// Unify all units to cm first
+	if ( $from_unit !== $to_unit ) {
+
+		switch ( $from_unit ) {
+			case 'in':
+				$dim *= 2.54;
+			break;
+			case 'm':
+				$dim *= 100;
+			break;
+			case 'mm':
+				$dim *= 0.1;
+			break;
+		}
+
+		// Output desired unit
+		switch ( $to_unit ) {
+			case 'in':
+				$dim *= 0.3937;
+			break;
+			case 'm':
+				$dim *= 0.01;
+			break;
+			case 'mm':
+				$dim *= 10;
+			break;
+		}
+	}
+	return ( $dim < 0 ) ? 0 : $dim;
+}
+
+/**
+ * woocommerce_get_weight function.
+ * 
+ * Normalise weights, unify to cm then convert to wanted unit value
+ *
+ * Usage: woocommerce_get_weight(55, 'kg');
+ *
+ * @access public
+ * @param mixed $weight
+ * @param mixed $unit 'g', 'kg', 'lbs'
+ * @return void
+ */
+function woocommerce_get_weight( $weight, $to_unit ) {
+	
+	$from_unit 	= strtolower( get_option('woocommerce_weight_unit') );
+	$to_unit	= strtolower( $to_unit );
+		
+	//Unify all units to kg first
+	if ( $from_unit !== $to_unit ) {
+		
+		switch ( $from_unit ) {
+			case 'g':
+				$weight *= 0.001;
+			break;
+			case 'lbs':
+				$weight *= 0.4535;
+			break;
+		}
+
+		// Output desired unit
+		switch ( $to_unit ) {
+			case 'g':
+				$weight *= 1000;
+			break;
+			case 'lbs':
+				$weight *= 2.204;
+			break;
+		}
+	}
+	return ( $weight < 0 ) ? 0 : $weight;
+}
+
+
+/**
  * Get the placeholder for products etc
  **/
 function woocommerce_placeholder_img_src() {
@@ -165,7 +256,7 @@ function woocommerce_get_template_part( $slug, $name = '' ) {
 /**
  * Get other templates (e.g. product attributes) passing attributes and including the file
  */
-function woocommerce_get_template($template_name, $args = array(), $template_path = '' ) {
+function woocommerce_get_template( $template_name, $args = array(), $template_path = '' ) {
 	global $woocommerce;
 	
 	if ( $args && is_array($args) ) 
@@ -186,21 +277,29 @@ function woocommerce_get_template($template_name, $args = array(), $template_pat
 function woocommerce_locate_template( $template_name, $template_path = '' ) {
 	global $woocommerce;
 	
-    $template = (!empty($template_path)) ? locate_template( array( $template_path . $template_name , $template_name ) ) : '';
+    $template = ( ! empty( $template_path ) ) ? locate_template( array( $template_path . $template_name , $template_name ) ) : '';
         
 	// Look in yourtheme/woocommerce/template-name and yourtheme/template-name
-	if (!$template) $template = locate_template( array( $woocommerce->template_url . $template_name , $template_name ) );
+	if ( ! $template ) $template = locate_template( array( $woocommerce->template_url . $template_name , $template_name ) );
 	
 	// Get default template
-	if (!$template) $template = $woocommerce->plugin_path() . '/templates/' . $template_name;
-	
+	if ( ! $template ) $template = $woocommerce->plugin_path() . '/templates/' . $template_name;
+
 	return apply_filters('woocommerce_locate_template', $template, $template_name, $template_path);
 }
+
+/**
+ * Get Currency
+ **/
+function get_woocommerce_currency() {
+	return apply_filters( 'woocommerce_currency', get_option('woocommerce_currency') );
+}
+
 /**
  * Currency
  **/
 function get_woocommerce_currency_symbol( $currency = '' ) {
-	if (!$currency) $currency = get_option('woocommerce_currency');
+	if ( ! $currency ) $currency = get_woocommerce_currency();
 	$currency_symbol = '';
 	switch ($currency) :
 		case 'BRL' : $currency_symbol = 'R&#36;'; break; // in Brazil the correct is R$ 0.00,00
@@ -218,10 +317,10 @@ function get_woocommerce_currency_symbol( $currency = '' ) {
 		case 'NOK' : $currency_symbol = 'kr'; break;
 		case 'ZAR' : $currency_symbol = 'R'; break;
 		case 'CZK' : $currency_symbol = '&#75;&#269;'; break;
+		case 'MYR' : $currency_symbol = 'RM'; break;
 		case 'DKK' :
 		case 'HUF' :
 		case 'ILS' :
-		case 'MYR' :
 		case 'PHP' :
 		case 'PLN' :
 		case 'SEK' :
@@ -231,7 +330,7 @@ function get_woocommerce_currency_symbol( $currency = '' ) {
 		case 'GBP' : 
 		default    : $currency_symbol = '&pound;'; break;
 	endswitch;
-	return apply_filters('woocommerce_currency_symbol', $currency_symbol, $currency);
+	return apply_filters( 'woocommerce_currency_symbol', $currency_symbol, $currency );
 }
 
 /**
@@ -248,11 +347,13 @@ function woocommerce_price( $price, $args = array() ) {
 	$num_decimals = (int) get_option('woocommerce_price_num_decimals');
 	$currency_pos = get_option('woocommerce_currency_pos');
 	$currency_symbol = get_woocommerce_currency_symbol();
-	$price = number_format( (double) $price, $num_decimals, stripslashes(get_option('woocommerce_price_decimal_sep')), stripslashes(get_option('woocommerce_price_thousand_sep')) );
 	
-	if (get_option('woocommerce_price_trim_zeros')=='yes' && $num_decimals>0) :
+	$price = apply_filters( 'raw_woocommerce_price', (double) $price );
+	
+	$price = number_format( $price, $num_decimals, stripslashes(get_option('woocommerce_price_decimal_sep')), stripslashes(get_option('woocommerce_price_thousand_sep')) );
+	
+	if (get_option('woocommerce_price_trim_zeros')=='yes' && $num_decimals>0) 
 		$price = woocommerce_trim_zeros($price);
-	endif;
 	
 	switch ($currency_pos) :
 		case 'left' :
@@ -500,33 +601,45 @@ function woocommerce_downloadable_product_permissions( $order_id ) {
 				$limit = trim(get_post_meta($download_id, '_download_limit', true));
 				$expiry = trim(get_post_meta($download_id, '_download_expiry', true));
 				
-				$limit = (empty($limit)) ? '' : (int) $limit;
-				$expiry = (empty($expiry)) ? '' : (int) $expiry;
+                $limit = (empty($limit)) ? '' : (int) $limit;
+
+                // Default value is NULL in the table schema
+				$expiry = (empty($expiry)) ? null : (int) $expiry;
 				
 				if ($expiry) $expiry = date("Y-m-d", strtotime('NOW + ' . $expiry . ' DAY'));
-				
-				// Downloadable product - give access to the customer
-				$wpdb->insert( $wpdb->prefix . 'woocommerce_downloadable_product_permissions', array( 
-					'product_id' 			=> $download_id, 
+
+                $data = array(
+					'product_id' 			=> $download_id,
 					'user_id' 				=> $order->user_id,
 					'user_email' 			=> $user_email,
 					'order_id' 				=> $order->id,
 					'order_key' 			=> $order->order_key,
 					'downloads_remaining' 	=> $limit,
 					'access_granted'		=> current_time('mysql'),
-					'access_expires'		=> $expiry,
 					'download_count'		=> 0
-				), array( 
+                );
+
+                $format = array(
 					'%s', 
 					'%s', 
 					'%s', 
 					'%s', 
-					'%s',
 					'%s',
 					'%s',
 					'%s',
 					'%d'
-				) );	
+                );
+
+                if ( ! is_null($expiry)) {
+                    $data['access_expires'] = $expiry;
+                    $format[] = '%s';
+                }
+
+				// Downloadable product - give access to the customer
+                $wpdb->insert( $wpdb->prefix . 'woocommerce_downloadable_product_permissions', 
+                    $data,
+                    $format
+                );	
 				
 			endif;
 			
@@ -612,11 +725,11 @@ function woocommerce_terms_clauses($clauses, $taxonomies, $args ) {
 	if (!$found) return $clauses;
 	
 	// Meta name
-	if (strstr($taxonomies[0], 'pa_')) :
+	if ( ! empty( $taxonomies[0] ) && strstr($taxonomies[0], 'pa_') ) {
 		$meta_name =  'order_' . esc_attr($taxonomies[0]);
-	else :
+	} else {
 		$meta_name = 'order';
-	endif;
+	}
 
 	// query fields
 	if( strpos('COUNT(*)', $clauses['fields']) === false ) $clauses['fields']  .= ', tm.* ';
@@ -642,19 +755,22 @@ function woocommerce_terms_clauses($clauses, $taxonomies, $args ) {
  * WooCommerce Dropdown categories
  * 
  * Stuck with this until a fix for http://core.trac.wordpress.org/ticket/13258
- * We use a custom walker, just like WordPress does it
+ * We use a custom walker, just like WordPress does
  */
 function woocommerce_product_dropdown_categories( $show_counts = 1, $hierarchal = 1 ) {
-	global $wp_query;
+	global $wp_query, $woocommerce;
+	
+	include_once( $woocommerce->plugin_path() . '/classes/walkers/class-product-cat-dropdown-walker.php' );
 	
 	$r = array();
-	$r['pad_counts'] = 1;
-	$r['hierarchal'] = $hierarchal;
-	$r['hide_empty'] = 1;
-	$r['show_count'] = 1;
-	$r['selected'] = (isset($wp_query->query['product_cat'])) ? $wp_query->query['product_cat'] : '';
+	$r['pad_counts'] 	= 1;
+	$r['hierarchal'] 	= $hierarchal;
+	$r['hide_empty'] 	= 1;
+	$r['show_count'] 	= 1;
+	$r['selected'] 		= ( isset( $wp_query->query['product_cat'] ) ) ? $wp_query->query['product_cat'] : '';
 	
 	$terms = get_terms( 'product_cat', $r );
+	
 	if (!$terms) return;
 	
 	$output  = "<select name='product_cat' id='dropdown_product_cat'>";
@@ -670,36 +786,14 @@ function woocommerce_product_dropdown_categories( $show_counts = 1, $hierarchal 
  */
 function woocommerce_walk_category_dropdown_tree() {
 	$args = func_get_args();
+	
 	// the user's options are the third parameter
 	if ( empty($args[2]['walker']) || !is_a($args[2]['walker'], 'Walker') )
-		$walker = new WC_Walker_CategoryDropdown;
+		$walker = new WC_Product_Cat_Dropdown_Walker;
 	else
 		$walker = $args[2]['walker'];
 
 	return call_user_func_array(array( &$walker, 'walk' ), $args );
-}
-
-/**
- * Create HTML dropdown list of Product Categories.
- */
-class WC_Walker_CategoryDropdown extends Walker {
-
-	var $tree_type = 'category';
-	var $db_fields = array ('parent' => 'parent', 'id' => 'term_id', 'slug' => 'slug' );
-
-	function start_el(&$output, $category, $depth, $args) {
-		$pad = str_repeat('&nbsp;', $depth * 3);
-
-		$cat_name = apply_filters('list_product_cats', $category->name, $category);
-		$output .= "\t<option class=\"level-$depth\" value=\"".$category->slug."\"";
-		if ( $category->slug == $args['selected'] )
-			$output .= ' selected="selected"';
-		$output .= '>';
-		$output .= $pad.$cat_name;
-		if ( $args['show_count'] )
-			$output .= '&nbsp;('. $category->count .')';
-		$output .= "</option>\n";
-	}
 }
 
 /**

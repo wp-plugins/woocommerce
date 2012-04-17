@@ -217,7 +217,7 @@ function woocommerce_order_data_meta_box($post) {
 						
 							if ($order->get_formatted_shipping_address()) echo '<p><strong>'.__('Address', 'woocommerce').':</strong><br/> ' .$order->get_formatted_shipping_address().'</p>'; else echo '<p class="none_set"><strong>'.__('Address', 'woocommerce').':</strong> ' . __('No shipping address set.', 'woocommerce') . '</p>';
 							
-							foreach ( $shipping_data as $key => $field ) : if (isset($field['show']) && !$field['show']) continue;
+							if ( $shipping_data ) foreach ( $shipping_data as $key => $field ) : if (isset($field['show']) && !$field['show']) continue;
 								$field_name = 'shipping_'.$key;
 								if ( $order->$field_name ) echo '<p><strong>'.$field['label'].':</strong> '.$order->$field_name.'</p>';
 							endforeach;
@@ -227,7 +227,7 @@ function woocommerce_order_data_meta_box($post) {
 						// Display form
 						echo '<div class="edit_address"><p><button class="button load_customer_shipping">'.__('Load customer shipping address', 'woocommerce').'</button></p>';
 						
-						foreach ( $shipping_data as $key => $field ) :
+						if ( $shipping_data ) foreach ( $shipping_data as $key => $field ) :
 							if (!isset($field['type'])) $field['type'] = 'text';
 							switch ($field['type']) {
 								case "select" :
@@ -266,9 +266,9 @@ function woocommerce_order_items_meta_box($post) {
 		<table cellpadding="0" cellspacing="0" class="woocommerce_order_items">
 			<thead>
 				<tr>
-					<th class="product-id" width="1%"><?php _e('ID', 'woocommerce'); ?></th>
+					<th class="thumb" width="1%"><?php _e('Item', 'woocommerce'); ?></th>
 					<th class="sku"><?php _e('SKU', 'woocommerce'); ?></th>
-					<th class="name"><?php _e('Item', 'woocommerce'); ?></th>
+					<th class="name"><?php _e('Name', 'woocommerce'); ?></th>
 					<?php do_action('woocommerce_admin_order_item_headers'); ?>
 					
 					<th class="tax_class"><?php _e('Tax Class', 'woocommerce'); ?>&nbsp;<a class="tips" data-tip="<?php _e('Tax class for the line item', 'woocommerce'); ?>." href="#">[?]</a></th>
@@ -300,12 +300,12 @@ function woocommerce_order_items_meta_box($post) {
 					endif;
 					?>
 					<tr class="item" rel="<?php echo $loop; ?>">
-						<td class="product-id">
-							<img class="tips" data-tip="<?php
+						<td class="thumb">
+							<a href="<?php echo esc_url( admin_url('post.php?post='. $_product->id .'&action=edit') ); ?>" class="tips" data-tip="<?php
 								echo '<strong>'.__('Product ID:', 'woocommerce').'</strong> '. $item['id'];
 								echo '<br/><strong>'.__('Variation ID:', 'woocommerce').'</strong> '; if ($item['variation_id']) echo $item['variation_id']; else echo '-';
 								echo '<br/><strong>'.__('Product SKU:', 'woocommerce').'</strong> '; if ($_product->sku) echo $_product->sku; else echo '-';
-							?>" src="<?php echo $woocommerce->plugin_url(); ?>/assets/images/tip.png" />
+							?>"><?php echo $_product->get_image(); ?></a>
 						</td>
 						<td class="sku" width="1%">
 							<?php if ($_product->sku) echo $_product->sku; else echo '-'; ?>
@@ -392,51 +392,9 @@ function woocommerce_order_items_meta_box($post) {
 	</div>
 	
 	<p class="buttons">
-		<select name="add_item_id" class="add_item_id chosen_select_nostd" data-placeholder="<?php _e('Choose an item&hellip;', 'woocommerce') ?>">
-			<?php
-				echo '<option value=""></option>';
-				
-				$args = array(
-					'post_type' 		=> 'product',
-					'posts_per_page' 	=> -1,
-					'post_status'		=> array( 'publish', 'private' ),
-					'post_parent'		=> 0,
-					'order'				=> 'ASC',
-					'orderby'			=> 'title'
-				);
-				$products = get_posts( $args );
-				
-				if ($products) foreach ($products as $product) :
-					
-					$sku = get_post_meta($product->ID, '_sku', true);
-					
-					if ($sku) $sku = ' SKU: '.$sku;
-					
-					echo '<option value="'.$product->ID.'">'.$product->post_title.$sku.' (#'.$product->ID.''.$sku.')</option>';
-					
-					$args_get_children = array(
-						'post_type' => array( 'product_variation', 'product' ),
-						'posts_per_page' 	=> -1,
-						'order'				=> 'ASC',
-						'orderby'			=> 'title',
-						'post_parent'		=> $product->ID
-					);	
-						
-					if ( $children_products =& get_children( $args_get_children ) ) :
+		<select id="add_item_id" name="add_item_id[]" class="ajax_chosen_select_products_and_variations" multiple="multiple" data-placeholder="<?php _e('Search for a product&hellip;', 'woocommerce'); ?>" style="width: 400px"></select>
 		
-						foreach ($children_products as $child) :
-							
-							echo '<option value="'.$child->ID.'">&nbsp;&nbsp;&mdash;&nbsp;'.$child->post_title.'</option>';
-							
-						endforeach;
-						
-					endif;
-					
-				endforeach;
-			?>
-		</select>
-		
-		<button type="button" class="button add_shop_order_item"><?php _e('Add item', 'woocommerce'); ?></button>
+		<button type="button" class="button add_shop_order_item"><?php _e('Add item(s)', 'woocommerce'); ?></button>
 	</p>
 	<p class="buttons buttons-alt">
 		<button type="button" class="button calc_line_taxes"><?php _e('Calc line tax &uarr;', 'woocommerce'); ?></button>
@@ -688,8 +646,9 @@ function woocommerce_process_shop_order_meta( $post_id, $post ) {
 			$order_taxes_compound 	= isset($_POST['_order_taxes_compound']) ? $_POST['_order_taxes_compound'] : array();
 			$order_taxes_cart 		= $_POST['_order_taxes_cart'];
 			$order_taxes_shipping 	= $_POST['_order_taxes_shipping'];
+			$order_taxes_label_count = sizeof( $order_taxes_label );
 			
-			for ($i=0; $i<sizeof($order_taxes_label); $i++) :
+			for ($i=0; $i<$order_taxes_label_count; $i++) :
 				
 				// Add to array if the tax amount is set
 				if (!$order_taxes_cart[$i] && !$order_taxes_shipping[$i]) continue;
@@ -715,59 +674,62 @@ function woocommerce_process_shop_order_meta( $post_id, $post ) {
 		$order_items = array();
 	
 		if (isset($_POST['item_id'])) :
-			 $item_id			= $_POST['item_id'];
-			 $item_variation	= $_POST['item_variation'];
-			 $item_name 		= $_POST['item_name'];
-			 $item_quantity 	= $_POST['item_quantity'];
-			 
-			 $line_subtotal		= $_POST['line_subtotal'];
-			 $line_subtotal_tax	= $_POST['line_subtotal_tax'];
-			 
-			 $line_total 		= $_POST['line_total'];
-			 $line_tax		 	= $_POST['line_tax'];
-			 
-			 $item_meta_names 	= (isset($_POST['meta_name'])) ? $_POST['meta_name'] : '';
-			 $item_meta_values 	= (isset($_POST['meta_value'])) ? $_POST['meta_value'] : '';
-			 
-			 $item_tax_class	= $_POST['item_tax_class'];
-	
-			 for ($i=0; $i<sizeof($item_id); $i++) :
+			$item_id			= $_POST['item_id'];
+			$item_variation	= $_POST['item_variation'];
+			$item_name 		= $_POST['item_name'];
+			$item_quantity 	= $_POST['item_quantity'];
+			
+			$line_subtotal		= $_POST['line_subtotal'];
+			$line_subtotal_tax	= $_POST['line_subtotal_tax'];
+			
+			$line_total 		= $_POST['line_total'];
+			$line_tax		 	= $_POST['line_tax'];
+			
+			$item_meta_names 	= (isset($_POST['meta_name'])) ? $_POST['meta_name'] : '';
+			$item_meta_values 	= (isset($_POST['meta_value'])) ? $_POST['meta_value'] : '';
+			
+			$item_tax_class	= $_POST['item_tax_class'];
+			
+			$item_id_count = sizeof( $item_id );
+			
+			for ($i=0; $i<$item_id_count; $i++) :
+				
+				if (!isset($item_id[$i]) || !$item_id[$i]) continue;
+				if (!isset($item_name[$i])) continue;
+				if (!isset($item_quantity[$i]) || $item_quantity[$i] < 1) continue;
+				if (!isset($line_total[$i])) continue;
+				if (!isset($line_tax[$i])) continue;
+				
+				// Meta
+				$item_meta 		= new order_item_meta();
+				
+				if (isset($item_meta_names[$i]) && isset($item_meta_values[$i])) :
+			 	$meta_names 	= $item_meta_names[$i];
+			 	$meta_values 	= $item_meta_values[$i];
+			 	$meta_names_count = sizeof( $meta_names );
 			 	
-			 	if (!isset($item_id[$i]) || !$item_id[$i]) continue;
-			 	if (!isset($item_name[$i])) continue;
-			 	if (!isset($item_quantity[$i]) || $item_quantity[$i] < 1) continue;
-			 	if (!isset($line_total[$i])) continue;
-			 	if (!isset($line_tax[$i])) continue;
-			 	
-			 	// Meta
-			 	$item_meta 		= new order_item_meta();
-			 	
-			 	if (isset($item_meta_names[$i]) && isset($item_meta_values[$i])) :
-				 	$meta_names 	= $item_meta_names[$i];
-				 	$meta_values 	= $item_meta_values[$i];
-				 	
-				 	for ($ii=0; $ii<sizeof($meta_names); $ii++) :
-				 		$meta_name 		= esc_attr( $meta_names[$ii] );
-				 		$meta_value 	= esc_attr( $meta_values[$ii] );
-				 		if ($meta_name && $meta_value) :
-				 			$item_meta->add( $meta_name, $meta_value );
-				 		endif;
-				 	endfor;
-			 	endif;
-			 	
-			 	// Add to array	 	
-			 	$order_items[] = apply_filters('update_order_item', array(
-			 		'id' 				=> htmlspecialchars(stripslashes($item_id[$i])),
-			 		'variation_id' 		=> (int) $item_variation[$i],
-			 		'name' 				=> htmlspecialchars(stripslashes($item_name[$i])),
-			 		'qty' 				=> (int) $item_quantity[$i],
-			 		'line_total' 		=> rtrim(rtrim(number_format(woocommerce_clean($line_total[$i]), 4, '.', ''), '0'), '.'),
-			 		'line_tax'			=> rtrim(rtrim(number_format(woocommerce_clean($line_tax[$i]), 4, '.', ''), '0'), '.'),
-			 		'line_subtotal'		=> rtrim(rtrim(number_format(woocommerce_clean($line_subtotal[$i]), 4, '.', ''), '0'), '.'),
-			 		'line_subtotal_tax' => rtrim(rtrim(number_format(woocommerce_clean($line_subtotal_tax[$i]), 4, '.', ''), '0'), '.'),
-			 		'item_meta'			=> $item_meta->meta,
-			 		'tax_class'			=> woocommerce_clean($item_tax_class[$i])
-			 	));
+			 	for ($ii=0; $ii<$meta_names_count; $ii++) :
+			 		$meta_name 		= esc_attr( $meta_names[$ii] );
+			 		$meta_value 	= esc_attr( $meta_values[$ii] );
+			 		if ($meta_name && $meta_value) :
+			 			$item_meta->add( $meta_name, $meta_value );
+			 		endif;
+			 	endfor;
+				endif;
+				
+				// Add to array	 	
+				$order_items[] = apply_filters('update_order_item', array(
+					'id' 				=> htmlspecialchars(stripslashes($item_id[$i])),
+					'variation_id' 		=> (int) $item_variation[$i],
+					'name' 				=> htmlspecialchars(stripslashes($item_name[$i])),
+					'qty' 				=> (int) $item_quantity[$i],
+					'line_total' 		=> rtrim(rtrim(number_format(woocommerce_clean($line_total[$i]), 4, '.', ''), '0'), '.'),
+					'line_tax'			=> rtrim(rtrim(number_format(woocommerce_clean($line_tax[$i]), 4, '.', ''), '0'), '.'),
+					'line_subtotal'		=> rtrim(rtrim(number_format(woocommerce_clean($line_subtotal[$i]), 4, '.', ''), '0'), '.'),
+					'line_subtotal_tax' => rtrim(rtrim(number_format(woocommerce_clean($line_subtotal_tax[$i]), 4, '.', ''), '0'), '.'),
+					'item_meta'			=> $item_meta->meta,
+					'tax_class'			=> woocommerce_clean($item_tax_class[$i])
+				));
 			 	
 			 endfor; 
 		endif;	
@@ -792,24 +754,15 @@ function woocommerce_process_shop_order_meta( $post_id, $post ) {
 				
 				if ($_product->exists) :
 				
-				 	if ($_product->managing_stock()) :
+				 	if ( $_product->managing_stock() ) :
 						
 						$old_stock = $_product->stock;
 						
 						$new_quantity = $_product->reduce_stock( $order_item['qty'] );
 						
 						$order->add_order_note( sprintf( __('Item #%s stock reduced from %s to %s.', 'woocommerce'), $order_item['id'], $old_stock, $new_quantity) );
-							
-						if ($new_quantity<0) :
-							do_action('woocommerce_product_on_backorder', array( 'product' => $_product, 'order_id' => $post_id, 'quantity' => $order_item['qty']));
-						endif;
 						
-						// stock status notifications
-						if (get_option('woocommerce_notify_no_stock_amount') && get_option('woocommerce_notify_no_stock_amount')>=$new_quantity) :
-							do_action('woocommerce_no_stock', $_product);
-						elseif (get_option('woocommerce_notify_low_stock_amount') && get_option('woocommerce_notify_low_stock_amount')>=$new_quantity) :
-							do_action('woocommerce_low_stock', $_product);
-						endif;
+						$order->send_stock_notifications( $_product, $new_quantity, $order_item['qty'] );
 						
 					endif;
 				
@@ -850,6 +803,8 @@ function woocommerce_process_shop_order_meta( $post_id, $post ) {
 				endif;
 			 	
 			endforeach;
+			
+			do_action( 'woocommerce_restore_order_stock', $order );
 			
 			$order->add_order_note( __('Manual stock restore complete.', 'woocommerce') );
 		

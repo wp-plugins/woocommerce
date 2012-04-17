@@ -47,14 +47,23 @@ function woocommerce_admin_menu() {
 add_action( 'admin_head', 'woocommerce_admin_menu_highlight' );
 
 function woocommerce_admin_menu_highlight() {
-	global $parent_file, $submenu_file, $post_type;
+	global $parent_file, $submenu_file, $self, $post_type, $taxonomy;
 
 	$to_highlight = array( 'shop_order', 'shop_coupon' );
 
 	if ( isset( $post_type ) ) {
-		if (  in_array( $post_type, $to_highlight ) ) {
+		if ( in_array( $post_type, $to_highlight ) ) {
 			$submenu_file = 'edit.php?post_type=' . $post_type;
 			$parent_file  = 'woocommerce';
+		}
+
+		$screen = get_current_screen();
+
+		$not_replace = array( 'product_shipping_class', 'product_cat', 'product_tag' );
+
+		if ( $screen->base == 'edit-tags' && ! in_array( $taxonomy, $not_replace ) ) {
+			$submenu_file = 'woocommerce_attributes';
+			$parent_file  = 'edit.php?post_type=' . $post_type;
 		}
 	}
 }
@@ -253,6 +262,7 @@ function woocommerce_admin_scripts() {
 			'text_attribute_tip'			=> __('Enter some text, or some attributes by pipe (|) separating values.', 'woocommerce'),
 			'visible_label'					=> __('Visible on the product page', 'woocommerce'),
 			'used_for_variations_label'		=> __('Used for variations', 'woocommerce'),
+			'new_attribute_prompt'			=> __('Enter a name for the new attribute term:', 'woocommerce'),
 			'calc_totals' 					=> __("Calculate totals based on order items, discount amount, and shipping? Note, you will need to (optionally) calculate tax rows and cart discounts manually.", 'woocommerce'),
 			'calc_line_taxes' 				=> __("Calculate line taxes? This will calculate taxes based on the customers country. If no billing/shipping is set it will use the store base country.", 'woocommerce'),
 			'copy_billing' 					=> __("Copy billing information to shipping information? This will remove any currently entered shipping information.", 'woocommerce'),
@@ -271,6 +281,7 @@ function woocommerce_admin_scripts() {
 			'plugin_url' 					=> $woocommerce->plugin_url(),
 			'ajax_url' 						=> admin_url('admin-ajax.php'),
 			'add_order_item_nonce' 			=> wp_create_nonce("add-order-item"),
+			'add_attribute_nonce' 			=> wp_create_nonce("add-attribute"),
 			'calc_totals_nonce' 			=> wp_create_nonce("calc-totals"),
 			'get_customer_details_nonce' 	=> wp_create_nonce("get-customer-details"),
 			'search_products_nonce' => wp_create_nonce("search-products"),

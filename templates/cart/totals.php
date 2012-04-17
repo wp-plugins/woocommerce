@@ -7,11 +7,11 @@ global $woocommerce;
 
 $available_methods = $woocommerce->shipping->get_available_shipping_methods();
 ?>
-<div class="cart_totals <?php if (isset($_SESSION['calculated_shipping']) && $_SESSION['calculated_shipping']) echo 'calculated_shipping'; ?>">
+<div class="cart_totals <?php if ( isset( $_SESSION['calculated_shipping'] ) && $_SESSION['calculated_shipping'] ) echo 'calculated_shipping'; ?>">
 	
 	<?php do_action('woocommerce_before_cart_totals'); ?>
 	
-	<?php if ( !$woocommerce->shipping->enabled || $available_methods || !$woocommerce->customer->get_shipping_country() || !isset($_SESSION['calculated_shipping']) || !$_SESSION['calculated_shipping'] ) : ?>
+	<?php if ( ! $woocommerce->shipping->enabled || $available_methods || ! $woocommerce->customer->get_shipping_country() || empty( $_SESSION['calculated_shipping'] ) ) : ?>
 	
 		<h2><?php _e('Cart Totals', 'woocommerce'); ?></h2>
 		<table cellspacing="0" cellpadding="0">
@@ -31,7 +31,7 @@ $available_methods = $woocommerce->shipping->get_available_shipping_methods();
 				
 				<?php endif; ?>
 				
-				<?php if ($woocommerce->cart->needs_shipping() && ( $available_methods || get_option('woocommerce_enable_shipping_calc') == 'yes' )) : ?>
+				<?php if ( $woocommerce->cart->needs_shipping() && $woocommerce->cart->show_shipping() && ( $available_methods || get_option( 'woocommerce_enable_shipping_calc' ) == 'yes' ) ) { ?>
 				
 				<tr class="shipping">
 					<th><?php _e('Shipping', 'woocommerce'); ?></th>
@@ -95,7 +95,7 @@ $available_methods = $woocommerce->shipping->get_available_shipping_methods();
 					
 				</tr>
 	
-				<?php endif; ?>
+				<?php } ?>
 				
 				<?php 
 					if (get_option('woocommerce_display_cart_taxes')=='yes' && $woocommerce->cart->get_cart_tax()) :
@@ -196,12 +196,12 @@ $available_methods = $woocommerce->shipping->get_available_shipping_methods();
 				
 			endif;
 			
-			echo sprintf(__('Note: Shipping and taxes are estimated%s and will be updated during checkout based on your billing and shipping information.', 'woocommerce'), $estimated_text ); 
+			printf(__('Note: Shipping and taxes are estimated%s and will be updated during checkout based on your billing and shipping information.', 'woocommerce'), $estimated_text ); 
 		?></small></p>
 	
-	<?php else : ?>
+	<?php elseif( $woocommerce->cart->needs_shipping() ) : ?>
 		
-		<?php if (!$woocommerce->customer->get_shipping_state() || !$woocommerce->customer->get_shipping_postcode()) : ?>
+		<?php if ( ! $woocommerce->customer->get_shipping_state() || ! $woocommerce->customer->get_shipping_postcode() ) : ?>
 		
 			<div class="woocommerce_info">
 				<p><?php _e('No shipping methods were found; please recalculate your shipping and enter your state/county and zip/postcode to ensure their are no other available methods for your location.', 'woocommerce'); ?></p>

@@ -13,7 +13,7 @@
 class WC_Local_Delivery extends WC_Shipping_Method {
 	
 	function __construct() { 
-		$this->id			= 'local-delivery';
+		$this->id			= 'local_delivery';
 		$this->method_title = __('Local Delivery', 'woocommerce');
 		$this->init();
 	} 
@@ -26,23 +26,36 @@ class WC_Local_Delivery extends WC_Shipping_Method {
 		$this->init_settings();
 		
 		// Define user set variables
-		$this->enabled		= $this->settings['enabled'];
-		$this->title		= $this->settings['title'];
-		$this->fee			= $this->settings['fee'];
-		$this->type			= $this->settings['type'];	
-		$this->codes		= $this->settings['codes'];	
-		$this->availability	= $this->settings['availability'];
-		$this->countries	= $this->settings['countries'];
+		$this->enabled		= empty( $this->settings['enabled'] ) ? 'no' : $this->settings['enabled'];
+		$this->title		= empty( $this->settings['title'] ) ? '' : $this->settings['title'];
+		$this->type 		= $this->settings['type'];
+		$this->fee			= empty( $this->settings['fee'] ) ? '' : $this->settings['fee'];
+		$this->type			= empty( $this->settings['type'] ) ? '' : $this->settings['type'];	
+		$this->codes		= empty( $this->settings['codes'] ) ? '' : $this->settings['codes'];	
+		$this->availability	= empty( $this->settings['availability'] ) ? '' : $this->settings['availability'];
+		$this->countries	= empty( $this->settings['countries'] ) ? '' : $this->settings['countries'];
 		
-		add_action('woocommerce_update_options_shipping_methods', array(&$this, 'process_admin_options'));
+		add_action('woocommerce_update_options_shipping_local_delivery', array(&$this, 'process_admin_options'));
 	}
 	 
-	function calculate_shipping() {
+	function calculate_shipping( $package = array() ) {
 		global $woocommerce;
-		$_tax = new WC_Tax();
-		$fee = (trim($this->fee) == '') ? 0 : $this->fee;
-		if ($this->type=='fixed') 		$shipping_total 	= $this->fee;
-		if ($this->type=='percent') 	$shipping_total 	= $woocommerce->cart->cart_contents_total * ($this->fee/100);
+		
+		$shipping_total = 0;
+		$fee = ( trim( $this->fee ) == '' ) ? 0 : $this->fee;
+		
+		if ( $this->type =='fixed' ) 	$shipping_total 	= $this->fee;
+		
+		if ( $this->type =='percent' ) 	$shipping_total 	= $package['contents_cost'] * ( $this->fee / 100 );
+		
+		if ( $this->type == 'product' )	{
+			foreach ( $woocommerce->cart->get_cart() as $item_id => $values ) {
+				$_product = $values['data'];
+				
+				if ( $values['quantity'] > 0 && $_product->needs_shipping() )
+					$shipping_total += $this->fee * $values['quantity'];
+			}
+		}
 		
 		$rate = array(
 			'id' 		=> $this->id,
@@ -74,8 +87,9 @@ class WC_Local_Delivery extends WC_Shipping_Method {
 				'description' 	=> __( 'How to calculate delivery charges', 'woocommerce' ),  
 				'default' 		=> 'fixed',
 				'options' 		=> array(
-					'fixed' 	=> __('Fixed Amount', 'woocommerce'),
-					'percent'	=> __('Percentage of Cart Total', 'woocommerce'),
+					'fixed' 	=> __('Fixed amount', 'woocommerce'),
+					'percent'	=> __('Percentage of cart total', 'woocommerce'),
+					'product'	=> __('Fixed amount per product', 'woocommerce'),
 				),
 			),
 			'fee' => array(
@@ -120,7 +134,7 @@ class WC_Local_Delivery extends WC_Shipping_Method {
     	</table> <?php
 	}
 
-    function is_available() {
+    function is_available( $package ) {
     	global $woocommerce;
     	
     	if ($this->enabled=="no") return false;
@@ -134,7 +148,7 @@ class WC_Local_Delivery extends WC_Shipping_Method {
 		}
 		
 		if (is_array($codes))
-			if (!in_array($this->clean($woocommerce->customer->get_shipping_postcode()), $codes))
+			if ( ! in_array($this->clean( $package['destination']['postcode'] ), $codes))
 				return false;
 		
 		// Either post codes not setup, or post codes are in array... so lefts check countries for backwards compatability.
@@ -148,7 +162,7 @@ class WC_Local_Delivery extends WC_Shipping_Method {
 		endif; 
 
 		if (is_array($ship_to_countries))
-			if (!in_array($woocommerce->customer->get_shipping_country(), $ship_to_countries))
+			if (!in_array( $package['destination']['country'] , $ship_to_countries))
 				return false;
 		
 		// Yay! We passed!

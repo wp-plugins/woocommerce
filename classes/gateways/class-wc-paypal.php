@@ -37,6 +37,7 @@ class WC_Paypal extends WC_Payment_Gateway {
 		$this->address_override	= isset( $this->settings['address_override'] ) ? $this->settings['address_override'] : 'no';
 		$this->debug			= $this->settings['debug'];	
 		$this->form_submission_method = ( isset( $this->settings['form_submission_method'] ) && $this->settings['form_submission_method'] == 'yes' ) ? true : false;
+		$this->page_style 		= ( isset( $this->settings['page_style'] ) ) ? $this->settings['page_style'] : '';
 		
 		// Logs
 		if ($this->debug=='yes') $this->log = $woocommerce->logger();
@@ -54,7 +55,7 @@ class WC_Paypal extends WC_Payment_Gateway {
      * Check if this gateway is enabled and available in the user's country
      */
     function is_valid_for_use() {
-        if (!in_array(get_option('woocommerce_currency'), array('AUD', 'BRL', 'CAD', 'MXN', 'NZD', 'HKD', 'SGD', 'USD', 'EUR', 'JPY', 'TRY', 'NOK', 'CZK', 'DKK', 'HUF', 'ILS', 'MYR', 'PHP', 'PLN', 'SEK', 'CHF', 'TWD', 'THB', 'GBP'))) return false;
+        if (!in_array(get_woocommerce_currency(), array('AUD', 'BRL', 'CAD', 'MXN', 'NZD', 'HKD', 'SGD', 'USD', 'EUR', 'JPY', 'TRY', 'NOK', 'CZK', 'DKK', 'HUF', 'ILS', 'MYR', 'PHP', 'PLN', 'SEK', 'CHF', 'TWD', 'THB', 'GBP', 'RMB'))) return false;
 
         return true;
     }
@@ -141,6 +142,12 @@ class WC_Paypal extends WC_Payment_Gateway {
 							'description' => __( 'Enable this to post order data to PayPal via a form instead of using a redirect/querystring.', 'woocommerce' ),
 							'default' => 'no'
 						), 
+			'page_style' => array(
+							'title' => __( 'Page Style', 'woocommerce' ), 
+							'type' => 'text', 
+							'description' => __( 'Optionally enter the name of the page style you wish to use. These are defined within your PayPal account.', 'woocommerce' ), 
+							'default' => ''
+						),
 			'testmode' => array(
 							'title' => __( 'PayPal sandbox', 'woocommerce' ), 
 							'type' => 'checkbox', 
@@ -199,12 +206,13 @@ class WC_Paypal extends WC_Payment_Gateway {
 				'cmd' 					=> '_cart',
 				'business' 				=> $this->email,
 				'no_note' 				=> 1,
-				'currency_code' 		=> get_option('woocommerce_currency'),
+				'currency_code' 		=> get_woocommerce_currency(),
 				'charset' 				=> 'UTF-8',
 				'rm' 					=> 2,
 				'upload' 				=> 1,
 				'return' 				=> $this->get_return_url( $order ),
 				'cancel_return'			=> $order->get_cancel_order_url(),
+				'page_style'			=> $this->page_style,
 				
 				// Order key
 				'custom'				=> $order_id,
@@ -528,6 +536,7 @@ class WC_Paypal extends WC_Payment_Gateway {
 	            	$accepted_types = array('cart', 'instant', 'express_checkout', 'web_accept', 'masspay', 'send_money');
 					if (!in_array($posted['txn_type'], $accepted_types)) :
 						if ($this->debug=='yes') $this->log->add( 'paypal', 'Aborting, Invalid type:' . $posted['txn_type'] );
+						exit;
 					endif;
 					
 					 // Store PP Details

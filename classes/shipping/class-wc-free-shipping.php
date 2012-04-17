@@ -33,7 +33,7 @@ class WC_Free_Shipping extends WC_Shipping_Method {
 		$this->requires_coupon 	= $this->settings['requires_coupon'];
 		
 		// Actions
-		add_action('woocommerce_update_options_shipping_methods', array(&$this, 'process_admin_options'));
+		add_action('woocommerce_update_options_shipping_free_shipping', array(&$this, 'process_admin_options'));
     }
 
 	/**
@@ -112,7 +112,7 @@ class WC_Free_Shipping extends WC_Shipping_Method {
     } // End admin_options()
     
 
-    function is_available() {
+    function is_available( $package ) {
     	global $woocommerce;
     	
     	if ($this->enabled=="no") return false;
@@ -128,7 +128,7 @@ class WC_Free_Shipping extends WC_Shipping_Method {
 		endif; 
 		
 		if (is_array($ship_to_countries)) :
-			if (!in_array($woocommerce->customer->get_shipping_country(), $ship_to_countries)) return false;
+			if ( ! in_array( $package['destination']['country'], $ship_to_countries ) ) return false;
 		endif;
 
 		if ($this->requires_coupon=="yes") :

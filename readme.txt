@@ -3,8 +3,8 @@ Contributors: woothemes, mikejolley, jameskoster
 Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, affiliate, store, sales, sell, shop, shopping, cart, checkout, configurable, variable, widgets, reports, download, downloadable, digital, inventory, stock, reports, shipping, tax
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.3
-Tested up to: 3.3
-Stable tag: 1.5.3
+Tested up to: 3.4
+Stable tag: 1.5.4
 
 WooCommerce is a powerful, extendable eCommerce plugin that helps you sell anything. Beautifully.
 
@@ -143,6 +143,52 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 
 == Changelog ==
 
+= 1.5.4 - 16/04/2012 =
+* Feature - Allow attributes to be added from the edit product page
+* Feature - Allow external products to be a part of a grouped product. Button titles will be respected when displayed.
+* Feature - Added woocommerce_get_dimension/woocommerce_get_weight helpers for normalisation. Thanks Andy Zhang
+* Feature - Pass page_style to paypal standard if defined
+* Feature - Option to hide shipping costs until an address is entered on the cart/checkout
+* Feature - Tax class selection for variations
+* Feature - Shortcode to show a list of all product categories
+* Feature - Minimum fee option for flat rate shipping
+* Feature - "Package" support for shipping calculations - allows third parties to split the cart up to calc shipping. Also caches packages meaning the cart shipping only needs to be calculated once (until totals or customer location changes)
+* Feature - Local delivery cost per item condition
+* Feature - get_product_search_form function, used in product search widget
+* Tweak - Redesigned variation panels and variation bulk edit to make them easier to use and expand.
+* Tweak - Show multiple success messages/error messages if added, rather than one or the other
+* Tweak - Adding an item to an order now uses the ajax style product finder
+* Tweak - Updated chosen to latest release
+* Tweak - Changed recent order tables to make them slightly more compact
+* Tweak - Moved recent order table to a template file
+* Tweak - Improved default view-order page when order id is not defined - instead of stating "invalid order" it will list recent orders
+* Tweak - For the short description, removed the_content filter and used woocommerce_short_description
+* Tweak - Don't send password in new account email (some customers complained/privacy concerns)
+* Tweak - Don't show unused tabs on the frontend (description and reviews)
+* Tweak - Rename comments meta box to reviews
+* Tweak - Rewritten widgets to use category walkers
+* Tweak - Improved installation code (dbdelta)
+* Tweak - Email tfoot compatibility for outlook
+* Tweak - Removed shortcode wrappers/cache for main pages since they are only ever called once per page load
+* Tweak - woocommerce_after_cart_item_quantity_update action sends cart item key instead of object
+* Tweak - Product images on orders page
+* Tweak - Payment method transition
+* Tweak - Moved product attribute table to a template file for easier customisation.
+* Tweak - If the "Only ship to the users billing address" admin option is set to true, the checkout form displayed "Billing & Shipping". Even when a cart contains only virtual goods and does not require shipping. (Thanks thenbrent)
+* Tweak - Separate sections for each shipping method, due to the volume of data being posted upon save. NOTE TO DEVELOPERS: The save hook for shipping options is woocommerce_update_options_shipping_{your method id}
+* Tweak - $order->send_stock_notifications function
+* Fix - Product cat sortable when item cannot be moved.
+* Fix - Do not show the Additional Information tab on product single page if contents are hidden or not existing.
+* Fix - nofollow add to cart links to prevent indexing
+* Fix - Add to cart shortcode and hidden products
+* Fix - Local rates were being ignored if no main rates were set
+* Localization - Canada post code locale
+* Localization - RMB paypal
+* Localization - Bundled translation updates
+* Localization - Changed the filters for checkout field locales - lets you override the base country labels
+* Localization - Wrong code for Quebec -> PQ to QC
+* Localization - Malaysian ringgit symbol
+
 = 1.5.3 - 29/03/2012 =
 * Feature - Debug/status page with some handy functions to resolve common issues
 * Feature - Control default catalog sort order from Catalog Settings
@@ -183,6 +229,7 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 * Fix - Put chosen frontend script back
 * Fix - Make download links use billing email, not user email
 * Fix - ' in prices (thousand separator)
+* Fix - exclude products in coupons panel now looks for variations.
 * Fix - Admin menu highlighting when adding orders
 * Localization - Removed translations from reports page tab URLS
 * Localization - Spanish update by Héctor Carranza
@@ -718,6 +765,11 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 * Initial Release. Woo!
 
 == Upgrade Notice ==
+
+= 1.5.4 =
+Please update your shipping methods after upgrading - the save hooks have been modified to ensure settings are saved more reliably. 
+
+Also note, there was a mistake in the code for Quebec -> PQ to QC. If you have rates for Quebec ensure you re-save them.
 
 = 1.5.2.1 =
 Minor update. Note, titles are now hooked in to single-product.php - if you have overridden this template and have double titles, update your single-product.php template with that from core.
