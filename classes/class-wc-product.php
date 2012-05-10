@@ -13,7 +13,6 @@ class WC_Product {
 	
 	var $id;
 	var $product_custom_fields;
-	var $exists;
 	var $attributes;
 	var $children;
 	var $post;
@@ -61,8 +60,6 @@ class WC_Product {
 
 		$this->product_custom_fields = get_post_custom( $this->id );
 		
-		$this->exists = (sizeof($this->product_custom_fields)>0) ? true : false;
-
 		// Define the data we're going to load: Key => Default value
 		$load_data = array(
 			'sku'			=> '',
@@ -156,7 +153,12 @@ class WC_Product {
 		return (int) $this->total_stock;
     }
     
-	/** Returns the product's children */
+	/**
+	 * Return the products children posts.
+	 * 
+	 * @access public
+	 * @return array
+	 */
 	function get_children() {
 		
 		if (!is_array($this->children)) :
@@ -184,6 +186,13 @@ class WC_Product {
 		return (array) $this->children;
 	}
 	
+	/**
+	 * get_child function.
+	 * 
+	 * @access public
+	 * @param mixed $child_id
+	 * @return object WC_Product or WC_Product_variation
+	 */
 	function get_child( $child_id ) {
 		if ($this->is_type('variable')) :
 			$child = new WC_Product_Variation( $child_id, $this->id, $this->product_custom_fields );
@@ -256,31 +265,49 @@ class WC_Product {
 	 * Checks if a product is downloadable
 	 */
 	function is_downloadable() {
-		if ( $this->downloadable=='yes' ) return true; else return false;
+		if ( $this->downloadable == 'yes' ) return true; else return false;
 	}
 	
 	/**
 	 * Checks if a product is virtual (has no shipping)
 	 */
 	function is_virtual() {
-		if ( $this->virtual=='yes' ) return true; else return false;
+		if ( $this->virtual == 'yes' ) return true; else return false;
 	}
 	
 	/**
 	 * Checks if a product needs shipping
 	 */
 	function needs_shipping() {
-		if ($this->is_virtual()) return false; else return true;
+		if ( $this->is_virtual() ) return false; else return true;
+	}
+	
+	/**
+	 * Check if a product is sold individually (no quantities)
+	 * 
+	 * @access public
+	 * @return bool
+	 */
+	function is_sold_individually() {
+		$return = false;
+		
+		// Sold individually if downloadable, virtual, and the option is enabled
+		if ( $this->is_downloadable() && $this->is_virtual() && get_option('woocommerce_limit_downloadable_product_qty') == 'yes' ) {
+			$return = true;
+		}
+		
+		return apply_filters( 'woocommerce_is_sold_individually', $return, $this );
 	}
 	
 	/** Returns whether or not the product has any child product */
 	function has_child() {
-		return sizeof($this->get_children()) ? true : false;
+		return sizeof( $this->get_children() ) ? true : false;
 	}
 	
 	/** Returns whether or not the product post exists */
 	function exists() {
-		if ($this->exists) return true;
+		global $wpdb;
+		if ( $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE ID = %d LIMIT 1;", $this->id ) ) > 0 ) return true;
 		return false;
 	}
 	
@@ -329,8 +356,7 @@ class WC_Product {
 		else :
 			$url = add_query_arg('add-to-cart', $this->id);
 		endif;
-		
-		$url = $woocommerce->nonce_url( 'add_to_cart', $url );
+
 		return $url;
 	}
 	
@@ -409,9 +435,25 @@ class WC_Product {
 			endif;
 		else :
 			if ($this->is_in_stock()) :
-				if ($this->get_total_stock() > 0) :
+				if ( $this->get_total_stock() > 0 ) :
 				
-					$availability = sprintf( __('%s in stock', 'woocommerce'), $this->stock );
+					$format_option = get_option( 'woocommerce_stock_format' );
+					
+					switch ( $format_option ) {
+						case 'no_amount' :
+							$format = __('In stock', 'woocommerce');
+						break;
+						case 'low_amount' :
+							$low_amount = get_option( 'woocommerce_notify_low_stock_amount' );
+							
+							$format = ( $this->get_total_stock() <= $low_amount ) ? __('Only %s left in stock', 'woocommerce') : __('In stock', 'woocommerce');
+						break;
+						default :
+							$format = __('%s in stock', 'woocommerce');
+						break;
+					}
+					
+					$availability = sprintf( $format, $this->stock );
 					
 					if ($this->backorders_allowed() && $this->backorders_require_notification()) :	
 						$availability .= ' ' . __('(backorders allowed)', 'woocommerce');
@@ -503,13 +545,13 @@ class WC_Product {
 	
 	/** Returns the product's price */
 	function get_price() {
-		return $this->price;
+		return apply_filters( 'woocommerce_get_price', $this->price, $this );
 	}
 	
 	/** Returns the price (excluding tax) - ignores tax_class filters since the price may *include* tax and thus needs subtracting */
 	function get_price_excluding_tax() {
 		
-		$price = $this->price;
+		$price = $this->get_price();
 
 		if ( $this->is_taxable() && get_option('woocommerce_prices_include_tax')=='yes' ) :
 			
@@ -522,7 +564,7 @@ class WC_Product {
 		
 		endif;
 		
-		return $price;
+		return apply_filters( 'woocommerce_get_price_excluding_tax', $price, $this );
 	}
 	
 	/** Returns the tax class */

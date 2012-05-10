@@ -208,7 +208,7 @@ class WC_Paypal extends WC_Payment_Gateway {
 				'no_note' 				=> 1,
 				'currency_code' 		=> get_woocommerce_currency(),
 				'charset' 				=> 'UTF-8',
-				'rm' 					=> 2,
+				'rm' 					=> is_ssl() ? 2 : 1,
 				'upload' 				=> 1,
 				'return' 				=> $this->get_return_url( $order ),
 				'cancel_return'			=> $order->get_cancel_order_url(),
@@ -234,6 +234,7 @@ class WC_Paypal extends WC_Payment_Gateway {
 				
 				// Payment Info
 				'invoice' 				=> $order->order_key
+				
 			), 
 			$phone_args
 		);
@@ -258,7 +259,7 @@ class WC_Paypal extends WC_Payment_Gateway {
 			$paypal_args['no_shipping'] = 1;
 		}
 		
-		// If prices include tax or have order discounts, send the whole order
+		// If prices include tax or have order discounts, send the whole order as a single item
 		if ( get_option('woocommerce_prices_include_tax')=='yes' || $order->get_order_discount() > 0 ) :
 			
 			// Discount
@@ -273,14 +274,16 @@ class WC_Paypal extends WC_Payment_Gateway {
 			
 			$paypal_args['item_name_1'] 	= sprintf( __('Order %s' , 'woocommerce'), $order->get_order_number() ) . " - " . implode(', ', $item_names);
 			$paypal_args['quantity_1'] 		= 1;
-			$paypal_args['amount_1'] 		= number_format($order->get_order_total() - $order->get_shipping() + $order->get_order_discount(), 2, '.', '');
+			$paypal_args['amount_1'] 		= number_format($order->get_total() - $order->get_shipping() - $order->get_shipping_tax() + $order->get_order_discount(), 2, '.', '');
 			
 			// Shipping Cost
-			if ($order->get_shipping()>0) :
+			$paypal_args['shipping_1']		= number_format( $order->get_shipping() + $order->get_shipping_tax() , 2, '.', '' );
+			
+			/*if ( $order->get_shipping() > 0 ) :
 				$paypal_args['item_name_2'] = __('Shipping via', 'woocommerce') . ' ' . ucwords($order->shipping_method_title);
 				$paypal_args['quantity_2'] 	= '1';
 				$paypal_args['amount_2'] 	= number_format($order->get_shipping(), 2, '.', '');
-			endif;
+			endif;*/
 					
 		else :
 			
@@ -311,7 +314,7 @@ class WC_Paypal extends WC_Payment_Gateway {
 				endif;
 			endforeach; endif;
 		
-			// Shipping Cost
+			// Shipping Cost item - paypal only allows shipping per item, we want to send shipping for the order
 			if ($order->get_shipping()>0) :
 				$item_loop++;
 				$paypal_args['item_name_'.$item_loop] = __('Shipping via', 'woocommerce') . ucwords($order->shipping_method_title);
@@ -387,7 +390,7 @@ class WC_Paypal extends WC_Payment_Gateway {
 		
 			$paypal_args = $this->get_paypal_args( $order );
 			
-			$paypal_args = http_build_query( $paypal_args );
+			$paypal_args = http_build_query( $paypal_args, '', '&' );
 			
 			if ( $this->testmode == 'yes' ):
 				$paypal_adr = $this->testurl . '?test_ipn=1&';		
@@ -441,7 +444,7 @@ class WC_Paypal extends WC_Payment_Gateway {
         	'body' 			=> $received_values,
         	'sslverify' 	=> false,
         	'timeout' 		=> 30,
-        	'user-agent'	=> 'WooCommerce/'.$woocommerce->version
+        	'user-agent'	=> 'WooCommerce/' . $woocommerce->version
         );
 
         // Get url
@@ -540,11 +543,16 @@ class WC_Paypal extends WC_Payment_Gateway {
 					endif;
 					
 					 // Store PP Details
-	                update_post_meta( (int) $posted['custom'], 'Payer PayPal address', $posted['payer_email']);
-	                update_post_meta( (int) $posted['custom'], 'Transaction ID', $posted['txn_id']);
-	                update_post_meta( (int) $posted['custom'], 'Payer first name', $posted['first_name']);
-	                update_post_meta( (int) $posted['custom'], 'Payer last name', $posted['last_name']);
-	                update_post_meta( (int) $posted['custom'], 'Payment type', $posted['payment_type']); 
+	                if ( ! empty( $posted['payer_email'] ) ) 
+	                	update_post_meta( (int) $posted['custom'], 'Payer PayPal address', $posted['payer_email'] );
+	                if ( ! empty( $posted['txn_id'] ) ) 
+	                	update_post_meta( (int) $posted['custom'], 'Transaction ID', $posted['txn_id'] );
+	                if ( ! empty( $posted['first_name'] ) ) 
+	                	update_post_meta( (int) $posted['custom'], 'Payer first name', $posted['first_name'] );
+	                if ( ! empty( $posted['last_name'] ) ) 
+	                	update_post_meta( (int) $posted['custom'], 'Payer last name', $posted['last_name'] );
+	                if ( ! empty( $posted['payment_type'] ) ) 
+	                	update_post_meta( (int) $posted['custom'], 'Payment type', $posted['payment_type'] ); 
 	            	
 	            	// Payment completed
 	                $order->add_order_note( __('IPN payment completed', 'woocommerce') );
@@ -563,7 +571,7 @@ class WC_Paypal extends WC_Payment_Gateway {
 	            case "refunded" :
 	            
 	            	// Only handle full refunds, not partial
-	            	if ($order->get_order_total() == ($posted['mc_gross']*-1)) {
+	            	if ($order->get_total() == ($posted['mc_gross']*-1)) {
 	            	
 		            	// Mark order as refunded
 		            	$order->update_status('refunded', sprintf(__('Payment %s via IPN.', 'woocommerce'), strtolower($posted['payment_status']) ) );

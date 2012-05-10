@@ -28,25 +28,14 @@ foreach ($items as $item) :
 			echo 	($show_sku && $_product->get_sku()) ? ' (#' . $_product->get_sku() . ')' : '';
 					
 			// File URL
-			echo 	($show_download_links && $_product->exists && $_product->is_downloadable()) ? '<br/><small>'.__('Download:', 'woocommerce').' <a href="' . $order->get_downloadable_file_url( $item['id'], $item['variation_id'] ) . '" target="_blank">' . $order->get_downloadable_file_url( $item['id'], $item['variation_id'] ) . '</a></small>' : '';
+			echo 	($show_download_links && $_product->exists() && $_product->is_downloadable()) ? '<br/><small>'.__('Download:', 'woocommerce').' <a href="' . $order->get_downloadable_file_url( $item['id'], $item['variation_id'] ) . '" target="_blank">' . $order->get_downloadable_file_url( $item['id'], $item['variation_id'] ) . '</a></small>' : '';
 					
 			// Variation
 			echo 	($item_meta->meta) ? '<br/><small>' . $item_meta->display( true, true ) . '</small>' : '';
 					
 		?></td>
 		<td style="text-align:left; vertical-align:middle; border: 1px solid #eee;"><?php echo $item['qty'] ;?></td>
-		<td style="text-align:left; vertical-align:middle; border: 1px solid #eee;"><?php
-					
-			// Tax
-			if ( $order->display_cart_ex_tax || !$order->prices_include_tax ) :	
-				$ex_tax_label = ( $order->prices_include_tax ) ? 1 : 0;
-				echo woocommerce_price( $order->get_line_subtotal( $item ), array('ex_tax_label' => $ex_tax_label ));
-			else :
-				echo woocommerce_price( $order->get_line_subtotal( $item, true ) );
-			endif;
-					
-		?></td>
-	
+		<td style="text-align:left; vertical-align:middle; border: 1px solid #eee;"><?php echo $order->get_formatted_line_subtotal( $item ); ?></td>
 	</tr>
 	
 	<?php if ($show_purchase_note && $purchase_note = get_post_meta( $_product->id, '_purchase_note', true)) : ?>

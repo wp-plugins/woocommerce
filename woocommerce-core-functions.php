@@ -23,7 +23,7 @@
  */
 function woocommerce_get_dimension( $dim, $to_unit ) {
 	
-	$from_unit 	= strtolower( get_option('woocommerce_dimension_unit') );
+	$from_unit 	= strtolower( get_option( 'woocommerce_dimension_unit' ) );
 	$to_unit	= strtolower( $to_unit );
 	
 	// Unify all units to cm first
@@ -39,6 +39,9 @@ function woocommerce_get_dimension( $dim, $to_unit ) {
 			case 'mm':
 				$dim *= 0.1;
 			break;
+			case 'yd':
+				$dim *= 0.010936133;
+			break;
 		}
 
 		// Output desired unit
@@ -51,6 +54,9 @@ function woocommerce_get_dimension( $dim, $to_unit ) {
 			break;
 			case 'mm':
 				$dim *= 10;
+			break;
+			case 'yd':
+				$dim *= 91.44;
 			break;
 		}
 	}
@@ -194,13 +200,13 @@ if (!function_exists('is_shop')) {
 	}
 }
 if (!function_exists('is_product_category')) {
-	function is_product_category() {
-		return is_tax( 'product_cat' );
+	function is_product_category( $term = '' ) {
+		return is_tax( 'product_cat', $term );
 	}
 }
 if (!function_exists('is_product_tag')) {
-	function is_product_tag() {
-		return is_tax( 'product_tag' );
+	function is_product_tag( $term = '' ) {
+		return is_tax( 'product_tag', $term );
 	}
 }
 if (!function_exists('is_product')) {
@@ -522,9 +528,37 @@ if (!function_exists('woocommerce_hex_lighter')) {
 	   	return $color;          
 	}
 }
+
+/**
+ * Detect if we should use a light or dark colour on a background colour
+ **/
 if (!function_exists('woocommerce_light_or_dark')) {
 	function woocommerce_light_or_dark( $color, $dark = '#000000', $light = '#FFFFFF' ) {
-	    return (hexdec($color) > 0xffffff/2) ? $dark : $light;
+	    //return ( hexdec( $color ) > 0xffffff / 2 ) ? $dark : $light;
+	    $hex = str_replace( '#', '', $color );
+
+		$c_r = hexdec( substr( $hex, 0, 2 ) );
+		$c_g = hexdec( substr( $hex, 2, 2 ) );
+		$c_b = hexdec( substr( $hex, 4, 2 ) );
+		$brightness = ( ( $c_r * 299 ) + ( $c_g * 587 ) + ( $c_b * 114 ) ) / 1000;
+		
+		return $brightness > 155 ? $dark : $light;
+	}
+}
+
+/**
+ * Format string as hex
+ **/
+if (!function_exists('woocommerce_format_hex')) {
+	function woocommerce_format_hex( $hex ) {
+	    
+	    $hex = trim( str_replace( '#', '', $hex ) );
+	    
+	    if ( strlen( $hex ) == 3 ) {
+			$hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+	    }
+	    
+	    if ( $hex ) return '#' . $hex;
 	}
 }
 
@@ -592,7 +626,7 @@ function woocommerce_downloadable_product_permissions( $order_id ) {
 		if ($item['id']>0) :
 			$_product = $order->get_product_from_item( $item );
 			
-			if ( $_product->exists && $_product->is_downloadable() ) :
+			if ( $_product->exists() && $_product->is_downloadable() ) :
 			
 				$download_id = ($item['variation_id']>0) ? $item['variation_id'] : $item['id'];
 				
@@ -871,9 +905,10 @@ function woocommerce_order_terms( $the_term, $next_id, $taxonomy, $index=0, $ter
 	// no nextid meaning our term is in last position
 	if( $term_in_level && null === $next_id )
 		$index = woocommerce_set_term_order($id, $index+1, $taxonomy, true);
+
+	wp_cache_flush();
 	
 	return $index;
-	
 }
 
 /**

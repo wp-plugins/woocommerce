@@ -487,6 +487,7 @@ function woocommerce_order_totals_meta_box($post) {
 			</li>
 	
 		</ul>
+		<?php do_action( 'woocommerce_admin_order_totals_after_shipping', $post->ID ) ?>
 		<div class="clear"></div>
 	</div>
 	<div class="totals_group">
@@ -752,7 +753,7 @@ function woocommerce_process_shop_order_meta( $post_id, $post ) {
 						
 				$_product = $order->get_product_from_item( $order_item );
 				
-				if ($_product->exists) :
+				if ( $_product->exists() ) :
 				
 				 	if ( $_product->managing_stock() ) :
 						
@@ -784,7 +785,7 @@ function woocommerce_process_shop_order_meta( $post_id, $post ) {
 						
 				$_product = $order->get_product_from_item( $order_item );
 				
-				if ($_product->exists) :
+				if ( $_product->exists() ) :
 				
 				 	if ($_product->managing_stock()) :
 						

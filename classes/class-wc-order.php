@@ -260,21 +260,21 @@ class WC_Order {
 
 	/** Gets shipping and product tax */
 	function get_total_tax() {
-		return $this->order_tax + $this->order_shipping_tax;
+		return apply_filters( 'woocommerce_order_amount_total_tax', $this->order_tax + $this->order_shipping_tax );
 	}
 	
 	/**
 	 * gets the total (product) discount amount - these are applied before tax
 	 */
 	function get_cart_discount() {
-		return $this->cart_discount; 
+		return apply_filters( 'woocommerce_order_amount_cart_discount', $this->cart_discount ); 
 	}
 	
 	/**
 	 * gets the total (product) discount amount - these are applied before tax
 	 */
 	function get_order_discount() {
-		return $this->order_discount; 
+		return apply_filters( 'woocommerce_order_amount_order_discount', $this->order_discount ); 
 	}
 	
 	/**
@@ -282,18 +282,23 @@ class WC_Order {
 	 */
 	function get_total_discount() {
 		if ($this->order_discount || $this->cart_discount) :
-			return $this->order_discount + $this->cart_discount; 
+			return apply_filters( 'woocommerce_order_amount_total_discount', $this->order_discount + $this->cart_discount ); 
 		endif;
 	}
 	
 	/** Gets shipping */
 	function get_shipping() {
-		return $this->order_shipping;
+		return apply_filters( 'woocommerce_order_amount_shipping', $this->order_shipping );
+	}
+	
+	/** Gets shipping tax amount */
+	function get_shipping_tax() {
+		return apply_filters( 'woocommerce_order_amount_shipping_tax', $this->order_shipping_tax );
 	}
 	
 	/** Gets order total */
-	function get_order_total() {
-		return $this->order_total;
+	function get_total() {
+		return apply_filters( 'woocommerce_order_amount_total', $this->order_total );
 	}
 		
 	/** Get item subtotal - this is the cost before discount */
@@ -303,17 +308,17 @@ class WC_Order {
 		else :
 			$price = ( $item['line_subtotal'] / $item['qty'] );
 		endif;
-		return ($round) ? number_format( $price, 2, '.', '') : $price;
+		return apply_filters( 'woocommerce_order_amount_item_subtotal', ($round) ? number_format( $price, 2, '.', '') : $price );
 	}
 	
 	/** Get line subtotal - this is the cost before discount */
 	function get_line_subtotal( $item, $inc_tax = false, $round = true ) {
-		if ($inc_tax) :
+		if ( $inc_tax ) :
 			$price = $item['line_subtotal'] + $item['line_subtotal_tax'];
 		else :
 			$price = $item['line_subtotal'];
 		endif;
-		return ($round) ? number_format( $price, 2, '.', '') : $price;
+		return apply_filters( 'woocommerce_order_amount_line_subtotal', ($round) ? number_format( $price, 2, '.', '') : $price );
 	}
 	
 	/** Calculate item cost - useful for gateways */
@@ -323,30 +328,35 @@ class WC_Order {
 		else :
 			$price = $item['line_total'] / $item['qty'];
 		endif;
-		return ($round) ? number_format( $price, 2, '.', '') : $price;
+		return apply_filters( 'woocommerce_order_amount_item_total', ($round) ? number_format( $price, 2, '.', '') : $price );
 	}
 	
 	/** Calculate item tax - useful for gateways */
 	function get_item_tax( $item, $round = true ) {
 		$price = $item['line_tax'] / $item['qty'];
-		return ($round) ? number_format( $price, 2, '.', '') : $price;
+		return apply_filters( 'woocommerce_order_amount_item_tax', ($round) ? number_format( $price, 2, '.', '') : $price );
 	}
 	
 	/** Calculate line total - useful for gateways */
 	function get_line_total( $item, $inc_tax = false ) {
 		if ($inc_tax) :
-			return number_format( $item['line_total'] + $item['line_tax'] , 2, '.', '');
+			return apply_filters( 'woocommerce_order_amount_line_total', number_format( $item['line_total'] + $item['line_tax'] , 2, '.', '') );
 		else :
-			return number_format( $item['line_total'] , 2, '.', '');
+			return apply_filters( 'woocommerce_order_amount_line_total', number_format( $item['line_total'] , 2, '.', '') );
 		endif;
 	}
 	
 	/** Calculate line tax - useful for gateways */
 	function get_line_tax( $item ) {
-		return number_format( $item['line_tax'], 2, '.', '');
+		return apply_filters( 'woocommerce_order_amount_line_tax', number_format( $item['line_tax'], 2, '.', '') );
 	}
 	
 	/** Depreciated functions */
+	
+	function get_order_total() {
+		return apply_filters( 'woocommerce_order_amount_total', $this->order_total );
+	}
+	
 	function get_item_cost( $item, $inc_tax = false ) {
 		_deprecated_function( __FUNCTION__, '1.4', 'get_item_total()' );
 		return $this->get_item_total( $item, $inc_tax );
@@ -366,13 +376,22 @@ class WC_Order {
 		
 		if (!isset($item['line_subtotal']) || !isset($item['line_subtotal_tax'])) return;
 		
-		if ($this->display_cart_ex_tax || !$this->prices_include_tax) :	
-			if ($this->prices_include_tax) $ex_tax_label = 1; else $ex_tax_label = 0;
-			$subtotal = woocommerce_price( $this->get_line_subtotal( $item ), array('ex_tax_label' => $ex_tax_label ));
+		if ( $this->display_cart_ex_tax || ! $this->prices_include_tax ) :	
+			if ( $this->prices_include_tax ) $ex_tax_label = 1; else $ex_tax_label = 0;
+			$subtotal = woocommerce_price( $this->get_line_subtotal( $item ), array('ex_tax_label' => $ex_tax_label ) );
 		else :
 			$subtotal = woocommerce_price( $this->get_line_subtotal( $item, true ) );
 		endif;
-		return $subtotal;
+
+		return apply_filters( 'woocommerce_order_formatted_line_subtotal', $subtotal, $item, $this );
+	}
+	
+	/** Gets order total - formatted for display */
+	function get_formatted_order_total() {
+
+		$formatted_total = woocommerce_price( $this->order_total );
+
+		return apply_filters( 'woocommerce_get_formatted_order_total', $formatted_total, $this );
 	}
 	
 	/** Gets subtotal - subtotal is shown before discounts, but with localised taxes */
@@ -381,21 +400,21 @@ class WC_Order {
 		
 		$subtotal = 0;
 		
-		if ( !$compound ) :
+		if ( ! $compound ) :
 
 			foreach ($this->get_items() as $item) :
 				
-				if (!isset($item['line_subtotal']) || !isset($item['line_subtotal_tax'])) return;
+				if ( ! isset( $item['line_subtotal'] ) || ! isset( $item['line_subtotal_tax'] ) ) return;
 				
 				$subtotal += $this->get_line_subtotal( $item );
 				
-				if (!$this->display_cart_ex_tax) :
+				if ( ! $this->display_cart_ex_tax ) :
 					$subtotal += $item['line_subtotal_tax'];
 				endif;
 
 			endforeach;
-			
-			$subtotal = woocommerce_price($subtotal);
+					
+			$subtotal = woocommerce_price( $subtotal );
 			
 			if ($this->display_cart_ex_tax && $this->prices_include_tax) :	
 				$subtotal .= ' <small>'.$woocommerce->countries->ex_tax_or_vat().'</small>';
@@ -403,7 +422,7 @@ class WC_Order {
 		
 		else :
 			
-			if ($this->prices_include_tax) return;
+			if ( $this->prices_include_tax ) return;
 			
 			foreach ($this->get_items() as $item) :
 				
@@ -415,13 +434,16 @@ class WC_Order {
 			$subtotal += $this->get_shipping();
 		
 			// Remove non-compound taxes
-			foreach ($this->get_taxes() as $tax) :
+			foreach ( $this->get_taxes() as $tax ) :
 				
 				if (isset($tax['compound']) && $tax['compound']) continue;
 				
 				$subtotal = $subtotal + $tax['cart_tax'] + $tax['shipping_tax'];
 			
 			endforeach;
+			
+			// Remove discounts
+			$subtotal = $subtotal - $this->get_cart_discount();
 			
 			$subtotal = woocommerce_price($subtotal);
 
@@ -484,57 +506,62 @@ class WC_Order {
 		
 		$total_rows = array();
 		
-		if ($subtotal = $this->get_subtotal_to_display())
-			$total_rows[ __('Cart Subtotal:', 'woocommerce') ] = $subtotal;
+		if ( $subtotal = $this->get_subtotal_to_display() )
+			$total_rows[ __( 'Cart Subtotal:', 'woocommerce' ) ] = $subtotal;
 		
-		if ($this->get_cart_discount() > 0) 
-			$total_rows[ __('Cart Discount:', 'woocommerce') ] = woocommerce_price($this->get_cart_discount());
+		if ( $this->get_cart_discount() > 0 ) 
+			$total_rows[ __( 'Cart Discount:', 'woocommerce' ) ] = '-' . woocommerce_price( $this->get_cart_discount() );
 		
-		if ($this->get_shipping() > 0)
+		if ( $this->get_shipping() > 0 )
 			$total_rows[ __('Shipping:', 'woocommerce') ] = $this->get_shipping_to_display();
 		
-		if ($this->get_total_tax() > 0) :
+		if ( $this->get_total_tax() > 0 ) {
 			
-			if ( sizeof($this->get_taxes()) > 0 ) :
+			if ( sizeof( $this->get_taxes() ) > 0 ) {
 			
 				$has_compound_tax = false;
 				
-				foreach ($this->get_taxes() as $tax) : 
-					if ($tax['compound']) : $has_compound_tax = true; continue; endif;
-					if (($tax['cart_tax']+$tax['shipping_tax'])==0) continue;
-					$total_rows[ $tax['label'] ] = woocommerce_price( ($tax['cart_tax']+$tax['shipping_tax']) );
-				endforeach;
+				foreach ( $this->get_taxes() as $tax ) {
+					if ( $tax[ 'compound' ] ) {
+						$has_compound_tax = true;
+						continue;
+					}
+					
+					if ( ( $tax[ 'cart_tax' ] + $tax[ 'shipping_tax' ] ) == 0 )
+						continue;
+					
+					$total_rows[ $tax[ 'label' ] ] = woocommerce_price( ( $tax[ 'cart_tax' ] + $tax[ 'shipping_tax' ] ) );
+				}
 				
-				if ($has_compound_tax) :
-					if ($subtotal = $this->get_subtotal_to_display( true )) :
-						$total_rows[ __('Subtotal:', 'woocommerce') ] = $subtotal;
-					endif;
-				endif;
+				if ( $has_compound_tax ) {
+					if ( $subtotal = $this->get_subtotal_to_display( true ) ) {
+						$total_rows[ __( 'Subtotal:', 'woocommerce' ) ] = $subtotal;
+					}
+				}
 				
-				foreach ($this->get_taxes() as $tax) : 
-					if (!$tax['compound']) continue;
-					if (($tax['cart_tax']+$tax['shipping_tax'])==0) continue;
-					$total_rows[ $tax['label'] ] = woocommerce_price( ($tax['cart_tax']+$tax['shipping_tax']) );
-				endforeach;
-			
-			else :
-			
-				$total_rows[ $woocommerce->countries->tax_or_vat() ] = woocommerce_price($this->get_total_tax());
-			
-			endif;
+				foreach ( $this->get_taxes() as $tax ) {
+					if ( ! $tax[ 'compound' ] )
+						continue;
 
-		elseif ( get_option( 'woocommerce_display_cart_taxes_if_zero' ) == 'yes' ) :
-		
+					if ( ( $tax[ 'cart_tax' ] + $tax[ 'shipping_tax' ] ) == 0 )
+						continue;
+
+					$total_rows[ $tax[ 'label' ] ] = woocommerce_price( ( $tax[ 'cart_tax' ] + $tax[ 'shipping_tax' ] ) );
+				}
+			} else {
+				$total_rows[ $woocommerce->countries->tax_or_vat() ] = woocommerce_price($this->get_total_tax());
+			}
+
+		} elseif ( get_option( 'woocommerce_display_cart_taxes_if_zero' ) == 'yes' ) {
 			$total_rows[ $woocommerce->countries->tax_or_vat() ] = _x( 'N/A', 'Relating to tax', 'woocommerce' );
-			
-		endif;
+		}
 		
-		if ($this->get_order_discount() > 0)
-			$total_rows[ __('Order Discount:', 'woocommerce') ] = woocommerce_price($this->get_order_discount());
+		if ( $this->get_order_discount() > 0 )
+			$total_rows[ __( 'Order Discount:', 'woocommerce' ) ] = '-' . woocommerce_price( $this->get_order_discount() );
 		
-		$total_rows[ __('Order Total:', 'woocommerce') ] = woocommerce_price($this->get_order_total());
+		$total_rows[ __( 'Order Total:', 'woocommerce' ) ] = $this->get_formatted_order_total();
 		
-		return apply_filters('woocommerce_get_order_item_totals', $total_rows, $this);
+		return apply_filters( 'woocommerce_get_order_item_totals', $total_rows, $this );
 	}
 	
 	/** Output items for display in html emails */
@@ -566,7 +593,7 @@ class WC_Order {
 			
 			$_product = $this->get_product_from_item( $item );
 
-			if ($_product->exists && $_product->is_downloadable()) :
+			if ($_product->exists() && $_product->is_downloadable()) :
 				$has_downloadable_item = true;
 			endif;
 			
@@ -762,7 +789,7 @@ class WC_Order {
 				if ($item['id']>0) {
 					$_product = $this->get_product_from_item( $item );
 					
-					if ( $_product && $_product->exists && $_product->managing_stock() ) {
+					if ( $_product && $_product->exists() && $_product->managing_stock() ) {
 					
 						$old_stock = $_product->stock;
 						

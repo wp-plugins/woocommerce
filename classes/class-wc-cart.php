@@ -79,7 +79,7 @@ class WC_Cart {
 					else
 						$_product = new WC_Product( $values['product_id'] );
 					
-					if ( $_product->exists && $values['quantity'] > 0 ) {
+					if ( $_product->exists() && $values['quantity'] > 0 ) {
 						
 						// Put session data into array. Run through filter so other plugins can load their own session data
 						$this->cart_contents[$key] = apply_filters( 'woocommerce_get_cart_item_from_session', array(
@@ -710,6 +710,7 @@ class WC_Cart {
 		function set_quantity( $cart_item_key, $quantity = 1 ) {
 		
 			if ( $quantity == 0 || $quantity < 0 ) {
+				do_action( 'woocommerce_before_cart_item_quantity_zero', $cart_item_key );
 				unset( $this->cart_contents[$cart_item_key] );
 			} else {
 				$this->cart_contents[$cart_item_key]['quantity'] = $quantity;
@@ -1123,7 +1124,7 @@ class WC_Cart {
 							 * 	OR
 							 * ADJUST TAX - Checkout calculations when a tax class is modified
 							 */
-							if ( ( $woocommerce->customer->is_customer_outside_base() && defined('WOOCOMMERCE_CHECKOUT') ) || ( $_product->get_tax_class() !== $_product->tax_class ) ) {
+							if ( ( $woocommerce->customer->is_customer_outside_base() && ( defined('WOOCOMMERCE_CHECKOUT') || $woocommerce->customer->has_calculated_shipping() ) ) || ( $_product->get_tax_class() !== $_product->tax_class ) ) {
 								
 								// Get tax rate for the store base, ensuring we use the unmodified tax_class for the product
 								$base_tax_rates 		= $this->tax->get_shop_base_rate( $_product->tax_class );
@@ -1368,6 +1369,7 @@ class WC_Cart {
 			
 			$packages[0]['contents'] 				= $this->get_cart();	// Items in the package
 			$packages[0]['contents_cost'] 			= 0;					// Cost of items in the package
+			$packages[0]['applied_coupons']			= $this->applied_coupons; // Applied coupons - some, like free shipping, affect costs
 			$packages[0]['destination']['country'] 	= $woocommerce->customer->get_shipping_country();
 			$packages[0]['destination']['state'] 	= $woocommerce->customer->get_shipping_state();
 			$packages[0]['destination']['postcode'] = $woocommerce->customer->get_shipping_postcode();
@@ -1414,7 +1416,7 @@ class WC_Cart {
 			if ( ! is_array( $this->cart_contents ) ) return false;
 			
 			if ( get_option( 'woocommerce_shipping_cost_requires_address' ) == 'yes' ) {
-				if ( empty( $_SESSION['calculated_shipping'] ) ) {
+				if ( ! $woocommerce->customer->has_calculated_shipping() ) {
 					if ( ! $woocommerce->customer->get_shipping_country() || ! $woocommerce->customer->get_shipping_state() ) return false;
 				}
 			}
@@ -1662,12 +1664,12 @@ class WC_Cart {
 			} else {
 			
 				// Display ex tax if the option is set, or prices exclude tax
-				if ($this->display_totals_ex_tax || !$this->prices_include_tax ) {
-					
+				if ( $this->display_totals_ex_tax || ! $this->prices_include_tax ) {
+																				
 					$return = woocommerce_price( $this->subtotal_ex_tax );
 					
 					if ( $this->tax_total>0 && $this->prices_include_tax ) {
-						$return .= ' <small>'.$woocommerce->countries->ex_tax_or_vat().'</small>';
+						$return .= ' <small>' . $woocommerce->countries->ex_tax_or_vat() . '</small>';
 					}
 					return $return;
 					
@@ -1676,7 +1678,7 @@ class WC_Cart {
 					$return = woocommerce_price( $this->subtotal );
 					
 					if ( $this->tax_total>0 && !$this->prices_include_tax ) {
-						$return .= ' <small>'.$woocommerce->countries->inc_tax_or_vat().'</small>';
+						$return .= ' <small>' . $woocommerce->countries->inc_tax_or_vat() . '</small>';
 					}
 					return $return;
 				
