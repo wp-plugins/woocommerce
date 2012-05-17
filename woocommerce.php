@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce
  * Plugin URI: http://www.woothemes.com/woocommerce/
  * Description: An e-commerce toolkit that helps you sell anything. Beautifully.
- * Version: 1.5.5
+ * Version: 1.5.6
  * Author: WooThemes
  * Author URI: http://woothemes.com
  * Requires at least: 3.3
@@ -32,7 +32,7 @@ class Woocommerce {
 	
 	/** Version ***************************************************************/
 	
-	var $version = '1.5.5';
+	var $version = '1.5.6';
 	
 	/** URLS ******************************************************************/
 	
@@ -985,7 +985,6 @@ class Woocommerce {
 			'update_order_review_nonce' 	=> wp_create_nonce("update-order-review"),
 			'update_shipping_method_nonce' 	=> wp_create_nonce("update-shipping-method"),
 			'option_guest_checkout'			=> get_option('woocommerce_enable_guest_checkout'),
-			'option_limit_download_qty' 	=> get_option('woocommerce_limit_downloadable_product_qty'),
 			'checkout_url'					=> add_query_arg( 'action', 'woocommerce-checkout', $this->ajax_url() ),
 			'option_ajax_add_to_cart'		=> get_option('woocommerce_enable_ajax_add_to_cart'),
 			'is_checkout'					=> ( is_page(woocommerce_get_page_id('checkout')) ) ? 1 : 0,

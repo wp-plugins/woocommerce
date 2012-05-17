@@ -83,8 +83,14 @@ class WooCommerce_Widget_Featured_Products extends WP_Widget {
 		
 		<?php endif;
 
-		$cache[$args['widget_id']] = ob_get_flush();
+		$content = ob_get_clean();
+
+		if ( isset( $args['widget_id'] ) ) $cache[$args['widget_id']] = $content;
+		
+		echo $content;
+
 		wp_cache_set('widget_featured_products', $cache, 'widget');
+        wp_reset_postdata();
 	}
 
 	/** @see WP_Widget->update */

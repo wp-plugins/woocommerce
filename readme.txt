@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, affiliate
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.3
 Tested up to: 3.4
-Stable tag: 1.5.5
+Stable tag: 1.5.6
 
 WooCommerce is a powerful, extendable eCommerce plugin that helps you sell anything. Beautifully.
 
@@ -146,6 +146,24 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 3. WooCommerce sales reports
 
 == Changelog ==
+
+= 1.5.6 - 17/05/2012 =
+* Feature - Default display for shipping methods is radio buttons. Before, when methods were enabled/disabled based on coupons or customer, changed methods could go unnoticed. Radio options are always visible.
+* Feature - Option to display shipping methods as a select box vs. radio buttons
+* Feature - Added support for cost per order to Flat Rate shipping
+* Feature - image support added to sharethis
+* Tweak - When the count of available shipping methods changes, reset to default
+* Tweak - Optimisations to monthly and product reports
+* Tweak - Individually sold variation handling
+* Tweak - Removed mdash; from shipping options
+* Tweak - Made woocommerce_locate_template more useful for third party plugins - ability to pass a full path
+* Tweak - WC Debug page hooks
+* Tweak - Tidied up installer
+* Tweak - Removed unused get_hidden_product_ids
+* Fix - Google Analytics options fix
+* Fix - % discount rounding
+* Fix - get_stock_quantity returns '' if stock management is off in global settings
+* Fix - Prevent error in ecommerce tracking if no categories set
 
 = 1.5.5 - 10/05/2012 =
 * Feature - New 'default' sorting order using menu_order, with drag and drop sorting (based on http://wordpress.org/extend/plugins/simple-page-ordering/)

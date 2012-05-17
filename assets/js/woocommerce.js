@@ -262,11 +262,11 @@ jQuery(document).ready(function($) {
 	});
 	
 	/* Tabs */
-	$('div.woocommerce_tabs .panel').hide();
-	$('div.woocommerce_tabs ul.tabs li a').click(function(){
+	$('.woocommerce_tabs .panel').hide();
+	$('.woocommerce_tabs ul.tabs li a').click(function(){
 		
 		var $tab = $(this);
-		var $tabs_wrapper = $tab.closest('div.woocommerce_tabs');
+		var $tabs_wrapper = $tab.closest('.woocommerce_tabs');
 		
 		$('ul.tabs li', $tabs_wrapper).removeClass('active');
 		$('div.panel', $tabs_wrapper).hide();
@@ -275,7 +275,7 @@ jQuery(document).ready(function($) {
 		
 		return false;	
 	});
-	$('div.woocommerce_tabs').each(function() {
+	$('.woocommerce_tabs').each(function() {
 		var hash = window.location.hash;
 		if (hash.toLowerCase().indexOf("comment-") >= 0) {
 			$('ul.tabs li.reviews_tab a', $(this)).click();
@@ -411,20 +411,23 @@ jQuery(document).ready(function($) {
         	 $('.product_meta').find('.sku').text('');
         }
         
+        $('.single_variation_wrap').find('.quantity').show();
+        
         if (variation.min_qty) {
         	$('.single_variation_wrap').find('input[name=quantity]').attr('data-min', variation.min_qty).val(variation.min_qty);
         } else {
         	$('.single_variation_wrap').find('input[name=quantity]').removeAttr('data-min');
         }
         
-        if (variation.max_qty) {
+        if ( variation.max_qty ) {
         	$('.single_variation_wrap').find('input[name=quantity]').attr('data-max', variation.max_qty);
         } else {
         	$('.single_variation_wrap').find('input[name=quantity]').removeAttr('data-max');
         }
         
-        if (variation.is_virtual=='yes' && variation.is_downloadable=='yes' && woocommerce_params.option_limit_download_qty=='yes') {
-        	$('.single_variation_wrap').find('input[name=quantity]').attr('data-max', 1);
+        if ( variation.is_sold_individually == 'yes' ) {
+        	$('.single_variation_wrap').find('input[name=quantity]').val('1');
+        	$('.single_variation_wrap').find('.quantity').hide();
         }
 
         $('.single_variation_wrap').slideDown('200').trigger('variationWrapShown').trigger('show_variation'); // depreciated variationWrapShown
@@ -516,9 +519,9 @@ jQuery(document).ready(function($) {
 	
 	if (woocommerce_params.is_cart==1) {
 	
-		$('select#shipping_method').live('change', function() {
+		$('select#shipping_method, input[name=shipping_method]').live('change', function() {
 			
-			var method = $('#shipping_method').val();
+			var method = $(this).val();
 			
 			$('div.cart_totals').block({message: null, overlayCSS: {background: '#fff url(' + woocommerce_params.plugin_url + '/assets/images/ajax-loader.gif) no-repeat center', opacity: 0.6}});
 			
@@ -548,7 +551,11 @@ jQuery(document).ready(function($) {
 		
 			if (xhr) xhr.abort();
 		
-			var method 			= $('#shipping_method').val();
+			if ( $('select#shipping_method').size() > 0 ) 
+				var method = $('select#shipping_method').val();
+			else
+				var method = $('input[name=shipping_method]:checked').val();
+			
 			var payment_method 	= $('#order_review input[name=payment_method]:checked').val();
 			var country 		= $('#billing_country').val();
 			var state 			= $('#billing_state').val();
@@ -646,7 +653,7 @@ jQuery(document).ready(function($) {
 		$('#order_review input[name=payment_method]:checked').click();
 		
 		/* Update totals */
-		$('#shipping_method').live('change', function(){
+		$('select#shipping_method, input[name=shipping_method]').live('change', function(){
 			$('body').trigger('update_checkout');
 		});
 		$('input#billing_country, input#billing_state, #billing_postcode, input#shipping_country, input#shipping_state, #shipping_postcode').live('keydown', function(){
