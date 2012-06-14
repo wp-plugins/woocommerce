@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce
  * Plugin URI: http://www.woothemes.com/woocommerce/
  * Description: An e-commerce toolkit that helps you sell anything. Beautifully.
- * Version: 1.5.6
+ * Version: 1.5.7
  * Author: WooThemes
  * Author URI: http://woothemes.com
  * Requires at least: 3.3
@@ -17,9 +17,9 @@
  * @author WooThemes
  */
 
-if ( !defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-if ( !class_exists( 'Woocommerce' ) ) {
+if ( ! class_exists( 'Woocommerce' ) ) {
 
 /**
  * Main WooCommerce Class
@@ -32,7 +32,7 @@ class Woocommerce {
 	
 	/** Version ***************************************************************/
 	
-	var $version = '1.5.6';
+	var $version = '1.5.7';
 	
 	/** URLS ******************************************************************/
 	
@@ -86,7 +86,7 @@ class Woocommerce {
 		$this->includes();
 		
 		// Installation
-		if ( is_admin() && !defined('DOING_AJAX') ) $this->install();
+		if ( is_admin() && ! defined('DOING_AJAX') ) $this->install();
 		
 		// Actions
 		add_action( 'init', array( &$this, 'init' ), 0 );
@@ -117,10 +117,11 @@ class Woocommerce {
 		// Include Core Payment Gateways
 		include( 'classes/gateways/class-wc-payment-gateways.php' );
 		include( 'classes/gateways/class-wc-payment-gateway.php' );
-		include( 'classes/gateways/class-wc-bacs.php' );
-		include( 'classes/gateways/class-wc-cheque.php' );
-		include( 'classes/gateways/class-wc-paypal.php' );
-		include( 'classes/gateways/class-wc-cod.php' );
+		include( 'classes/gateways/bacs/class-wc-bacs.php' );
+		include( 'classes/gateways/cheque/class-wc-cheque.php' );
+		include( 'classes/gateways/paypal/class-wc-paypal.php' );
+		include( 'classes/gateways/cod/class-wc-cod.php' );
+		include( 'classes/gateways/mijireh/class-wc-mijireh-checkout.php' );
 		
 		// Include Core Shipping Methods
 		include( 'classes/shipping/class-wc-shipping.php' );
@@ -220,7 +221,7 @@ class Woocommerce {
 			add_filter( 'template_include', array(&$this, 'template_loader') );
 			add_filter( 'comments_template', array(&$this, 'comments_template_loader') );
 			add_filter( 'wp_redirect', array(&$this, 'redirect'), 1, 2 );
-			add_action( 'wp', array(&$this, 'buffer_checkout') );
+			add_action( 'get_header', array(&$this, 'buffer_checkout') );
 			add_action( 'wp_enqueue_scripts', array(&$this, 'frontend_scripts') );
 			add_action( 'wp_head', array(&$this, 'generator') );
 			add_action( 'wp_head', array(&$this, 'wp_head') );
@@ -239,10 +240,12 @@ class Woocommerce {
 
 		// Actions for SSL
 		if ( ! is_admin() || defined('DOING_AJAX') ) {
-			add_action( 'wp', array( &$this, 'ssl_redirect' ) );
+			add_action( 'get_header', array( &$this, 'ssl_redirect' ) );
 	
 			$filters = array( 'post_thumbnail_html', 'widget_text', 'wp_get_attachment_url', 'wp_get_attachment_image_attributes', 'wp_get_attachment_url', 'option_siteurl', 'option_homeurl', 'option_home', 'option_url', 'option_wpurl', 'option_stylesheet_url', 'option_template_url', 'script_loader_src', 'style_loader_src', 'template_directory_uri', 'stylesheet_directory_uri', 'site_url' );
-			foreach ( $filters as $filter ) add_filter( $filter, array( &$this, 'force_ssl') );
+			
+			foreach ( $filters as $filter ) 
+				add_filter( $filter, array( &$this, 'force_ssl') );
 		}
 
 		// Register globals for WC environment
@@ -303,8 +306,8 @@ class Woocommerce {
 	 */
 	function template_loader( $template ) {
 		
-		$find 	= array( 'woocommerce.php' );
-		$file 	= '';
+		$find = array( 'woocommerce.php' );
+		$file = '';
 		
 		if ( is_single() && get_post_type() == 'product' ) {
 			
@@ -312,7 +315,7 @@ class Woocommerce {
 			$find[] = $file;
 			$find[] = $this->template_url . $file;
 
-		} elseif ( is_tax('product_cat') || is_tax('product_tag') ) {
+		} elseif ( is_tax( 'product_cat' ) || is_tax( 'product_tag' ) ) {
 			
 			$term = get_queried_object();
 			
@@ -322,7 +325,7 @@ class Woocommerce {
 			$find[] 	= $file;
 			$find[] 	= $this->template_url . $file;
 						
-		} elseif ( is_post_type_archive('product') ||  is_page( woocommerce_get_page_id('shop') )) {
+		} elseif ( is_post_type_archive( 'product' ) || is_page( woocommerce_get_page_id( 'shop' ) ) ) {
 			
 			$file 	= 'archive-product.php';
 			$find[] = $file;
@@ -574,6 +577,7 @@ class Woocommerce {
 	            'labels' => array(
 	                    'name' 				=> __( 'Product Categories', 'woocommerce'),
 	                    'singular_name' 	=> __( 'Product Category', 'woocommerce'),
+						'menu_name'			=> _x( 'Product Categories', 'Admin menu name', 'woocommerce' ),
 	                    'search_items' 		=> __( 'Search Product Categories', 'woocommerce'),
 	                    'all_items' 		=> __( 'All Product Categories', 'woocommerce'),
 	                    'parent_item' 		=> __( 'Parent Product Category', 'woocommerce'),
@@ -604,6 +608,7 @@ class Woocommerce {
 	            'labels' => array(
 	                    'name' 				=> __( 'Tags', 'woocommerce'),
 	                    'singular_name' 	=> __( 'Product Tag', 'woocommerce'),
+						'menu_name'			=> _x( 'Tags', 'Admin menu name', 'woocommerce' ),
 	                    'search_items' 		=> __( 'Search Product Tags', 'woocommerce'),
 	                    'all_items' 		=> __( 'All Product Tags', 'woocommerce'),
 	                    'parent_item' 		=> __( 'Parent Product Tag', 'woocommerce'),
@@ -634,6 +639,7 @@ class Woocommerce {
 	            'labels' => array(
 	                    'name' 				=> __( 'Shipping Classes', 'woocommerce'),
 	                    'singular_name' 	=> __( 'Shipping Class', 'woocommerce'),
+						'menu_name'			=> _x( 'Shipping Classes', 'Admin menu name', 'woocommerce' ),
 	                    'search_items' 		=> __( 'Search Shipping Classes', 'woocommerce'),
 	                    'all_items' 		=> __( 'All Shipping Classes', 'woocommerce'),
 	                    'parent_item' 		=> __( 'Parent Shipping Class', 'woocommerce'),
@@ -665,7 +671,7 @@ class Woocommerce {
 	                    'name' 				=> __( 'Order statuses', 'woocommerce'),
 	                    'singular_name' 	=> __( 'Order status', 'woocommerce'),
 	                    'search_items' 		=> __( 'Search Order statuses', 'woocommerce'),
-	                    'all_items' 		=> __( 'All  Order statuses', 'woocommerce'),
+	                    'all_items' 		=> __( 'All Order statuses', 'woocommerce'),
 	                    'parent_item' 		=> __( 'Parent Order status', 'woocommerce'),
 	                    'parent_item_colon' => __( 'Parent Order status:', 'woocommerce'),
 	                    'edit_item' 		=> __( 'Edit Order status', 'woocommerce'),
@@ -728,6 +734,7 @@ class Woocommerce {
 				'labels' => array(
 						'name' 					=> __( 'Products', 'woocommerce' ),
 						'singular_name' 		=> __( 'Product', 'woocommerce' ),
+						'menu_name'				=> _x( 'Products', 'Admin menu name', 'woocommerce' ),
 						'add_new' 				=> __( 'Add Product', 'woocommerce' ),
 						'add_new_item' 			=> __( 'Add New Product', 'woocommerce' ),
 						'edit' 					=> __( 'Edit', 'woocommerce' ),
@@ -807,6 +814,26 @@ class Woocommerce {
 			)
 		);
 	    
+
+	        
+		if ( false === ( $order_count = get_transient( 'woocommerce_processing_order_count' ) ) ) {
+			$order_statuses = get_terms( 'shop_order_status' );
+		    $order_count = false;
+		    foreach ( $order_statuses as $status ) {
+		        if( $status->slug === 'processing' ) {
+		            $order_count += $status->count;
+		            break;
+		        }
+		    }
+		    $order_count = apply_filters( 'woocommerce_admin_menu_count', intval( $order_count ) );
+			set_transient( 'woocommerce_processing_order_count', $order_count );
+		}
+	        
+		$menu_name = _x('Orders', 'Admin menu name', 'woocommerce');
+		if ( $order_count ) {
+			$menu_name .= " <span class='awaiting-mod count-$order_count'><span class='processing-count'>" . number_format_i18n( $order_count ) . "</span></span>" ;
+		}
+
 	    register_post_type( "shop_order",
 			array(
 				'labels' => array(
@@ -822,7 +849,8 @@ class Woocommerce {
 						'search_items' 			=> __( 'Search Orders', 'woocommerce' ),
 						'not_found' 			=> __( 'No Orders found', 'woocommerce' ),
 						'not_found_in_trash' 	=> __( 'No Orders found in trash', 'woocommerce' ),
-						'parent' 				=> __( 'Parent Orders', 'woocommerce' )
+						'parent' 				=> __( 'Parent Orders', 'woocommerce' ),
+						'menu_name'				=> $menu_name
 					),
 				'description' 			=> __( 'This is where store orders are stored.', 'woocommerce' ),
 				'public' 				=> true,
@@ -847,7 +875,7 @@ class Woocommerce {
 				'rewrite' 				=> false,
 				'query_var' 			=> true,			
 				'supports' 				=> array( 'title', 'comments', 'custom-fields' ),
-				'has_archive' 			=> false
+				'has_archive' 			=> false,
 			)
 		);
 	
@@ -856,6 +884,7 @@ class Woocommerce {
 				'labels' => array(
 						'name' 					=> __( 'Coupons', 'woocommerce' ),
 						'singular_name' 		=> __( 'Coupon', 'woocommerce' ),
+						'menu_name'				=> _x( 'Coupons', 'Admin menu name', 'woocommerce' ),
 						'add_new' 				=> __( 'Add Coupon', 'woocommerce' ),
 						'add_new_item' 			=> __( 'Add New Coupon', 'woocommerce' ),
 						'edit' 					=> __( 'Edit', 'woocommerce' ),
@@ -984,6 +1013,7 @@ class Woocommerce {
 			'add_to_cart_nonce' 			=> wp_create_nonce("add-to-cart"),
 			'update_order_review_nonce' 	=> wp_create_nonce("update-order-review"),
 			'update_shipping_method_nonce' 	=> wp_create_nonce("update-shipping-method"),
+			'apply_coupon_nonce' 			=> wp_create_nonce("apply-coupon"),
 			'option_guest_checkout'			=> get_option('woocommerce_enable_guest_checkout'),
 			'checkout_url'					=> add_query_arg( 'action', 'woocommerce-checkout', $this->ajax_url() ),
 			'option_ajax_add_to_cart'		=> get_option('woocommerce_enable_ajax_add_to_cart'),
@@ -1123,12 +1153,12 @@ class Woocommerce {
 	/**
 	 * Add an error
 	 */
-	function add_error( $error ) { $this->errors[] = $error; }
+	function add_error( $error ) { $this->errors[] = apply_filters( 'woocommerce_add_error', $error ); }
 	
 	/**
 	 * Add a message
 	 */
-	function add_message( $message ) { $this->messages[] = $message; }
+	function add_message( $message ) { $this->messages[] = apply_filters( 'woocommerce_add_message', $message ); }
 	
 	/** Clear messages and errors from the session data */
 	function clear_messages() {
@@ -1361,12 +1391,14 @@ class Woocommerce {
 				(
 					'_transient_wc_product_children_ids_$post_id', 
 					'_transient_wc_product_total_stock_$post_id', 
-					'_transient_wc_average_rating_$post_id'
+					'_transient_wc_average_rating_$post_id',
+					'_transient_wc_product_type_$post_id'
 				)");
 		} else {
 			$wpdb->query("DELETE FROM `$wpdb->options` WHERE `option_name` LIKE ('_transient_wc_product_children_ids_%')");
 			$wpdb->query("DELETE FROM `$wpdb->options` WHERE `option_name` LIKE ('_transient_wc_product_total_stock_%')");
 			$wpdb->query("DELETE FROM `$wpdb->options` WHERE `option_name` LIKE ('_transient_wc_average_rating_%')");
+			$wpdb->query("DELETE FROM `$wpdb->options` WHERE `option_name` LIKE ('_transient_wc_product_type_%')");
 		}
 		
 		wp_cache_flush();

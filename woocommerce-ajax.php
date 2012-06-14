@@ -22,33 +22,33 @@ function woocommerce_sidebar_login_ajax_process() {
 	
 	// Get post data
 	$creds = array();
-	$creds['user_login'] 	= esc_attr($_POST['user_login']);
-	$creds['user_password'] = esc_attr($_POST['user_password']);
+	$creds['user_login'] 	= esc_attr($_REQUEST['user_login']);
+	$creds['user_password'] = esc_attr($_REQUEST['user_password']);
 	$creds['remember'] 		= 'forever';
-	$redirect_to 			= esc_attr($_POST['redirect_to']);
+	$redirect_to 			= esc_attr($_REQUEST['redirect_to']);
 	
 	// Check for Secure Cookie
 	$secure_cookie = '';
 	
 	// If the user wants ssl but the session is not ssl, force a secure cookie.
-	if ( !empty($_POST['log']) && !force_ssl_admin() ) {
-		$user_name = sanitize_user($_POST['log']);
-		if ( $user = get_user_by('login', $user_name) ) {
-			if ( get_user_option('use_ssl', $user->ID) ) {
+	if ( ! force_ssl_admin() ) {
+		$user_name = sanitize_user( $creds['user_login']  );
+		if ( $user = get_user_by('login',  $user_name ) ) {
+			if ( get_user_option( 'use_ssl', $user->ID ) ) {
 				$secure_cookie = true;
 				force_ssl_admin(true);
 			}
 		}
 	}
 	
-	if ( !$secure_cookie && is_ssl() && force_ssl_login() && !force_ssl_admin() && ( 0 !== strpos($redirect_to, 'https') ) && ( 0 === strpos($redirect_to, 'http') ) )
-	$secure_cookie = false;
+	if ( force_ssl_admin() ) $secure_cookie = true;
+	if ( $secure_cookie=='' && force_ssl_login() ) $secure_cookie = false;
 
 	// Login
-	$user = wp_signon($creds, $secure_cookie);
+	$user = wp_signon( $creds, $secure_cookie );
 	
 	// Redirect filter
-	if ( $secure_cookie && false !== strpos($redirect_to, 'wp-admin') ) $redirect_to = preg_replace('|^http://|', 'https://', $redirect_to);
+	if ( $secure_cookie && strstr($redirect_to, 'wp-admin') ) $redirect_to = str_replace('http:', 'https:', $redirect_to);
 
 	// Result
 	$result = array();
@@ -58,14 +58,42 @@ function woocommerce_sidebar_login_ajax_process() {
 		$result['redirect'] = $redirect_to;
 	else :
 		$result['success'] = 0;
-		foreach ($user->errors as $error) {
-			$result['error'] = $error[0];
-			break;
+		if ( $user->errors ) {
+			foreach ($user->errors as $error) {
+				$result['error'] = $error[0];
+				break;
+			}
+		} else {
+			$result['error'] = __('Please enter your username and password to login.', 'woocommerce');
 		}
 	endif;
 	
-	echo json_encode($result);
+	header('content-type: application/json; charset=utf-8');
 
+	echo $_GET['callback'] . '(' . json_encode( $result ) . ')';
+
+	die();
+}
+
+/**
+ * AJAX apply coupon on checkout page
+ */
+add_action('wp_ajax_woocommerce_apply_coupon', 'woocommerce_ajax_apply_coupon');
+add_action('wp_ajax_nopriv_woocommerce_apply_coupon', 'woocommerce_ajax_apply_coupon');
+
+function woocommerce_ajax_apply_coupon() {
+	global $woocommerce;
+	
+	check_ajax_referer( 'apply-coupon', 'security' );
+	
+	if ( ! empty( $_POST['coupon_code'] ) ) {
+		$woocommerce->cart->add_discount( stripslashes( trim( $_POST['coupon_code'] ) ) );
+	} else {
+		$woocommerce->add_error( __('Please enter a coupon code.', 'woocommerce') ); 
+	}
+	
+	$woocommerce->show_messages();
+	
 	die();
 }
 
@@ -1024,6 +1052,8 @@ function woocommerce_term_ordering() {
 add_action( 'wp_ajax_woocommerce_product_ordering', 'woocommerce_product_ordering' );
 
 function woocommerce_product_ordering() {
+	global $wpdb;
+	
 	// check permissions again and make sure we have what we need
 	if ( ! current_user_can('edit_others_pages') || empty( $_POST['id'] ) || ( ! isset( $_POST['previd'] ) && ! isset( $_POST['nextid'] ) ) )
 		die(-1);
@@ -1036,42 +1066,65 @@ function woocommerce_product_ordering() {
 	$nextid = isset( $_POST['nextid'] ) ? $_POST['nextid'] : false;
 	$new_pos = array(); // store new positions for ajax
 	
-	$siblings = get_posts(array( 
-		'numberposts' 	=> -1, 
-		'post_type' 	=> 'product', 
-		'post_status' 	=> 'publish,pending,draft,future,private', 
-		'orderby' 		=> 'menu_order title', 
-		'order' 		=> 'ASC', 
-		'exclude' 		=> $post->ID 
-	)); // fetch all the siblings (relative ordering)
+	$siblings = $wpdb->get_results("
+		SELECT ID, menu_order FROM {$wpdb->posts} AS posts
+		WHERE 	posts.post_type 	= 'product'
+		AND 	posts.post_status 	IN ( 'publish', 'pending', 'draft', 'future', 'private' )
+		AND 	posts.ID			NOT IN ( {$post->ID} )
+		ORDER BY posts.menu_order ASC, posts.post_title ASC
+	");
 	
 	$menu_order = 0;
 		
-	foreach( $siblings as $sibling ) :
+	foreach( $siblings as $sibling ) {
 	
 		// if this is the post that comes after our repositioned post, set our repositioned post position and increment menu order
 		if ( $nextid == $sibling->ID ) {
-			wp_update_post(array( 'ID' => $post->ID, 'menu_order' => $menu_order ));
-			$new_pos[$post->ID] = $menu_order;
+			$wpdb->update( 
+				$wpdb->posts, 
+				array( 
+					'menu_order' => $menu_order
+				), 
+				array( 'ID' => $post->ID ), 
+				array( '%d' ), 
+				array( '%d' ) 
+			);
+			$new_pos[ $post->ID ] = $menu_order;
 			$menu_order++;
 		}
 		
 		// if repositioned post has been set, and new items are already in the right order, we can stop
-		if ( isset( $new_pos[$post->ID] ) && $sibling->menu_order >= $menu_order )
+		if ( isset( $new_pos[ $post->ID ] ) && $sibling->menu_order >= $menu_order )
 			break;
 		
 		// set the menu order of the current sibling and increment the menu order
-		wp_update_post(array( 'ID' => $sibling->ID, 'menu_order' => $menu_order ));
-		$new_pos[$sibling->ID] = $menu_order;
+		$wpdb->update( 
+			$wpdb->posts, 
+			array( 
+				'menu_order' => $menu_order
+			), 
+			array( 'ID' => $sibling->ID ), 
+			array( '%d' ), 
+			array( '%d' ) 
+		);
+		$new_pos[ $sibling->ID ] = $menu_order;
 		$menu_order++;
 		
 		if ( ! $nextid && $previd == $sibling->ID ) {
-			wp_update_post(array( 'ID' => $post->ID, 'menu_order' => $menu_order ));
+			$wpdb->update( 
+				$wpdb->posts, 
+				array( 
+					'menu_order' => $menu_order
+				), 
+				array( 'ID' => $post->ID ), 
+				array( '%d' ), 
+				array( '%d' ) 
+			);
 			$new_pos[$post->ID] = $menu_order;
 			$menu_order++;
 		}
 		
-	endforeach;
+	}
 	
-	die( json_encode($new_pos) );
+	die( json_encode( $new_pos ) );
 }

@@ -83,15 +83,14 @@ class WC_Checkout {
 	function process_checkout() {
 		global $wpdb, $woocommerce;
 
-		if (!defined('WOOCOMMERCE_CHECKOUT')) define('WOOCOMMERCE_CHECKOUT', true);
+		if ( ! defined( 'WOOCOMMERCE_CHECKOUT' ) ) define( 'WOOCOMMERCE_CHECKOUT', true );
 		
 		$woocommerce->verify_nonce('process_checkout');
 		
 		do_action('woocommerce_before_checkout_process');
 
-		if (sizeof($woocommerce->cart->get_cart())==0) :
+		if ( sizeof( $woocommerce->cart->get_cart() ) == 0 )
 			$woocommerce->add_error( sprintf(__('Sorry, your session has expired. <a href="%s">Return to homepage &rarr;</a>', 'woocommerce'), home_url()) );
-		endif;
 		
 		do_action('woocommerce_checkout_process');
 
@@ -147,20 +146,23 @@ class WC_Checkout {
 				// Validation: Required fields
 				if ( isset($field['required']) && $field['required'] && empty($this->posted[$key]) ) $woocommerce->add_error( '<strong>' . $field['label'] . '</strong> ' . __('is a required field.', 'woocommerce') );
 				
-				if (!empty($this->posted[$key])) :
+				if ( ! empty( $this->posted[ $key ] ) ) :
 					// Special handling for validation and formatting
-					switch ($key) :
+					switch ( $key ) :
 						case "billing_postcode" :
 						case "shipping_postcode" :
-							$this->posted[$key] = strtoupper(str_replace(' ', '', $this->posted[$key]));
+							$validate_against = ( $key == 'billing_postcode' ) ? 'billing_country' : 'shipping_country'; 
+							$this->posted[ $key ] = strtoupper( str_replace( ' ', '', $this->posted[ $key ] ) );
 							
-							if (!$validation->is_postcode( $this->posted[$key], $_POST['billing_country'] )) : $woocommerce->add_error( '<strong>' . $field['label'] . '</strong> ' . __('(billing) is not a valid postcode/ZIP.', 'woocommerce') ); 
+							if ( ! $validation->is_postcode( $this->posted[ $key ], $_POST[ $validate_against ] ) ) : $woocommerce->add_error( '<strong>' . $field['label'] . '</strong> ' . sprintf( __('(%s) is not a valid postcode/ZIP.', 'woocommerce'), $this->posted[ $key ] ) ); 
 							else :
-								$this->posted[$key] = $validation->format_postcode( $this->posted[$key], $_POST['billing_country'] );
+								$this->posted[ $key ] = $validation->format_postcode( $this->posted[$key], $_POST[ $validate_against ] );
 							endif;
 						break;
 						case "billing_phone" :
-							if (!$validation->is_phone( $this->posted[$key] )) : $woocommerce->add_error( '<strong>' . $field['label'] . '</strong> ' . __('is not a valid number.', 'woocommerce') ); endif;
+							$this->posted[ $key ] = $validation->format_phone( $this->posted[ $key ] );
+							if ( ! $validation->is_phone( $this->posted[ $key ] ) )
+								$woocommerce->add_error( '<strong>' . $field['label'] . '</strong> ' . __('is not a valid number.', 'woocommerce') );
 						break;
 						case "billing_email" :
 							$this->posted[$key] = strtolower( $this->posted[$key] );
@@ -282,7 +284,7 @@ class WC_Checkout {
 		                $user_id 	= wp_create_user( $this->posted['account_username'], $user_pass, $this->posted['billing_email'] );
 		               
 		               if ( !$user_id ) :
-		                	$woocommerce->add_error( '<strong>' . __('ERROR', 'woocommerce') . '</strong>: ' . __('Couldn&#8217;t register you... please contact us if you continue to have problems.', 'woocommerce') );
+		                	$woocommerce->add_error( '<strong>' . __('ERROR', 'woocommerce') . '</strong>: ' . __('Couldn&#8217;t register you&hellip; please contact us if you continue to have problems.', 'woocommerce') );
 		                    break;
 		                endif;
 	
@@ -421,7 +423,7 @@ class WC_Checkout {
 							
 							// Special fields
 							switch ($key) {
-								case "billing_emaill" :
+								case "billing_email" :
 									if (!email_exists($this->posted[$key])) wp_update_user( array ( 'ID' => $user_id, 'user_email' => $this->posted[$key] ) ) ;
 								break;
 								case "billing_first_name" :
@@ -475,7 +477,7 @@ class WC_Checkout {
 						'shipping_tax' => number_format($shipping_tax, 2, '.', '')
 					);
 				}
-								
+
 				// Save other order meta fields
 				update_post_meta( $order_id, '_shipping_method', 		$this->posted['shipping_method']);
 				update_post_meta( $order_id, '_payment_method', 		$this->posted['payment_method']);

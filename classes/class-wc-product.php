@@ -47,6 +47,7 @@ class WC_Product {
 	var $max_variation_sale_price;
 	var $featured;
 	var $shipping_class;
+	var $shipping_class_id;
 	var $dimensions;
 	
 	/**
@@ -772,11 +773,23 @@ class WC_Product {
 	
 	/** Returns the product shipping class */
 	function get_shipping_class() {
-		if (!$this->shipping_class) :
+		if ( ! $this->shipping_class ) :
 			$classes = get_the_terms( $this->id, 'product_shipping_class' );
 			if ($classes && !is_wp_error($classes)) $this->shipping_class = current($classes)->slug; else $this->shipping_class = '';
 		endif;
 		return $this->shipping_class;
+	}
+	
+	/** Returns the product shipping class ID */
+	function get_shipping_class_id() {
+		if ( ! $this->shipping_class_id ) :
+			$classes = get_the_terms( $this->id, 'product_shipping_class' );
+			if ( $classes && ! is_wp_error( $classes ) ) 
+				$this->shipping_class_id = current( $classes )->term_id; 
+			else 
+				$this->shipping_class_id = 0;
+		endif;
+		return (int) $this->shipping_class_id;
 	}
 	
 	/** Get and return related products */
@@ -836,34 +849,21 @@ class WC_Product {
 		
 		$attr = sanitize_title( $attr );
 		
-		if (isset($attributes[$attr]) || isset($attributes['pa_' . $attr])) :
+		if ( isset( $attributes[ $attr ] ) || isset( $attributes[ 'pa_' . $attr ] ) ) {
 			
-			$attribute = isset($attributes[$attr]) ? $attributes[$attr] : $attributes['pa_' . $attr];
+			$attribute = isset( $attributes[ $attr ] ) ? $attributes[ $attr ] : $attributes[ 'pa_' . $attr ];
 			
-			if ($attribute['is_taxonomy']) :
+			if ( $attribute['is_taxonomy'] ) {
 				
-				// Get string with terms
-				$terms = get_the_terms( $this->id, $attribute['name'] );
+				return implode( ', ', woocommerce_get_product_terms( $this->id, $attribute['name'], 'names' ) );
 				
-				if ( $terms && ! is_wp_error( $terms ) ) :
-				
-					$terms_array = array();
-					
-					foreach ( $terms as $term ) :
-						$terms_array[] = $term->name;
-					endforeach;
-					
-					return implode( ', ', $terms_array );
-				
-				endif;	
-				
-			else :
+			} else {
 				
 				return $attribute['value'];
 				
-			endif;
+			}
 		
-		endif;
+		}
 		
 		return false;
 	}
@@ -871,14 +871,14 @@ class WC_Product {
 	/** Returns product attributes */
 	function get_attributes() {
 		
-		if (!is_array($this->attributes)) :
+		if ( ! is_array( $this->attributes ) ) {
 	
 			if (isset($this->product_custom_fields['_product_attributes'][0])) 
 				$this->attributes = maybe_unserialize( maybe_unserialize( $this->product_custom_fields['_product_attributes'][0] )); 
 			else 
 				$this->attributes = array();	
 		
-		endif;
+		}
 	
 		return (array) $this->attributes;
 	}
@@ -941,78 +941,149 @@ class WC_Product {
 		));
 	}
 	
-	/**
-     * Return an array of attributes used for variations, as well as their possible values
-     * 
-     * @return two dimensional array of attributes and their available values
-     */   
-    function get_available_attribute_variations() {      
+	/** Depreciated - naming was confusing */
+	function get_available_attribute_variations() {
+		_deprecated_function( 'get_available_attribute_variations', '1.5.7', 'get_variation_attributes' );
+		return $this->get_variation_attributes();
+	}
 
-        if (!$this->is_type('variable') || !$this->has_child()) return array();
+    /**
+     * get_variation_attributes function.
+     * 
+     * Return an array of attributes used for variations, as well as their possible values.
+     *
+     * @access public
+     * @return array of attributes and their available values
+     */
+    function get_variation_attributes() {
+	    
+	    $variation_attributes = array();
+	    
+        if ( ! $this->is_type('variable') || ! $this->has_child() ) 
+        	return $variation_attributes;
         
         $attributes = $this->get_attributes();
         
-        if(!is_array($attributes)) return array();
-        
-        $available_attributes = array();
-        
-        foreach ($attributes as $attribute) {
-            if (!$attribute['is_variation']) continue;
+        foreach ( $attributes as $attribute ) {
+            if ( ! $attribute['is_variation'] ) 
+            	continue;
 
             $values = array();
-            $attribute_field_name = 'attribute_'.sanitize_title($attribute['name']);
+            $attribute_field_name = 'attribute_' . sanitize_title( $attribute['name'] );
 
-            foreach ($this->get_children() as $child_id) {
+            foreach ( $this->get_children() as $child_id ) {
             
-                if (get_post_status( $child_id ) != 'publish') continue; // Disabled
+                if ( get_post_status( $child_id ) != 'publish' ) 
+                	continue; // Disabled
             	
             	$child = $this->get_child( $child_id );
             	
-                $vattributes = $child->get_variation_attributes();
+                $child_variation_attributes = $child->get_variation_attributes();
 
-                if (is_array($vattributes)) {
-                    foreach ($vattributes as $name => $value) {
-                        if ($name == $attribute_field_name) {
-                            $values[] = $value;
-                        }
-                    }
-                }
+                foreach ( $child_variation_attributes as $name => $value )
+                    if ( $name == $attribute_field_name ) 
+                    	$values[] = $value;
             }
 
             // empty value indicates that all options for given attribute are available
-            if(in_array('', $values)) {
+            if ( in_array( '', $values ) ) {
+            	
+            	$values = array();
             	
             	// Get all options
-            	if ($attribute['is_taxonomy']) :
-	            	$options = array();
+            	if ( $attribute['is_taxonomy'] ) {
 	            	$post_terms = wp_get_post_terms( $this->id, $attribute['name'] );
-					foreach ($post_terms as $term) :
-						$options[] = $term->slug;
-					endforeach;
-				else :
-					$options = explode('|', $attribute['value']);
-				endif;
+					foreach ( $post_terms as $term )
+						$values[] = $term->slug;
+				} else {
+					$values = explode( '|', $attribute['value'] );
+				}
 				
-				$options = array_map('trim', $options);
-                
-                $values = array_unique($options);
+				$values = array_unique( array_map( 'trim', $values ) );
+			
+			// Order custom attributes (non taxonomy) as defined
             } else {
             	
-            	// Order custom attributes (non taxonomy) as defined
-	            if (!$attribute['is_taxonomy']) :
-	            	$options = explode('|', $attribute['value']);
-	            	$options = array_map('trim', $options);
-	            	$values = array_intersect( $options, $values );
-	            endif;
-	            
-	            $values = array_unique($values);
+	            if ( ! $attribute['is_taxonomy'] ) {
+	            	$options 	= array_map( 'trim', explode( '|', $attribute['value'] ) );
+	            	$values 	= array_intersect( $options, $values );
+	            }
             	
             }
             
-            $available_attributes[$attribute['name']] = array_unique($values);
+            $variation_attributes[ $attribute['name'] ] = array_unique( $values );
         }
         
-        return $available_attributes;
+        return $variation_attributes;
+    }
+    
+    /**
+     * get_variation_default_attributes function.
+     *
+     * If set, get the default attributes for a variable product.
+     * 
+     * @access public
+     * @return array
+     */
+    function get_variation_default_attributes() {
+    
+    	$default = isset( $this->product_custom_fields['_default_attributes'][0] ) ? $this->product_custom_fields['_default_attributes'][0] : '';
+    	
+	    return apply_filters( 'woocommerce_product_default_attributes', (array) maybe_unserialize( $default ), $this );
+    }
+    
+    /**
+     * get_available_variations function.
+     *
+     * Get an array of available variations for the current product.
+     * 
+     * @access public
+     * @return array
+     */
+    function get_available_variations() {
+
+	    $available_variations = array();
+
+		foreach ( $this->get_children() as $child_id ) {
+
+			$variation = $this->get_child( $child_id );
+
+			if ( $variation instanceof WC_Product_Variation ) {
+
+				if ( get_post_status( $variation->get_variation_id() ) != 'publish' || ! $variation->is_visible() ) 
+					continue; // Disabled or hidden
+
+				$variation_attributes 	= $variation->get_variation_attributes();
+				$availability 			= $variation->get_availability();
+				$availability_html 		= empty( $availability['availability'] ) ? '' : apply_filters( 'woocommerce_stock_html', '<p class="stock ' . $availability['class'] . '">'. $availability['availability'].'</p>', $availability['availability']  );
+
+				if ( has_post_thumbnail( $variation->get_variation_id() ) ) {
+					$attachment_id = get_post_thumbnail_id( $variation->get_variation_id() );
+					$large_thumbnail_size = apply_filters( 'single_product_large_thumbnail_size', 'shop_single' );
+					$image = current( wp_get_attachment_image_src( $attachment_id, $large_thumbnail_size  ) );
+					$image_link = current( wp_get_attachment_image_src( $attachment_id, 'full'  ) );
+				} else {
+					$image = $image_link = '';
+				}
+
+				$available_variations[] = apply_filters( 'woocommerce_available_variation', array(
+					'variation_id' 			=> $child_id,
+					'attributes' 			=> $variation_attributes,
+					'image_src' 			=> $image,
+					'image_link' 			=> $image_link,
+					'price_html' 			=> '<span class="price">' . $variation->get_price_html() . '</span>',
+					'availability_html' 	=> $availability_html,
+					'sku' 					=> __( 'SKU:', 'woocommerce' ) . ' ' . $variation->get_sku(),
+					'min_qty' 				=> 1,
+					'max_qty' 				=> $this->backorders_allowed() ? '' : $variation->stock,
+					'is_downloadable' 		=> $variation->is_downloadable() ,
+					'is_virtual' 			=> $variation->is_virtual(),
+					'is_sold_individually' 	=> $variation->is_sold_individually() ? 'yes' : 'no',
+				), $this, $variation );
+			}
+		}
+		
+		return $available_variations;
     }
     
     /**
@@ -1109,13 +1180,14 @@ class WC_Product {
 			'posts_per_page'=> -1,
 			'post_type' 	=> 'product_variation',
 			'fields' 		=> 'ids',
-			'post_status'	=> 'any'
+			'post_status'	=> 'publish'
 		));
 		
 		$this->min_variation_price = $this->min_variation_regular_price = $this->min_variation_sale_price = $this->max_variation_price = $this->max_variation_regular_price = $this->max_variation_sale_price = '';
 		
 		if ($children) {
-			foreach ($children as $child) {
+			foreach ( $children as $child ) {
+                	
 				$child_price 		= get_post_meta($child, '_price', true);
 				$child_sale_price 	= get_post_meta($child, '_sale_price', true);
 				

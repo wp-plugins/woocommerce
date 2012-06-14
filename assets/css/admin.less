@@ -116,12 +116,15 @@
 #wc_get_started .main-button  { position: absolute; right: 20px; top: 27px; }
 #wc_get_started p { margin: 1em 0 .5em; }
 
+#wc_get_started.mijireh { background: #5bc0de url(../images/mijireh-logo.png) no-repeat 15px 18px; border: 1px solid #339bb9; padding: 15px 15px 15px 152px; box-shadow: inset 1px 1px 0 rgba( 255, 255, 255, 0.5 ), inset -1px -1px 0 rgba( 255, 255, 255, 0.5 ); -moz-box-shadow: inset 1px 1px 0 rgba( 255, 255, 255, 0.5 ), inset -1px -1px 0 rgba( 255, 255, 255, 0.5 ); -webkit-box-shadow: inset 1px 1px 0 rgba( 255, 255, 255, 0.5 ), inset -1px -1px 0 rgba( 255, 255, 255, 0.5 ); }
+#wc_get_started.mijireh span { color: #fff; text-shadow: 0 1px 0 #4a94ac; }
+#wc_get_started.mijireh span a { color: #fff; }
+#wc_get_started.mijireh a.button { border-color: #fff; box-shadow: inset 1px 1px 0 rgba( 255, 255, 255, 0.1 ), inset -1px -1px 0 rgba( 255, 255, 255, 0.1 ), 0 1px 3px #206d8b; -moz-box-shadow: inset 1px 1px 0 rgba( 255, 255, 255, 0.1 ), inset -1px -1px 0 rgba( 255, 255, 255, 0.1 ), 0 1px 3px #206d8b; -webkit-box-shadow: inset 1px 1px 0 rgba( 255, 255, 255, 0.1 ), inset -1px -1px 0 rgba( 255, 255, 255, 0.1 ), 0 1px 3px #206d8b; }
+#wc_get_started.mijireh a.button-primary { background: #2b7e9f; border-color: #266e8b; }
+
 #icon-woocommerce, .woocommerce_icon, .icon32-posts-product, .icon32-posts-shop_order, .icon32-posts-shop_coupon, .icon32-posts-product_variation {
 	background-image: url(../images/icons/woocommerce-icons.png) !important;
 	background-position: -11px -6px;
-}
-.icon32-posts-product {
-	background-position: -185px -6px !important;
 }
 .icon32-posts-product {
 	background-position: -69px -6px !important;
@@ -146,6 +149,21 @@
 }
 .icon32-woocommerce-status {
 	background-position: -417px -6px !important;
+}
+.icon32-woocommerce-delivery {
+	background-position: -649px -6px !important;
+}
+.icon32-woocommerce-compose {
+	background-position: -708px -6px !important;
+}
+.icon32-woocommerce-telephone {
+	background-position: -766px -6px !important;
+}
+.icon32-woocommerce-users {
+	background-position: -824px -6px !important;
+}
+.icon32-woocommerce-nav {
+	background-position: -882px -6px !important;
 }
 
 .wrap.woocommerce div.updated, .wrap.woocommerce div.error {
@@ -228,6 +246,9 @@ table.wc_status_table {
 	}
 	.length, .width, .height {
 		width: 32.33%;
+	}
+	.height {
+		margin-right: 0;
 	}
 }
 #woocommerce-fields-bulk.inline-edit-col {
@@ -1230,9 +1251,11 @@ a.export_rates, a.import_rates {
 	}
 }
 table.wc_gateways, table.wc_shipping {
+	position: relative;
 	td {
 		vertical-align: middle;
 		cursor: move;
+		padding: 4px 7px 2px;
 		p {
 			margin: 0 0 2px;
 		}

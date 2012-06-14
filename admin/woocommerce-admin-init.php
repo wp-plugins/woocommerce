@@ -15,30 +15,35 @@
  * Sets up the admin menus in wordpress.
  */
 add_action('admin_menu', 'woocommerce_admin_menu', 9);
+add_action('admin_menu', 'woocommerce_admin_menu_after', 50);
 
 function woocommerce_admin_menu() {
-	global $menu, $woocommerce;
+    global $menu, $woocommerce;
 	
-	if ( current_user_can( 'manage_woocommerce' ) ) 
-		$menu[] = array( '', 'read', 'separator-woocommerce', '', 'wp-menu-separator woocommerce' );
-	
-    $main_page = add_menu_page(__('WooCommerce', 'woocommerce'), __('WooCommerce', 'woocommerce'), 'manage_woocommerce', 'woocommerce' , 'woocommerce_settings_page', null, 55);
+    if ( current_user_can( 'manage_woocommerce' ) ) 
+    $menu[] = array( '', 'read', 'separator-woocommerce', '', 'wp-menu-separator woocommerce' );
+		
+    $main_page = add_menu_page(__('WooCommerce', 'woocommerce'), __('WooCommerce', 'woocommerce'), 'manage_woocommerce', 'woocommerce' , 'woocommerce_settings_page', null, '55.5' );
     
     add_submenu_page('woocommerce', __('WooCommerce Settings', 'woocommerce'),  __('Settings', 'woocommerce') , 'manage_woocommerce', 'woocommerce', 'woocommerce_settings_page');
     
     $reports_page = add_submenu_page('woocommerce', __('Reports', 'woocommerce'),  __('Reports', 'woocommerce') , 'view_woocommerce_reports', 'woocommerce_reports', 'woocommerce_reports_page');
     
     add_submenu_page('edit.php?post_type=product', __('Attributes', 'woocommerce'), __('Attributes', 'woocommerce'), 'manage_woocommerce_products', 'woocommerce_attributes', 'woocommerce_attributes_page');
-    
-    $status_page = add_submenu_page( 'tools.php', __('WooCommerce Debug', 'woocommerce'),  __('WC Debug', 'woocommerce') , 'manage_woocommerce', 'woocommerce_debug', 'woocommerce_debug_page');
-    
+        
     add_action('load-' . $main_page, 'woocommerce_admin_help_tab');
     add_action('load-' . $reports_page, 'woocommerce_admin_help_tab');
     
-    $print_css_on = array( 'toplevel_page_woocommerce', 'woocommerce_page_woocommerce_reports', 'tools_page_woocommerce_debug', 'product_page_woocommerce_attributes', 'edit-tags.php', 'edit.php', 'index.php', 'post-new.php', 'post.php' );
+    $print_css_on = array( 'toplevel_page_woocommerce', 'woocommerce_page_woocommerce_reports', 'woocommerce_page_woocommerce_status', 'product_page_woocommerce_attributes', 'edit-tags.php', 'edit.php', 'index.php', 'post-new.php', 'post.php' );
     
     foreach ( $print_css_on as $page ) 
     	add_action( 'admin_print_styles-'. $page, 'woocommerce_admin_css' ); 
+}
+
+function woocommerce_admin_menu_after() {
+
+	$status_page = add_submenu_page( 'woocommerce', __('WooCommerce Status', 'woocommerce'),  __('System Status', 'woocommerce') , 'manage_woocommerce', 'woocommerce_status', 'woocommerce_status_page');
+	
 }
 
 /**
@@ -165,7 +170,6 @@ include_once( 'woocommerce-admin-taxonomies.php' );
  * Includes for admin pages - only load functions when needed
  */
 function woocommerce_settings_page() {
-	include_once( 'woocommerce-admin-settings-forms.php' );
 	include_once( 'woocommerce-admin-settings.php' );
 	woocommerce_settings();
 }
@@ -177,9 +181,9 @@ function woocommerce_attributes_page() {
 	include_once( 'woocommerce-admin-attributes.php' );
 	woocommerce_attributes();
 }
-function woocommerce_debug_page() {
-	include_once( 'woocommerce-admin-debug.php' );
-	woocommerce_debug();
+function woocommerce_status_page() {
+	include_once( 'woocommerce-admin-status.php' );
+	woocommerce_status();
 }
 
 /**
@@ -293,13 +297,13 @@ function woocommerce_admin_scripts() {
 		
 	endif;
 	
-	// Term ordering - only when sorting by menu_order (our custom meta)
-	if (($screen->id=='edit-product_cat' || strstr($screen->id, 'edit-pa_')) && !isset($_GET['orderby'])) :
+	// Term ordering - only when sorting by term_order
+	if ( ( $screen->id == 'edit-product_cat' || strstr( $screen->id, 'edit-pa_' ) ) && ! isset( $_GET['orderby'] ) ) :
 
 		wp_register_script( 'woocommerce_term_ordering', $woocommerce->plugin_url() . '/assets/js/admin/term-ordering.js', array('jquery-ui-sortable') );
 		wp_enqueue_script( 'woocommerce_term_ordering' );
 		
-		$taxonomy = (isset($_GET['taxonomy'])) ? $_GET['taxonomy'] : '';
+		$taxonomy = isset( $_GET['taxonomy'] ) ? $_GET['taxonomy'] : '';
 		
 		$woocommerce_term_order_params = array( 
 			'taxonomy' 			=>  $taxonomy
@@ -310,7 +314,7 @@ function woocommerce_admin_scripts() {
 	endif;
 	
 	// Product sorting - only when sorting by menu order on the products page
-	if ( $screen->id == 'edit-product' && isset( $wp_query->query['orderby'] ) && $wp_query->query['orderby'] == 'menu_order title' ) {
+	if ( current_user_can('edit_others_pages') && $screen->id == 'edit-product' && isset( $wp_query->query['orderby'] ) && $wp_query->query['orderby'] == 'menu_order title' ) {
 			
 		wp_enqueue_script( 'woocommerce_product_ordering', $woocommerce->plugin_url() . '/assets/js/admin/product-ordering.js', array('jquery-ui-sortable'), '1.0', true );
 		

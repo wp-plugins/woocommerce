@@ -16,7 +16,7 @@ global $woocommerce;
 			<th class="product-remove">&nbsp;</th>
 			<th class="product-thumbnail">&nbsp;</th>
 			<th class="product-name"><span class="nobr"><?php _e('Product Name', 'woocommerce'); ?></span></th>
-			<th class="product-price"><span class="nobr"><?php _e('Unit Price', 'woocommerce'); ?></span></th>
+			<th class="product-price"><span class="nobr"><?php _e('Unit', 'woocommerce'); ?></span></th>
 			<th class="product-quantity"><?php _e('Quantity', 'woocommerce'); ?></th>
 			<th class="product-subtotal"><?php _e('Price', 'woocommerce'); ?></th>
 		</tr>
@@ -30,7 +30,7 @@ global $woocommerce;
 				$_product = $values['data'];
 				if ( $_product->exists() && $values['quantity'] > 0 ) {
 					?>
-					<tr>
+					<tr class = "<?php echo esc_attr( apply_filters('woocommerce_cart_table_item_class', 'cart_table_item', $values, $cart_item_key ) ); ?>">
 						<!-- Remove from cart link -->
 						<td class="product-remove">
 							<?php 
@@ -41,28 +41,29 @@ global $woocommerce;
 						<!-- The thumbnail -->
 						<td class="product-thumbnail">
 							<?php 
-								printf('<a href="%s">%s</a>', esc_url( get_permalink( apply_filters('woocommerce_in_cart_product_id', $values['product_id'] ) ) ), $_product->get_image() ); 
+								$thumbnail = apply_filters( 'woocommerce_in_cart_product_thumbnail', $_product->get_image(), $values, $cart_item_key );
+								printf('<a href="%s">%s</a>', esc_url( get_permalink( apply_filters('woocommerce_in_cart_product_id', $values['product_id'] ) ) ), $thumbnail ); 
 							?>
 						</td>
 						
 						<!-- Product Name -->
 						<td class="product-name">
 							<?php 
-								printf('<a href="%s">%s</a>', esc_url( get_permalink( apply_filters('woocommerce_in_cart_product_id', $values['product_id'] ) ) ), apply_filters('woocommerce_in_cart_product_title', $_product->get_title(), $_product) );
+								printf('<a href="%s">%s</a>', esc_url( get_permalink( apply_filters('woocommerce_in_cart_product_id', $values['product_id'] ) ) ), apply_filters('woocommerce_in_cart_product_title', $_product->get_title(), $values, $cart_item_key ) );
 							
 								// Meta data
 								echo $woocommerce->cart->get_item_data( $values );
                    				
                    				// Backorder notification
                    				if ( $_product->backorders_require_notification() && $_product->get_total_stock() < 1 ) 
-                   					echo '<p class="backorder_notification">' . __('Available on backorder.', 'woocommerce') . '</p>';
+                   					echo '<p class="backorder_notification">' . __('Available on backorder', 'woocommerce') . '</p>';
 							?>
 						</td>
 						
 						<!-- Product price -->
 						<td class="product-price">
 							<?php 							
-								$product_price = ( get_option('woocommerce_display_cart_prices_excluding_tax') == 'yes' ) ? $_product->get_price_excluding_tax() : $_product->get_price();
+								$product_price = get_option('woocommerce_display_cart_prices_excluding_tax') == 'yes' || $woocommerce->customer->is_vat_exempt() ? $_product->get_price_excluding_tax() : $_product->get_price();
 							
 								echo apply_filters('woocommerce_cart_item_price_html', woocommerce_price( $product_price ), $values, $cart_item_key ); 
 							?>
@@ -88,7 +89,7 @@ global $woocommerce;
 						<!-- Product subtotal -->
 						<td class="product-subtotal">
 							<?php 
-								echo $woocommerce->cart->get_product_subtotal( $_product, $values['quantity'] ); 
+								echo apply_filters( 'woocommerce_cart_item_subtotal', $woocommerce->cart->get_product_subtotal( $_product, $values['quantity'] ), $values, $cart_item_key ); 
 							?>
 						</td>
 					</tr>
@@ -112,9 +113,10 @@ global $woocommerce;
 					</div>
 				<?php } ?>
 
-				<?php $woocommerce->nonce_field('cart') ?>
 				<input type="submit" class="button" name="update_cart" value="<?php _e('Update Cart', 'woocommerce'); ?>" /> <a href="<?php echo esc_url( $woocommerce->cart->get_checkout_url() ); ?>" class="checkout-button button alt"><?php _e('Proceed to Checkout &rarr;', 'woocommerce'); ?></a>
 				<?php do_action('woocommerce_proceed_to_checkout'); ?>
+				
+				<?php $woocommerce->nonce_field('cart') ?>
 			</td>
 		</tr>
 		

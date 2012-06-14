@@ -119,7 +119,7 @@ $available_methods = $woocommerce->shipping->get_available_shipping_methods();
 			<?php 
 				if ($woocommerce->cart->get_cart_tax()) :
 					
-					$taxes = $woocommerce->cart->get_taxes();
+					$taxes = $woocommerce->cart->get_formatted_taxes();
 					
 					if (sizeof($taxes)>0) :
 					
@@ -130,7 +130,7 @@ $available_methods = $woocommerce->shipping->get_available_shipping_methods();
 							?>
 							<tr class="tax-rate tax-rate-<?php echo $key; ?>">
 								<th colspan="2"><?php if (get_option('woocommerce_prices_include_tax')=='yes') : _e('incl.', 'woocommerce'); endif; ?> <?php echo $woocommerce->cart->tax->get_rate_label( $key ); ?></th>
-								<td><?php echo woocommerce_price($tax); ?></td>
+								<td><?php echo $tax; ?></td>
 							</tr>
 							<?php
 							
@@ -150,7 +150,7 @@ $available_methods = $woocommerce->shipping->get_available_shipping_methods();
 							?>
 							<tr class="tax-rate tax-rate-<?php echo $key; ?>">
 								<th colspan="2"><?php if (get_option('woocommerce_prices_include_tax')=='yes') : _e('incl.', 'woocommerce'); endif; ?> <?php echo $woocommerce->cart->tax->get_rate_label( $key ); ?></th>
-								<td><?php echo woocommerce_price($tax); ?></td>
+								<td><?php echo $tax; ?></td>
 							</tr>
 							<?php
 							
@@ -204,10 +204,10 @@ $available_methods = $woocommerce->shipping->get_available_shipping_methods();
 						$_product = $values['data'];
 						if ($_product->exists() && $values['quantity']>0) :
 							echo '
-								<tr>
+								<tr class = "' . esc_attr( apply_filters('woocommerce_checkout_table_item_class', 'checkout_table_item', $values, $item_id ) ) . '">
 									<td class="product-name">'.$_product->get_title().$woocommerce->cart->get_item_data( $values ).'</td>
 									<td class="product-quantity">'.$values['quantity'].'</td>
-									<td class="product-total">' . $woocommerce->cart->get_product_subtotal( $_product, $values['quantity'] ) . '</td>
+									<td class="product-total">' . apply_filters( 'woocommerce_checkout_item_subtotal', $woocommerce->cart->get_product_subtotal( $_product, $values['quantity'] ), $values, $item_id ) . '</td>
 								</tr>';
 						endif;
 					endforeach; 
@@ -263,7 +263,7 @@ $available_methods = $woocommerce->shipping->get_available_shipping_methods();
 		</ul>
 		<?php endif; ?>
 
-		<div class="form-row">
+		<div class="form-row place-order">
 		
 			<noscript><?php _e('Since your browser does not support JavaScript, or it is disabled, please ensure you click the <em>Update Totals</em> button before placing your order. You may be charged more than the amount stated above if you fail to do so.', 'woocommerce'); ?><br/><input type="submit" class="button-alt" name="woocommerce_checkout_update_totals" value="<?php _e('Update totals', 'woocommerce'); ?>" /></noscript>
 		

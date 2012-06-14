@@ -238,9 +238,9 @@ function variable_product_type_options() {
 										
 										<label><input type="checkbox" class="checkbox" name="variable_enabled[<?php echo $loop; ?>]" <?php checked($variation->post_status, 'publish'); ?> /> <?php _e('Enabled', 'woocommerce'); ?></label>
 										
-										<label><input type="checkbox" class="checkbox variable_is_downloadable" name="variable_is_downloadable[<?php echo $loop; ?>]" <?php if (isset($variation_data['_downloadable'][0])) checked($variation_data['_downloadable'][0], 'yes'); ?> /> <?php _e('Downloadable', 'woocommerce'); ?> <a class="tips" data-tip="<?php _e('Enable this option if access is given to a downloadable file upon purchase of a product.', 'woocommerce'); ?>" href="#">[?]</a></label>
+										<label><input type="checkbox" class="checkbox variable_is_downloadable" name="variable_is_downloadable[<?php echo $loop; ?>]" <?php if (isset($variation_data['_downloadable'][0])) checked($variation_data['_downloadable'][0], 'yes'); ?> /> <?php _e('Downloadable', 'woocommerce'); ?> <a class="tips" data-tip="<?php _e('Enable this option if access is given to a downloadable file upon purchase of a product', 'woocommerce'); ?>" href="#">[?]</a></label>
 										
-										<label><input type="checkbox" class="checkbox variable_is_virtual" name="variable_is_virtual[<?php echo $loop; ?>]" <?php if (isset($variation_data['_virtual'][0])) checked($variation_data['_virtual'][0], 'yes'); ?> /> <?php _e('Virtual', 'woocommerce'); ?> <a class="tips" data-tip="<?php _e('Enable this option if a product is not shipped or there is no shipping cost.', 'woocommerce'); ?>" href="#">[?]</a></label>
+										<label><input type="checkbox" class="checkbox variable_is_virtual" name="variable_is_virtual[<?php echo $loop; ?>]" <?php if (isset($variation_data['_virtual'][0])) checked($variation_data['_virtual'][0], 'yes'); ?> /> <?php _e('Virtual', 'woocommerce'); ?> <a class="tips" data-tip="<?php _e('Enable this option if a product is not shipped or there is no shipping cost', 'woocommerce'); ?>" href="#">[?]</a></label>
 										
 									</td>
 								</tr>
@@ -437,9 +437,9 @@ function variable_product_type_options() {
 									\
 									<label><input type="checkbox" class="checkbox" name="variable_enabled[' + loop + ']" checked="checked" /> <?php _e('Enabled', 'woocommerce'); ?></label>\
 									\
-									<label><input type="checkbox" class="checkbox variable_is_downloadable" name="variable_is_downloadable[' + loop + ']" /> <?php _e('Downloadable', 'woocommerce'); ?> <a class="tips" data-tip="<?php _e('Enable this option if access is given to a downloadable file upon purchase of a product.', 'woocommerce'); ?>" href="#">[?]</a></label>\
+									<label><input type="checkbox" class="checkbox variable_is_downloadable" name="variable_is_downloadable[' + loop + ']" /> <?php _e('Downloadable', 'woocommerce'); ?> <a class="tips" data-tip="<?php _e('Enable this option if access is given to a downloadable file upon purchase of a product', 'woocommerce'); ?>" href="#">[?]</a></label>\
 									\
-									<label><input type="checkbox" class="checkbox variable_is_virtual" name="variable_is_virtual[' + loop + ']" /> <?php _e('Virtual', 'woocommerce'); ?> <a class="tips" data-tip="<?php _e('Enable this option if a product is not shipped or there is no shipping cost.', 'woocommerce'); ?>" href="#">[?]</a></label>\
+									<label><input type="checkbox" class="checkbox variable_is_virtual" name="variable_is_virtual[' + loop + ']" /> <?php _e('Virtual', 'woocommerce'); ?> <a class="tips" data-tip="<?php _e('Enable this option if a product is not shipped or there is no shipping cost', 'woocommerce'); ?>" href="#">[?]</a></label>\
 									\
 								</td>\
 							</tr>\
@@ -769,9 +769,6 @@ function process_product_meta_variable( $post_id ) {
 			// Enabled or disabled
 			if (isset($variable_enabled[$i])) $post_status = 'publish'; else $post_status = 'private';
 			
-			// Disabled if downloadable and no URL
-			if ($is_downloadable=='yes' && !$variable_file_path[$i]) $post_status = 'private';
-			
 			// Generate a useful post title
 			$variation_post_title = sprintf(__('Variation #%s of %s', 'woocommerce'), $variation_id, get_the_title($post_id));
 			
@@ -856,13 +853,14 @@ function process_product_meta_variable( $post_id ) {
 		'posts_per_page'=> -1,
 		'post_type' 	=> 'product_variation',
 		'fields' 		=> 'ids',
-		'post_status'	=> 'any'
+		'post_status'	=> 'publish'
 	));
 	
 	$lowest_price = $lowest_regular_price = $lowest_sale_price = $highest_price = $highest_regular_price = $highest_sale_price = '';
 	
 	if ($children) {
 		foreach ($children as $child) {
+                	
 			$child_price 		= get_post_meta($child, '_price', true);
 			$child_sale_price 	= get_post_meta($child, '_sale_price', true);
 			

@@ -503,9 +503,6 @@ function woocommerce_product_data_box() {
 				
 				woocommerce_wp_select( array( 'id' => 'parent_id', 'label' => __('Grouping', 'woocommerce'), 'value' => $post->post_parent, 'options' => $post_parents ) );
 				
-				// Ordering - removed due to adding page-attributes panel (same field)
-				//woocommerce_wp_text_input( array( 'id' => 'menu_order', 'label' => _x('Sort Order', 'ordering', 'woocommerce'), 'value' => $post->menu_order ) );
-				
 				do_action('woocommerce_product_options_grouping');
 			
 			echo '</div>';
@@ -527,9 +524,7 @@ function woocommerce_product_data_box() {
 add_action('woocommerce_process_product_meta', 'woocommerce_process_product_meta', 1, 2);
 
 function woocommerce_process_product_meta( $post_id, $post ) {
-	global $wpdb, $woocommerce;
-
-	$woocommerce_errors = array();
+	global $wpdb, $woocommerce, $woocommerce_errors;
 	
 	// Add any default post meta
 	add_post_meta( $post_id, 'total_sales', '0', true );
@@ -568,8 +563,8 @@ function woocommerce_process_product_meta( $post_id, $post ) {
 		
 	// Unique SKU 
 	$sku = get_post_meta($post_id, '_sku', true);
-	$new_sku = esc_html(stripslashes( $_POST['_sku'] ));
-	if ($new_sku=='') :
+	$new_sku = esc_html( trim( stripslashes( $_POST['_sku'] ) ) );
+	if ( $new_sku == '' ) :
 		update_post_meta( $post_id, '_sku', '' );
 	elseif ($new_sku!==$sku) :
 		if ($new_sku && !empty($new_sku)) :
@@ -836,10 +831,16 @@ function woocommerce_process_product_meta( $post_id, $post ) {
 	
 	// Downloadable options
 	if ($is_downloadable=='yes') :
+	
+		$_download_limit = (int) $_POST['_download_limit'];
+		if ( ! $_download_limit ) $_download_limit = ''; // 0 or blank = unlimited
+		
+		$_download_expiry = (int) $_POST['_download_expiry'];
+		if ( ! $_download_expiry ) $_download_expiry = ''; // 0 or blank = unlimited
 		
 		if (isset($_POST['_file_path'])) update_post_meta( $post_id, '_file_path', esc_attr($_POST['_file_path']) );
-		if (isset($_POST['_download_limit'])) update_post_meta( $post_id, '_download_limit', esc_attr($_POST['_download_limit']) );
-		if (isset($_POST['_download_expiry'])) update_post_meta( $post_id, '_download_expiry', esc_attr($_POST['_download_expiry']) );
+		if (isset($_POST['_download_limit'])) update_post_meta( $post_id, '_download_limit', esc_attr( $_download_limit ) );
+		if (isset($_POST['_download_expiry'])) update_post_meta( $post_id, '_download_expiry', esc_attr( $_download_expiry ) );
 		
 	endif;
 	
@@ -856,9 +857,6 @@ function woocommerce_process_product_meta( $post_id, $post ) {
 	
 	// Clear cache/transients
 	$woocommerce->clear_product_transients( $post_id );
-		
-	// Save errors
-	update_option('woocommerce_errors', $woocommerce_errors);
 }
 
 /**

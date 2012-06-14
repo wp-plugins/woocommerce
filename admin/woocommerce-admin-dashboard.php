@@ -9,8 +9,7 @@
 
 // Only hook in admin parts if the user has admin access
 if (current_user_can('view_woocommerce_reports') || current_user_can('manage_woocommerce_orders')|| current_user_can('manage_woocommerce')) :
-	add_action('wp_dashboard_setup', 'woocommerce_init_dashboard_widgets' );
-	add_action('admin_footer', 'woocommerce_dashboard_sales_js');
+	add_action( 'wp_dashboard_setup', 'woocommerce_init_dashboard_widgets' );
 endif;
 
 /**
@@ -145,7 +144,7 @@ function woocommerce_dashboard_widget_right_now() {
 				<?php
 					$num  = number_format_i18n( $completed_count );
 					$text = __( 'Completed', 'woocommerce' );
-					$link = add_query_arg( array( 'taxonomy' => 'product_cat', 'post_type' => 'completed' ), get_admin_url( null, 'edit-tags.php' ) );
+					$link = add_query_arg( array( 'post_type' => 'shop_order', 'shop_order_status' => 'completed' ), get_admin_url( null, 'edit.php' ) );
 					$num  = '<a href="' . $link . '">' . $num  . '</a>';
 					$text = '<a href="' . $link . '">' . $text . '</a>';
 				?>
@@ -176,7 +175,7 @@ function woocommerce_init_dashboard_widgets() {
 						
 	$current_month_offset = 0;
 	
-	if (isset($_GET['month'])) $current_month_offset = (int) $_GET['month'];
+	if (isset($_GET['wc_sales_month'])) $current_month_offset = (int) $_GET['wc_sales_month'];
 	
 	$the_month_num 	= date('n', strtotime('NOW '.($current_month_offset).' MONTH'));
 	$the_year 		= date('Y', strtotime('NOW '.($current_month_offset).' MONTH'));
@@ -184,10 +183,10 @@ function woocommerce_init_dashboard_widgets() {
 	$sales_heading = '';
 	
 	if ($the_month_num!=date('m')) : 
-		$sales_heading .= '<a href="index.php?month='.($current_month_offset+1).'" class="next">'.date_i18n('F', strtotime('01-'.($the_month_num+1).'-2011')).' &rarr;</a>';
+		$sales_heading .= '<a href="index.php?wc_sales_month='.($current_month_offset+1).'" class="next">'.date_i18n('F', strtotime('01-'.($the_month_num+1).'-2011')).' &rarr;</a>';
 	endif;
 	
-	$sales_heading .= '<a href="index.php?month='.($current_month_offset-1).'" class="previous">&larr; '.date_i18n('F', strtotime('01-'.($the_month_num-1).'-2011')).'</a><span>'.__('Monthly Sales', 'woocommerce').'</span>';
+	$sales_heading .= '<a href="index.php?wc_sales_month='.($current_month_offset-1).'" class="previous">&larr; '.date_i18n('F', strtotime('01-'.($the_month_num-1).'-2011')).'</a><span>'.__('Monthly Sales', 'woocommerce').'</span>';
 
 	if(current_user_can('manage_woocommerce_orders')){
             wp_add_dashboard_widget( 'woocommerce_dashboard_right_now', __( 'WooCommerce Right Now', 'woocommerce' ), 'woocommerce_dashboard_widget_right_now' );
@@ -296,7 +295,9 @@ function orders_this_month( $where = '' ) {
  * Sales widget
  */
 function woocommerce_dashboard_sales() {
-		
+	
+	add_action( 'admin_footer', 'woocommerce_dashboard_sales_js' );
+	
 	?><div id="placeholder" style="width:100%; height:300px; position:relative;"></div><?php
 }
 
@@ -305,7 +306,7 @@ function woocommerce_dashboard_sales() {
  */
 function woocommerce_dashboard_sales_js() {
 	
-	global $woocommerce;
+	global $woocommerce, $wp_locale;
 	
 	$screen = get_current_screen();
 	
@@ -392,6 +393,7 @@ function woocommerce_dashboard_sales_js() {
 		'currency_symbol' => get_woocommerce_currency_symbol(),
 		'number_of_sales' => __( 'Number of sales', 'woocommerce' ),
 		'sales_amount'    => __( 'Sales amount', 'woocommerce' ),
+		'month_names'     => array_values( $wp_locale->month_abbrev ),
 	);
 	
 	$order_counts_array = array();

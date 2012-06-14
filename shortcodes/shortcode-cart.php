@@ -19,15 +19,24 @@ function woocommerce_cart( $atts ) {
 	
 	$woocommerce->nocache();
 	
-	if (!defined('WOOCOMMERCE_CART')) define('WOOCOMMERCE_CART', true);
+	if ( ! defined( 'WOOCOMMERCE_CART' ) ) define( 'WOOCOMMERCE_CART', true );
 	
+	// Add Discount
+	if ( ! empty( $_POST['apply_coupon'] ) ) {
+		
+		if ( ! empty( $_POST['coupon_code'] ) ) {
+			$woocommerce->cart->add_discount( stripslashes( trim( $_POST['coupon_code'] ) ) );
+		} else {
+			$woocommerce->add_error( __('Please enter a coupon code.', 'woocommerce') ); 
+		}
+		
 	// Remove Discount Codes
-	if (isset($_GET['remove_discounts'])) :
+	} elseif ( isset( $_GET['remove_discounts'] ) ) {
 		
 		$woocommerce->cart->remove_coupons( $_GET['remove_discounts'] );
 	
 	// Update Shipping
-	elseif (isset($_POST['calc_shipping']) && $_POST['calc_shipping'] && $woocommerce->verify_nonce('cart')) :
+	} elseif ( ! empty( $_POST['calc_shipping'] ) && $woocommerce->verify_nonce('cart') ) {
 		
 		$validation = $woocommerce->validation();
 		
@@ -59,12 +68,13 @@ function woocommerce_cart( $atts ) {
 			
 		endif;
 
-	endif;
+	}
+	
+	// Check cart items are valid
+	do_action('woocommerce_check_cart_items');
 	
 	// Calc totals
 	$woocommerce->cart->calculate_totals();
-	
-	do_action('woocommerce_check_cart_items');
 	
 	if (sizeof($woocommerce->cart->get_cart())==0) :
 		

@@ -30,8 +30,8 @@ if( $product->get_price() === '') return;
 	 	<?php do_action('woocommerce_before_add_to_cart_button'); ?>
 
 	 	<?php 
-	 		if ( ! ( get_option('woocommerce_limit_downloadable_product_qty')=='yes' && $product->is_downloadable() && $product->is_virtual() ) ) 
-	 			woocommerce_quantity_input( array( 'min_value' => 1, 'max_value' => ($product->backorders_allowed()) ? '' : $product->get_stock_quantity() ) ); 
+	 		if ( ! $product->is_sold_individually() ) 
+	 			woocommerce_quantity_input( array( 'min_value' => 1, 'max_value' => $product->backorders_allowed() ? '' : $product->get_stock_quantity() ) ); 
 	 	?>
 
 	 	<button type="submit" class="button alt"><?php echo apply_filters('single_add_to_cart_text', __('Add to cart', 'woocommerce'), $product->product_type); ?></button>

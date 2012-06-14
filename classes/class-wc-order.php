@@ -296,6 +296,11 @@ class WC_Order {
 		return apply_filters( 'woocommerce_order_amount_shipping_tax', $this->order_shipping_tax );
 	}
 	
+	/** Gets shipping method title */
+	function get_shipping_method() {
+		return apply_filters( 'woocommerce_order_shipping_method', ucwords( $this->shipping_method_title ) );
+	}
+	
 	/** Gets order total */
 	function get_total() {
 		return apply_filters( 'woocommerce_order_amount_total', $this->order_total );
@@ -449,14 +454,14 @@ class WC_Order {
 
 		endif;
 		
-		return $subtotal;
+		return apply_filters( 'woocommerce_order_subtotal_to_display', $subtotal, $compound, $this );
 	}
 
 	/** Gets shipping (formatted) */
 	function get_shipping_to_display() {
 		global $woocommerce;
 		
-		if ($this->order_shipping > 0) :
+		if ( $this->order_shipping > 0 ) :
 			
 			$tax_text = '';
 			
@@ -478,13 +483,25 @@ class WC_Order {
 			
 			endif;
 			
-			$shipping .= sprintf(__(' <small>%svia %s</small>', 'woocommerce'), $tax_text, ucwords($this->shipping_method_title));
+			$shipping .= sprintf( __('&nbsp;<small>%svia %s</small>', 'woocommerce'), $tax_text, $this->get_shipping_method() );
 			
+		elseif ( $this->get_shipping_method() ) :
+			$shipping = $this->get_shipping_method();
 		else :
 			$shipping = __('Free!', 'woocommerce');
 		endif;
 		
-		return $shipping;
+		return apply_filters( 'woocommerce_order_shipping_to_display', $shipping, $this );
+	}
+
+	/** Get cart discount (formatted)  */
+	function get_cart_discount_to_display() {
+		return apply_filters( 'woocommerce_order_cart_discount_to_display', woocommerce_price( $this->get_cart_discount() ), $this );
+	}
+	
+	/** Get cart discount (formatted)  */
+	function get_order_discount_to_display() {
+		return apply_filters( 'woocommerce_order_discount_to_display', woocommerce_price( $this->get_order_discount() ), $this );
 	}
 	
 	/** Get a product (either product or variation) */
@@ -510,9 +527,9 @@ class WC_Order {
 			$total_rows[ __( 'Cart Subtotal:', 'woocommerce' ) ] = $subtotal;
 		
 		if ( $this->get_cart_discount() > 0 ) 
-			$total_rows[ __( 'Cart Discount:', 'woocommerce' ) ] = '-' . woocommerce_price( $this->get_cart_discount() );
+			$total_rows[ __( 'Cart Discount:', 'woocommerce' ) ] = '-' . $this->get_cart_discount_to_display();
 		
-		if ( $this->get_shipping() > 0 )
+		if ( $this->get_shipping_method() )
 			$total_rows[ __('Shipping:', 'woocommerce') ] = $this->get_shipping_to_display();
 		
 		if ( $this->get_total_tax() > 0 ) {
@@ -557,7 +574,7 @@ class WC_Order {
 		}
 		
 		if ( $this->get_order_discount() > 0 )
-			$total_rows[ __( 'Order Discount:', 'woocommerce' ) ] = '-' . woocommerce_price( $this->get_order_discount() );
+			$total_rows[ __( 'Order Discount:', 'woocommerce' ) ] = '-' . $this->get_order_discount_to_display();
 		
 		$total_rows[ __( 'Order Total:', 'woocommerce' ) ] = $this->get_formatted_order_total();
 		
@@ -690,6 +707,8 @@ class WC_Order {
 			}
 
 		}
+		
+		delete_transient( 'woocommerce_processing_order_count' );
 	}
 	
 	/**
@@ -712,49 +731,53 @@ class WC_Order {
 	 * If the cart contains only downloadable items then the order is 'complete' since the admin needs to take no action
 	 * Stock levels are reduced at this point
 	 * Sales are also recorded for products
+	 * Finally, record the date of payment
 	 */
 	function payment_complete() {
 		
-		unset($_SESSION['order_awaiting_payment']);
+		unset( $_SESSION['order_awaiting_payment'] );
 		
-		if ( $this->status=='on-hold' || $this->status=='pending' || $this->status=='failed' ) :
+		if ( $this->status == 'on-hold' || $this->status == 'pending' || $this->status == 'failed' ) {
 		
 			$downloadable_order = false;
 			
-			if (sizeof($this->get_items())>0) foreach ($this->get_items() as $item) :
+			if ( sizeof( $this->get_items() ) > 0 ) {
+				foreach( $this->get_items() as $item ) {
 			
-				if ($item['id']>0) :
-				
-					$_product = $this->get_product_from_item( $item );
+					if ( $item['id'] > 0 ) {
 					
-					if ( $_product->is_downloadable() && $_product->is_virtual() ) :
-						$downloadable_order = true;
-						continue;
-					endif;
-					
-				endif;
-				
-				$downloadable_order = false;
-				break;
+						$_product = $this->get_product_from_item( $item );
+						
+						if ( $_product->is_downloadable() && $_product->is_virtual() ) {
+							$downloadable_order = true;
+							continue;
+						}
+						
+					}
+					$downloadable_order = false;
+					break;
+				}
+			}
 			
-			endforeach;
-			
-			if ($downloadable_order) :
-				$new_order_status = 'completed';
-			else :
-				$new_order_status = 'processing';
-			endif;
+			$new_order_status = ( $downloadable_order ) ? 'completed' : 'processing';
 			
 			$new_order_status = apply_filters('woocommerce_payment_complete_order_status', $new_order_status, $this->id);
 			
-			$this->update_status($new_order_status);
+			$this->update_status( $new_order_status );
 			
-			// Payment is complete so reduce stock levels
-			$this->reduce_order_stock();
+			add_post_meta( $this->id, '_paid_date', current_time('mysql'), true );
+			
+			$this_order = array(
+				'ID' => $this->id,
+				'post_date' => current_time( 'mysql', 0 ),
+				'post_date_gmt' => current_time( 'mysql', 1 )
+			);
+			wp_update_post( $this_order );
+
+			$this->reduce_order_stock(); // Payment is complete so reduce stock levels
 			
 			do_action( 'woocommerce_payment_complete', $this->id );
-		
-		endif;
+		}
 	}
 	
 	/**
@@ -912,21 +935,21 @@ class order_item_meta {
 	function display( $flat = false, $return = false ) {
 		global $woocommerce;
 		
-		if ($this->meta && is_array($this->meta)) :
+		if ( $this->meta && is_array( $this->meta ) ) :
 			
-			if (!$flat) $output = '<dl class="variation">'; else $output = '';
+			if ( ! $flat ) $output = '<dl class="variation">'; else $output = '';
 			
 			$meta_list = array();
 			
-			foreach ($this->meta as $meta) :
+			foreach ( $this->meta as $meta ) :
 				
 				$name 	= $meta['meta_name'];
 				$value	= $meta['meta_value'];
 				
-				if (!$value) continue;
+				if ( ! $value ) continue;
 				
 				// If this is a term slug, get the term's nice name
-	            if (taxonomy_exists(esc_attr(str_replace('attribute_', '', $name)))) :
+	            if ( taxonomy_exists( esc_attr( str_replace( 'attribute_', '', $name ) ) ) ) :
 	            	$term = get_term_by('slug', $value, esc_attr(str_replace('attribute_', '', $name)));
 	            	if (!is_wp_error($term) && $term->name) :
 	            		$value = $term->name;
@@ -944,7 +967,7 @@ class order_item_meta {
 			endforeach;
 			
 			if ($flat) :
-				$output .= implode(', ', $meta_list);
+				$output .= implode(", \n", $meta_list);
 			else :
 				$output .= implode('', $meta_list);
 			endif;

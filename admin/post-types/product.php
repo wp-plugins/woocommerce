@@ -363,20 +363,38 @@ function woocommerce_products_by_type() {
     endif;
 }
 
-add_filter( 'parse_query', 'woocommerce_products_subtype_query' );
+add_filter( 'parse_query', 'woocommerce_admin_product_filter_query' );
 
-function woocommerce_products_subtype_query($query) {
+function woocommerce_admin_product_filter_query( $query ) {
 	global $typenow, $wp_query;
-    if ($typenow=='product' && isset($_GET['product_subtype']) && $_GET['product_subtype']) :
-    	if ($_GET['product_subtype']=='downloadable') :
-        	$query->query_vars['meta_value'] 	= 'yes';
-        	$query->query_vars['meta_key'] 		= '_downloadable';
-        endif;
-        if ($_GET['product_subtype']=='virtual') :
-        	$query->query_vars['meta_value'] 	= 'yes';
-        	$query->query_vars['meta_key'] 		= '_virtual';
-        endif;
-	endif;
+	
+    if ( $typenow == 'product' ) {
+    
+    	// Subtypes
+    	if ( ! empty( $_GET['product_subtype'] ) ) {
+	    	if ( $_GET['product_subtype'] == 'downloadable' ) {
+	        	$query->query_vars['meta_value'] 	= 'yes';
+	        	$query->query_vars['meta_key'] 		= '_downloadable';
+	        } elseif ( $_GET['product_subtype'] == 'virtual' ) {
+	        	$query->query_vars['meta_value'] 	= 'yes';
+	        	$query->query_vars['meta_key'] 		= '_virtual';
+	        }
+        }
+        
+        // Categories
+        if ( isset( $_GET['product_cat'] ) && $_GET['product_cat'] == '0' ) {
+        	
+        	$query->query_vars['tax_query'][] = array(
+        		'taxonomy' => 'product_cat',
+        		'field' => 'id',
+				'terms' => get_terms( 'product_cat', array( 'fields' => 'ids' ) ),
+				'operator' => 'NOT IN'
+        	);
+        	
+        }
+        
+	}
+	
 }
 
 /**
@@ -447,9 +465,9 @@ function woocommerce_admin_product_search_label($query) {
 /**
  * Custom quick edit
  **/
-add_action('quick_edit_custom_box',  'woocommerce_admin_product_quick_edit', 10, 2);
-add_action('admin_enqueue_scripts', 'woocommerce_admin_product_quick_edit_scripts', 10);  
-add_action('save_post', 'woocommerce_admin_product_quick_edit_save', 10, 2);  
+add_action( 'quick_edit_custom_box',  'woocommerce_admin_product_quick_edit', 10, 2 );
+add_action( 'admin_enqueue_scripts', 'woocommerce_admin_product_quick_edit_scripts', 10 );
+add_action( 'save_post', 'woocommerce_admin_product_quick_edit_save', 10, 2 );  
 
 function woocommerce_admin_product_quick_edit( $column_name, $post_type ) {
 	if ($column_name != 'price' || $post_type != 'product') return;
@@ -581,10 +599,11 @@ function woocommerce_admin_product_quick_edit( $column_name, $post_type ) {
 	<?php
 }
 
-function woocommerce_admin_product_quick_edit_scripts() {  
-	global $woocommerce;
+function woocommerce_admin_product_quick_edit_scripts( $hook ) {  
+	global $woocommerce, $post_type;
 	
-    wp_enqueue_script( 'woocommerce_quick-edit', $woocommerce->plugin_url() . '/assets/js/admin/quick-edit.js', array('jquery') ); 
+	if ( $hook == 'edit.php' && $post_type == 'product' )
+    	wp_enqueue_script( 'woocommerce_quick-edit', $woocommerce->plugin_url() . '/assets/js/admin/quick-edit.js', array('jquery') ); 
 }  
 
 function woocommerce_admin_product_quick_edit_save( $post_id, $post ) {  
@@ -956,6 +975,7 @@ add_filter( 'views_edit-product', 'woocommerce_default_sorting_link' );
 function woocommerce_default_sorting_link( $views ) {
 	global $post_type, $wp_query;
 	
+	if ( ! current_user_can('edit_others_pages') ) return $views;
 	$class = ( isset( $wp_query->query['orderby'] ) && $wp_query->query['orderby'] == 'menu_order title' ) ? 'current' : '';
 	$query_string = remove_query_arg(array( 'orderby', 'order' ));
 	$query_string = add_query_arg( 'orderby', urlencode('menu_order title'), $query_string );

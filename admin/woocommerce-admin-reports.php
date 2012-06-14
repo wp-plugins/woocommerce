@@ -14,89 +14,119 @@ function woocommerce_reports() {
 	
 	$charts = apply_filters('woocommerce_reports_charts', array(
 		'sales' => array(
-			array(
-				'title' => __('Overview', 'woocommerce'),
-				'description' => '',
-				'hide_title' => true,
-				'function' => 'woocommerce_sales_overview'
-			),
-			array(
-				'title' => __('Sales by day', 'woocommerce'),
-				'description' => '',
-				'function' => 'woocommerce_daily_sales'
-			),
-			array(
-				'title' => __('Sales by month', 'woocommerce'),
-				'description' => '',
-				'function' => 'woocommerce_monthly_sales'
-			),
-			array(
-				'title' => __('Product Sales', 'woocommerce'),
-				'description' => '',
-				'function' => 'woocommerce_product_sales'
-			),
-			array(
-				'title' => __('Top sellers', 'woocommerce'),
-				'description' => '',
-				'function' => 'woocommerce_top_sellers'
-			),
-			array(
-				'title' => __('Top earners', 'woocommerce'),
-				'description' => '',
-				'function' => 'woocommerce_top_earners'
+			'title' 	=>  __( 'Sales', 'woocommerce' ),
+			'charts' 	=> array(
+				array(
+					'title' => __('Overview', 'woocommerce'),
+					'description' => '',
+					'hide_title' => true,
+					'function' => 'woocommerce_sales_overview'
+				),
+				array(
+					'title' => __('Sales by day', 'woocommerce'),
+					'description' => '',
+					'function' => 'woocommerce_daily_sales'
+				),
+				array(
+					'title' => __('Sales by month', 'woocommerce'),
+					'description' => '',
+					'function' => 'woocommerce_monthly_sales'
+				),
+				array(
+					'title' => __('Product Sales', 'woocommerce'),
+					'description' => '',
+					'function' => 'woocommerce_product_sales'
+				),
+				array(
+					'title' => __('Top sellers', 'woocommerce'),
+					'description' => '',
+					'function' => 'woocommerce_top_sellers'
+				),
+				array(
+					'title' => __('Top earners', 'woocommerce'),
+					'description' => '',
+					'function' => 'woocommerce_top_earners'
+				)
 			)
 		),
 		'customers' => array(
-			array(
-				'title' => __('Overview', 'woocommerce'),
-				'description' => '',
-				'hide_title' => true,
-				'function' => 'woocommerce_customer_overview'
-			),
+			'title' 	=>  __( 'Customers', 'woocommerce' ),
+			'charts' 	=> array(
+				array(
+					'title' => __('Overview', 'woocommerce'),
+					'description' => '',
+					'hide_title' => true,
+					'function' => 'woocommerce_customer_overview'
+				),
+			)
 		),
 		'stock' => array(
-			array(
-				'title' => __('Overview', 'woocommerce'),
-				'description' => '',
-				'hide_title' => true,
-				'function' => 'woocommerce_stock_overview'
-			),
+			'title' 	=>  __( 'Stock', 'woocommerce' ),
+			'charts' 	=> array(
+				array(
+					'title' => __('Overview', 'woocommerce'),
+					'description' => '',
+					'hide_title' => true,
+					'function' => 'woocommerce_stock_overview'
+				),
+			)
 		)
 	));
     ?>
 	<div class="wrap woocommerce">
 		<div class="icon32 icon32-woocommerce-reports" id="icon-woocommerce"><br /></div><h2 class="nav-tab-wrapper woo-nav-tab-wrapper">
 			<?php
-				foreach ($charts as $name => $value) :
-					echo '<a href="'.admin_url( 'admin.php?page=woocommerce_reports&tab=' . urlencode($name) ).'" class="nav-tab ';
-					if( $current_tab == $name ) echo 'nav-tab-active';
-					echo '">'.ucfirst($name).'</a>';
-				endforeach;
+				foreach ( $charts as $key => $chart ) {
+					echo '<a href="'.admin_url( 'admin.php?page=woocommerce_reports&tab=' . urlencode( $key ) ).'" class="nav-tab ';
+					if ( $current_tab == $key ) echo 'nav-tab-active';
+					echo '">' . esc_html( $chart[ 'title' ] ) . '</a>';
+				}
 			?>
 			<?php do_action('woocommerce_reports_tabs'); ?>
 		</h2>
 		
-		<?php if (sizeof($charts[$current_tab])>1) : ?><ul class="subsubsub"><li><?php
-			$links = array();
-			foreach ($charts[$current_tab] as $key => $chart) :
-				$link = '<a href="admin.php?page=woocommerce_reports&tab=' . urlencode($current_tab) . '&amp;chart=' . urlencode($key) . '" class="';
-				if ($key==$current_chart) $link .= 'current';
-				$link .= '">'.$chart['title'].'</a>';
-				$links[] = $link;
-			endforeach;
-			echo implode(' | </li><li>', $links);
-		?></li></ul><br class="clear" /><?php endif; ?>
-		
-		<?php if (isset($charts[$current_tab][$current_chart])) : ?> 
-			<?php if (!isset($charts[$current_tab][$current_chart]['hide_title']) || $charts[$current_tab][$current_chart]['hide_title']!=true) : ?><h3><?php echo $charts[$current_tab][$current_chart]['title']; ?></h3>
-			<?php if ($charts[$current_tab][$current_chart]['description']) : ?><p><?php echo $charts[$current_tab][$current_chart]['description']; ?></p><?php endif; ?>
-			<?php endif; ?>
-			<?php
-				$func = $charts[$current_tab][$current_chart]['function'];
-				if ($func && function_exists($func)) $func();
+		<?php if ( sizeof( $charts[ $current_tab ]['charts'] ) > 1 ) {
 			?>
-		<?php endif; ?>
-
+			<ul class="subsubsub">
+				<li><?php
+					
+					$links = array();
+					
+					foreach ( $charts[ $current_tab ]['charts'] as $key => $chart ) {
+					
+						$link = '<a href="admin.php?page=woocommerce_reports&tab=' . urlencode( $current_tab ) . '&amp;chart=' . urlencode( $key ) . '" class="';
+						
+						if ( $key == $current_chart ) $link .= 'current';
+						
+						$link .= '">' . $chart['title'] . '</a>';
+						
+						$links[] = $link;
+						
+					}
+					
+					echo implode(' | </li><li>', $links);
+					
+				?></li>
+			</ul>
+			<br class="clear" />
+			<?php
+		}
+		
+		if ( isset( $charts[ $current_tab ][ 'charts' ][ $current_chart ] ) ) {
+			
+			$chart = $charts[ $current_tab ][ 'charts' ][ $current_chart ];
+			
+			if ( ! isset( $chart['hide_title'] ) || $chart['hide_title'] != true ) 
+				echo '<h3>' . $chart['title'] . '</h3>';
+				
+			if ( $chart['description'] ) 
+				echo '<p>' . $chart['description'] . '</p>';
+				
+			$func = $chart['function'];
+			if ( $func && function_exists( $func ) ) 
+				$func();
+		} 
+		?>
 	</div>
 	<?php
 }
@@ -150,12 +180,12 @@ function woocommerce_tooltip_js() {
                 
                 jQuery("#tooltip").remove();
                 
-                if (item.series.label=="Sales amount") {
+                if (item.series.label=="<?php echo esc_js( __( 'Sales amount', 'woocommerce' ) ) ?>") {
                 	
                 	var y = item.datapoint[1].toFixed(2);
                 	showTooltip(item.pageX, item.pageY, item.series.label + " - " + "<?php echo get_woocommerce_currency_symbol(); ?>" + y);
                 	
-                } else if (item.series.label=="Number of sales") {
+                } else if (item.series.label=="<?php echo esc_js( __( 'Number of sales', 'woocommerce' ) ) ?>") {
                 	
                 	var y = item.datapoint[1];
                 	showTooltip(item.pageX, item.pageY, item.series.label + " - " + y);
@@ -227,7 +257,7 @@ function orders_within_range( $where = '' ) {
  */
 function woocommerce_sales_overview() {
 
-	global $start_date, $end_date, $woocommerce, $wpdb;
+	global $start_date, $end_date, $woocommerce, $wpdb, $wp_locale;
 	
 	$total_sales = 0;
 	$total_orders = 0;
@@ -315,7 +345,7 @@ function woocommerce_sales_overview() {
 			<div class="postbox">
 				<h3><span><?php _e('Total orders', 'woocommerce'); ?></span></h3>
 				<div class="inside">
-					<p class="stat"><?php if ($total_orders>0) echo $total_orders. ' ('.$order_items.__(' items', 'woocommerce').')'; else _e('n/a', 'woocommerce'); ?></p>
+					<p class="stat"><?php if ( $total_orders > 0 ) echo $total_orders . ' (' . $order_items . ' ' . __( 'items', 'woocommerce' ) . ')'; else _e('n/a', 'woocommerce'); ?></p>
 				</div>
 			</div>
 			<div class="postbox">
@@ -444,7 +474,7 @@ function woocommerce_sales_overview() {
 			
 			var placeholder = jQuery("#placeholder");
 			 
-			var plot = jQuery.plot(placeholder, [ { label: "Number of sales", data: d }, { label: "Sales amount", data: d2, yaxis: 2 } ], {
+			var plot = jQuery.plot(placeholder, [ { label: "<?php echo esc_js( __( 'Number of sales', 'woocommerce' ) ) ?>", data: d }, { label: "<?php echo esc_js( __( 'Sales amount', 'woocommerce' ) ) ?>", data: d2, yaxis: 2 } ], {
 				series: {
 					lines: { show: true },
 					points: { show: true }
@@ -463,6 +493,7 @@ function woocommerce_sales_overview() {
 				xaxis: { 
 					mode: "time",
 					timeformat: "%d %b", 
+					monthNames: <?php echo json_encode( array_values( $wp_locale->month_abbrev ) ) ?>,
 					tickLength: 1,
 					minTickSize: [1, "day"]
 				},
@@ -484,7 +515,7 @@ function woocommerce_sales_overview() {
  */
 function woocommerce_daily_sales() {
 	
-	global $start_date, $end_date, $woocommerce, $wpdb;
+	global $start_date, $end_date, $woocommerce, $wpdb, $wp_locale;
 	
 	$start_date = (isset($_POST['start_date'])) ? $_POST['start_date'] : '';
 	$end_date	= (isset($_POST['end_date'])) ? $_POST['end_date'] : '';
@@ -581,7 +612,7 @@ function woocommerce_daily_sales() {
 			<div class="postbox">
 				<h3><span><?php _e('Total orders in range', 'woocommerce'); ?></span></h3>
 				<div class="inside">
-					<p class="stat"><?php if ($total_orders>0) echo $total_orders. ' ('.$order_items.__(' items', 'woocommerce').')'; else _e('n/a', 'woocommerce'); ?></p>
+					<p class="stat"><?php if ( $total_orders > 0 ) echo $total_orders . ' (' . $order_items . ' ' . __( 'items', 'woocommerce' ) . ')'; else _e('n/a', 'woocommerce'); ?></p>
 				</div>
 			</div>
 			<div class="postbox">
@@ -634,7 +665,7 @@ function woocommerce_daily_sales() {
 			
 			var placeholder = jQuery("#placeholder");
 			 
-			var plot = jQuery.plot(placeholder, [ { label: "Number of sales", data: d }, { label: "Sales amount", data: d2, yaxis: 2 } ], {
+			var plot = jQuery.plot(placeholder, [ { label: "<?php echo esc_js( __( 'Number of sales', 'woocommerce' ) ) ?>", data: d }, { label: "<?php echo esc_js( __( 'Sales amount', 'woocommerce' ) ) ?>", data: d2, yaxis: 2 } ], {
 				series: {
 					lines: { show: true },
 					points: { show: true }
@@ -653,6 +684,7 @@ function woocommerce_daily_sales() {
 				xaxis: { 
 					mode: "time",
 					timeformat: "%d %b", 
+					monthNames: <?php echo json_encode( array_values( $wp_locale->month_abbrev ) ) ?>,
 					tickLength: 1,
 					minTickSize: [1, "day"]
 				},
@@ -676,9 +708,9 @@ function woocommerce_daily_sales() {
  */
 function woocommerce_monthly_sales() {
 	
-	global $start_date, $end_date, $woocommerce, $wpdb;
+	global $start_date, $end_date, $woocommerce, $wpdb, $wp_locale;
 	
-	$first_year = $wpdb->get_var("SELECT post_date FROM $wpdb->posts ORDER BY post_date ASC LIMIT 1;");
+	$first_year = $wpdb->get_var("SELECT post_date FROM $wpdb->posts WHERE post_date != 0 ORDER BY post_date ASC LIMIT 1;");
 	if ($first_year) $first_year = date('Y', strtotime($first_year)); else $first_year = date('Y');
 	
 	$current_year = (isset($_POST['show_year'])) ? $_POST['show_year'] : date('Y', current_time('timestamp'));
@@ -770,7 +802,7 @@ function woocommerce_monthly_sales() {
 			<div class="postbox">
 				<h3><span><?php _e('Total orders for year', 'woocommerce'); ?></span></h3>
 				<div class="inside">
-					<p class="stat"><?php if ($total_orders>0) echo $total_orders. ' ('.$order_items.__(' items', 'woocommerce').')'; else _e('n/a', 'woocommerce'); ?></p>
+					<p class="stat"><?php if ( $total_orders > 0 ) echo $total_orders . ' (' . $order_items . ' ' . __( 'items', 'woocommerce' ) . ')'; else _e('n/a', 'woocommerce'); ?></p>
 				</div>
 			</div>
 			<div class="postbox">
@@ -820,7 +852,7 @@ function woocommerce_monthly_sales() {
 			
 			var placeholder = jQuery("#placeholder");
 			 
-			var plot = jQuery.plot(placeholder, [ { label: "Number of sales", data: d }, { label: "Sales amount", data: d2, yaxis: 2 } ], {
+			var plot = jQuery.plot(placeholder, [ { label: "<?php echo esc_js( __( 'Number of sales', 'woocommerce' ) ) ?>", data: d }, { label: "<?php echo esc_js( __( 'Sales amount', 'woocommerce' ) ) ?>", data: d2, yaxis: 2 } ], {
 				series: {
 					lines: { show: true },
 					points: { show: true, align: "left" }
@@ -838,6 +870,7 @@ function woocommerce_monthly_sales() {
 				xaxis: { 
 					mode: "time",
 					timeformat: "%b %y", 
+					monthNames: <?php echo json_encode( array_values( $wp_locale->month_abbrev ) ) ?>,
 					tickLength: 1,
 					minTickSize: [1, "month"]
 				},
@@ -1149,7 +1182,7 @@ function woocommerce_product_sales() {
 	} else {
 		?>
 		<form method="post" action="">
-			<p><select id="product_ids" name="product_ids[]" class="ajax_chosen_select_products" multiple="multiple" data-placeholder="<?php _e('Search for a product...', 'woocommerce'); ?>" style="width: 400px;"></select> <input type="submit" style="vertical-align: top;" class="button" value="<?php _e('Show', 'woocommerce'); ?>" /></p>
+			<p><select id="product_ids" name="product_ids[]" class="ajax_chosen_select_products" multiple="multiple" data-placeholder="<?php _e('Search for a product&hellip;', 'woocommerce'); ?>" style="width: 400px;"></select> <input type="submit" style="vertical-align: top;" class="button" value="<?php _e('Show', 'woocommerce'); ?>" /></p>
 			<script type="text/javascript">
 				jQuery(function(){
 					// Ajax Chosen Product Selectors
@@ -1185,7 +1218,7 @@ function woocommerce_product_sales() {
  */
 function woocommerce_customer_overview() {
 
-	global $start_date, $end_date, $woocommerce, $wpdb;
+	global $start_date, $end_date, $woocommerce, $wpdb, $wp_locale;
 	
 	$total_customers = 0;
 	$total_customer_sales = 0;
@@ -1362,6 +1395,7 @@ function woocommerce_customer_overview() {
 				xaxis: { 
 					mode: "time",
 					timeformat: "%d %b", 
+					monthNames: <?php echo json_encode( array_values( $wp_locale->month_abbrev ) ) ?>,
 					tickLength: 1,
 					minTickSize: [1, "day"]
 				},

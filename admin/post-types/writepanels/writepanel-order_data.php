@@ -123,7 +123,7 @@ function woocommerce_order_data_meta_box($post) {
 								'label' => __('Country', 'woocommerce'), 
 								'show'	=> false,
 								'type'	=> 'select',
-								'options' => $woocommerce->countries->get_allowed_countries()
+								'options' => array( '' => __( 'Select a country&hellip;', 'woocommerce' ) ) + $woocommerce->countries->get_allowed_countries()
 								),
 							'state' => array( 
 								'label' => __('State/County', 'woocommerce'), 
@@ -483,7 +483,7 @@ function woocommerce_order_totals_meta_box($post) {
 				<label><?php _e('Method:', 'woocommerce'); ?></label>
 				<input type="text" name="_shipping_method" id="_shipping_method" value="<?php 
 				if (isset($data['_shipping_method'][0])) echo $data['_shipping_method'][0];
-				?>" placeholder="<?php _e('Shipping method...', 'woocommerce'); ?>" />
+				?>" placeholder="<?php _e('Shipping method&hellip;', 'woocommerce'); ?>" />
 			</li>
 	
 		</ul>
@@ -564,7 +564,7 @@ function woocommerce_order_totals_meta_box($post) {
 				<label><?php _e('Payment Method:', 'woocommerce'); ?></label>
 				<input type="text" name="_payment_method" id="_payment_method" value="<?php 
 					if (isset($data['_payment_method'][0])) echo $data['_payment_method'][0];
-				?>" class="first" placeholder="<?php _e('Payment method...', 'woocommerce'); ?>" />
+				?>" class="first" placeholder="<?php _e('Payment method&hellip;', 'woocommerce'); ?>" />
 			</li>
 	
 		</ul>
@@ -581,9 +581,7 @@ function woocommerce_order_totals_meta_box($post) {
 add_action('woocommerce_process_shop_order_meta', 'woocommerce_process_shop_order_meta', 1, 2);
 
 function woocommerce_process_shop_order_meta( $post_id, $post ) {
-	global $wpdb, $woocommerce;
-	
-	$woocommerce_errors = array();
+	global $wpdb, $woocommerce, $woocommerce_errors;
 	
 	// Add key
 		add_post_meta( $post_id, '_order_key', uniqid('order_'), true );
@@ -818,6 +816,5 @@ function woocommerce_process_shop_order_meta( $post_id, $post ) {
 			
 		endif;
 	
-	// Error Handling
-		if (sizeof($woocommerce_errors)>0) update_option('woocommerce_errors', $woocommerce_errors);
+	delete_transient( 'woocommerce_processing_order_count' );
 }
