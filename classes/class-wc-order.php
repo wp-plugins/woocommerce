@@ -154,7 +154,7 @@ class WC_Order {
 	 * @return string
 	 */
 	function get_order_number() {
-		return apply_filters( 'woocommerce_order_number', '#' . $this->id, $this );
+		return apply_filters( 'woocommerce_order_number', _x( '#', 'hash before order number', 'woocommerce' ) . $this->id, $this );
 	}
 	
 	function get_formatted_billing_address() {
@@ -659,7 +659,7 @@ class WC_Order {
 		$comment_author 		= 'WooCommerce';
 		$comment_author_email 	= 'woocommerce@' . str_replace('www.', '', $_SERVER['HTTP_HOST']);
 		$comment_author_url 	= '';
-		$comment_content 		= esc_attr( $note );
+		$comment_content 		= $note;
 		$comment_agent			= 'WooCommerce';
 		$comment_type			= '';
 		$comment_parent			= 0;

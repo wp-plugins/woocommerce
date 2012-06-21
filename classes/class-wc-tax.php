@@ -16,7 +16,8 @@ class WC_Tax {
 	 * Get the tax rates as an array
 	 */
 	function get_tax_rates() {
-		if (!is_array($this->parsed_rates)) :
+		if ( ! is_array( $this->parsed_rates ) ) {
+		
 			global $woocommerce;
 			
 			$tax_rates 			= array_filter( (array) get_option('woocommerce_tax_rates') );
@@ -94,9 +95,11 @@ class WC_Tax {
 				
 			endforeach;			
 			
-			$this->rates = $flat_rates;
+			$this->rates 		= $flat_rates;
 			$this->parsed_rates = $parsed_rates;
-		endif;
+			
+			do_action( 'woocommerce_get_tax_rates', $this );
+		}
 	}
 	
 	/**
@@ -112,36 +115,34 @@ class WC_Tax {
 	function find_rates( $country = '', $state = '', $postcode = '', $tax_class = '' ) {
 		$this->get_tax_rates();
 		
-		if (!$country) return array();
+		if ( ! $country ) return array();
 		
-		if (!$state) $state = '*';
+		if ( ! $state ) $state = '*';
 		
 		$tax_class = sanitize_title($tax_class);
-		if (!$tax_class) $tax_class = '*';
+		if ( ! $tax_class ) $tax_class = '*';
 
 		$found_rates = array();
 
 		// Look for a state specific rule
-		if (isset($this->parsed_rates[ $country ][ $state ])) :
+		if ( isset( $this->parsed_rates[ $country ][ $state ][ $tax_class ] ) || isset( $this->parsed_rates[ $country ][ $state ][ '*' ] ) ) {
 			
 			// Look for tax class specific rule
-			if (isset($this->parsed_rates[ $country ][ $state ][ $tax_class ])) :
+			if ( isset( $this->parsed_rates[ $country ][ $state ][ $tax_class ] ) )
 				$found_rates = $this->parsed_rates[ $country ][ $state ][ $tax_class ];
-			else :
+			else
 				$found_rates = $this->parsed_rates[ $country ][ $state ][ '*' ];
-			endif;
 		
 		// Default to * if not state specific rules are found
-		elseif (isset($this->parsed_rates[ $country ][ '*' ])) :
+		} elseif ( isset( $this->parsed_rates[ $country ][ '*' ] ) ) {
 		
 			// Look for tax class specific rule
-			if (isset($this->parsed_rates[ $country ][ '*' ][ $tax_class ])) :
+			if ( isset( $this->parsed_rates[ $country ][ '*' ][ $tax_class ] ) )
 				$found_rates = $this->parsed_rates[ $country ][ '*' ][ $tax_class ];
-			else :
+			elseif ( isset( $this->parsed_rates[ $country ][ '*' ][ '*' ] ) )
 				$found_rates = $this->parsed_rates[ $country ][ '*' ][ '*' ];
-			endif;
 			
-		endif;
+		}
 		
 		// Now we have an array of matching rates, lets filter this based on postcode
 		$matched_tax_rates = array();
