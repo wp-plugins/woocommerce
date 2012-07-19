@@ -9,26 +9,31 @@
  * @author		WooThemes
  */
 
-if (is_active_widget( false, false, 'price_filter', 'true' ) && !is_admin()) :
-	add_action('init', 'woocommerce_price_filter_init');
-	add_filter('loop_shop_post_in', 'woocommerce_price_filter');
-endif;
-
 /**
  * Price filter Init
  */
+add_action( 'init', 'woocommerce_price_filter_init' );
+
 function woocommerce_price_filter_init() {
+	global $woocommerce;
 	
-	unset($_SESSION['min_price']);
-	unset($_SESSION['max_price']);
+	if ( is_active_widget( false, false, 'price_filter', true ) && ! is_admin() ) {
+		
+		$suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
+		
+		wp_register_script( 'wc-price-slider', $woocommerce->plugin_url() . '/assets/js/frontend/price-slider' . $suffix . '.js', array( 'jquery-ui' ), '1.6', true );
 	
-	if (isset($_GET['min_price'])) :
-		$_SESSION['min_price'] = $_GET['min_price'];
-	endif;
-	if (isset($_GET['max_price'])) :
-		$_SESSION['max_price'] = $_GET['max_price'];
-	endif;
-	
+		unset( $_SESSION['min_price'] );
+		unset( $_SESSION['max_price'] );
+		
+		if ( isset( $_GET['min_price'] ) ) 
+			$_SESSION['min_price'] = $_GET['min_price'];
+
+		if ( isset( $_GET['max_price'] ) )
+			$_SESSION['max_price'] = $_GET['max_price'];
+		
+		add_filter( 'loop_shop_post_in', 'woocommerce_price_filter' );
+	}
 }
 
 /**
@@ -103,11 +108,23 @@ class WooCommerce_Widget_Price_Filter extends WP_Widget {
 	function widget( $args, $instance ) {
 		extract($args);
 		
-		global $_chosen_attributes, $wpdb, $woocommerce, $wp_query;
+		global $_chosen_attributes, $wpdb, $woocommerce, $wp_query, $wp;
 		
 		if (!is_tax( 'product_cat' ) && !is_post_type_archive('product') && !is_tax( 'product_tag' )) return; // Not on product page - return
 		
 		if ( sizeof( $woocommerce->query->unfiltered_product_ids ) == 0 ) return; // None shown - return
+		
+		if ( get_option( 'woocommerce_enable_jquery_ui' ) == 'yes' ) {
+			
+			wp_enqueue_script( 'wc-price-slider' );
+			
+			wp_localize_script( 'wc-price-slider', 'woocommerce_price_slider_params', array(
+				'currency_symbol' 	=> get_woocommerce_currency_symbol(),
+				'currency_pos'      => get_option( 'woocommerce_currency_pos' ), 
+				'min_price'			=> isset( $_SESSION['min_price'] ) ? $_SESSION['min_price'] : '',
+				'max_price'			=> isset( $_SESSION['max_price'] ) ? $_SESSION['max_price'] : ''
+			) );
+		}
 
 		$title = $instance['title'];
 		$title = apply_filters('widget_title', $title, $instance, $this->id_base);
@@ -158,8 +175,13 @@ class WooCommerce_Widget_Price_Filter extends WP_Widget {
 		if (isset($_SESSION['max_price'])) $post_max = $_SESSION['max_price'];
 
 		echo $before_widget . $before_title . $title . $after_title;
-
-		echo '<form method="get">
+		
+		if ( get_option( 'permalink_structure' ) == '' ) 
+			$form_action = remove_query_arg( array( 'page', 'paged' ), add_query_arg( $wp->query_string, '', home_url( $wp->request ) ) );
+		else
+			$form_action = preg_replace( '%\/page/[0-9]+%', '', home_url( $wp->request ) );
+		
+		echo '<form method="get" action="' . $form_action . '">
 			<div class="price_slider_wrapper">
 				<div class="price_slider" style="display:none;"></div>
 				<div class="price_slider_amount">

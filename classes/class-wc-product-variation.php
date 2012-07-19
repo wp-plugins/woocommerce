@@ -22,6 +22,7 @@ class WC_Product_Variation extends WC_Product {
 	var $variation_has_stock;
 	var $variation_has_sku;
 	var $variation_shipping_class;
+	var $variation_shipping_class_id;
 	var $variation_has_tax_class;
 	
 	/**
@@ -75,7 +76,6 @@ class WC_Product_Variation extends WC_Product {
 			$this->$key = ( isset( $parent_custom_fields['_' . $key][0] ) && $parent_custom_fields['_' . $key][0] !== '' ) ? $parent_custom_fields['_' . $key][0] : $default;
 
 		$this->product_type = 'variable';
-		$this->visibility 	= 'visible';
 		
 		$this->variation_has_sku = $this->variation_has_stock = $this->variation_has_weight = $this->variation_has_length = $this->variation_has_width = $this->variation_has_height = $this->variation_has_price = $this->variation_has_sale_price = false;
 				
@@ -141,6 +141,23 @@ class WC_Product_Variation extends WC_Product {
 		}
 		
 		$this->total_stock = $this->stock;
+	}
+
+	/** Returns whether or not the variation is visible */
+	function is_visible() {
+	
+		$visible = true;
+			
+		// Out of stock visibility
+		if ( get_option('woocommerce_hide_out_of_stock_items') == 'yes' && ! $this->is_in_stock() ) 
+			$visible = false;
+		
+		return apply_filters('woocommerce_product_is_visible', $visible, $this->id);
+	}
+	
+	/** Returns whether or not the variations parent is visible */
+	function parent_is_visible() {
+		return parent::is_visible();	
 	}
 	
 	/**
@@ -214,28 +231,22 @@ class WC_Product_Variation extends WC_Product {
 		if ( $this->variation_has_stock ) {
 			if ( $this->managing_stock() ) {
 				
-				$this->stock = $this->stock - $by;
-				$this->total_stock = $this->get_total_stock() - $by;
+				$this->stock 		= $this->stock - $by;
+				$this->total_stock 	= $this->total_stock - $by;
 				update_post_meta( $this->variation_id, '_stock', $this->stock );
+				$woocommerce->clear_product_transients( $this->id ); // Clear transient
 				
-				// Parents out of stock attribute
+				// Check parents out of stock attribute
 				if ( ! $this->is_in_stock() ) {
 				
 					// Check parent
 					$parent_product = new WC_Product( $this->id );
 					
-					if ( $parent_product->managing_stock() ) {
-						if ( ! $parent_product->backorders_allowed() ) {
-							if ( $parent_product->get_total_stock() == 0 || $parent_product->get_total_stock() < 0 ) {
-								update_post_meta( $this->id, '_stock_status', 'outofstock' );
-								$woocommerce->clear_product_transients( $this->id ); // Clear transient
-							}
-						}
-					} else {
-						if ( $parent_product->get_total_stock() == 0 || $parent_product->get_total_stock() < 0 ) {
-							update_post_meta( $this->id, '_stock_status', 'outofstock' );
-							$woocommerce->clear_product_transients( $this->id ); // Clear transient
-						}
+					// Only continue if the parent has backorders off
+					if ( ! $parent_product->backorders_allowed() && $parent_product->get_total_stock() <= 0 ) {
+					
+						update_post_meta( $this->id, '_stock_status', 'outofstock' );
+					
 					}
 
 				}
@@ -253,15 +264,19 @@ class WC_Product_Variation extends WC_Product {
 	 * @param   int		$by		Amount to increase by
 	 */
 	function increase_stock( $by = 1 ) {
+		global $woocommerce;
+		
 		if ($this->variation_has_stock) :
 			if ($this->managing_stock()) :
 
-				$this->stock = $this->stock + $by;
-				$this->total_stock = $this->get_total_stock() + $by;
-				update_post_meta($this->variation_id, '_stock', $this->stock);
+				$this->stock 		= $this->stock + $by;
+				$this->total_stock 	= $this->total_stock + $by;
+				update_post_meta( $this->variation_id, '_stock', $this->stock );
+				$woocommerce->clear_product_transients( $this->id ); // Clear transient
 				
 				// Parents out of stock attribute
-				if ( $this->is_in_stock() ) update_post_meta($this->id, '_stock_status', 'instock');
+				if ( $this->is_in_stock() ) 
+					update_post_meta( $this->id, '_stock_status', 'instock' );
 				
 				return $this->stock;
 			endif;
@@ -279,6 +294,21 @@ class WC_Product_Variation extends WC_Product {
 			if ($classes && !is_wp_error($classes)) $this->variation_shipping_class = current($classes)->slug; else $this->variation_shipping_class = parent::get_shipping_class();
 		endif;
 		return $this->variation_shipping_class;
+	}
+	
+	/** Returns the product shipping class ID */
+	function get_shipping_class_id() {
+		if ( ! $this->variation_shipping_class_id ) {
+			
+			$classes = get_the_terms( $this->variation_id, 'product_shipping_class' );
+			
+			if ( $classes && ! is_wp_error( $classes ) ) 
+				$this->variation_shipping_class_id = current( $classes )->term_id; 
+			else 
+				$this->variation_shipping_class_id = parent::get_shipping_class_id();
+								
+		}
+		return (int) $this->variation_shipping_class_id;
 	}
 
 }

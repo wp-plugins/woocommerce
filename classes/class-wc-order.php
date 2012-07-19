@@ -524,13 +524,22 @@ class WC_Order {
 		$total_rows = array();
 		
 		if ( $subtotal = $this->get_subtotal_to_display() )
-			$total_rows[ __( 'Cart Subtotal:', 'woocommerce' ) ] = $subtotal;
+			$total_rows['cart_subtotal'] = array(
+				'label' => __( 'Cart Subtotal:', 'woocommerce' ),
+				'value'	=> $subtotal
+			);
 		
 		if ( $this->get_cart_discount() > 0 ) 
-			$total_rows[ __( 'Cart Discount:', 'woocommerce' ) ] = '-' . $this->get_cart_discount_to_display();
+			$total_rows['cart_discount'] = array(
+				'label' => __( 'Cart Discount:', 'woocommerce' ),
+				'value'	=> '-' . $this->get_cart_discount_to_display()
+			);
 		
 		if ( $this->get_shipping_method() )
-			$total_rows[ __('Shipping:', 'woocommerce') ] = $this->get_shipping_to_display();
+			$total_rows['shipping'] = array(
+				'label' => __( 'Shipping:', 'woocommerce' ),
+				'value'	=> $this->get_shipping_to_display()
+			);
 		
 		if ( $this->get_total_tax() > 0 ) {
 			
@@ -547,12 +556,18 @@ class WC_Order {
 					if ( ( $tax[ 'cart_tax' ] + $tax[ 'shipping_tax' ] ) == 0 )
 						continue;
 					
-					$total_rows[ $tax[ 'label' ] ] = woocommerce_price( ( $tax[ 'cart_tax' ] + $tax[ 'shipping_tax' ] ) );
+					$total_rows[ sanitize_title( $tax[ 'label' ] ) ] = array(
+						'label' => $tax[ 'label' ],
+						'value'	=> woocommerce_price( ( $tax[ 'cart_tax' ] + $tax[ 'shipping_tax' ] ) )
+					);
 				}
 				
 				if ( $has_compound_tax ) {
 					if ( $subtotal = $this->get_subtotal_to_display( true ) ) {
-						$total_rows[ __( 'Subtotal:', 'woocommerce' ) ] = $subtotal;
+						$total_rows['subtotal'] = array(
+							'label' => __( 'Subtotal:', 'woocommerce' ),
+							'value'	=> $subtotal
+						);
 					}
 				}
 				
@@ -562,21 +577,36 @@ class WC_Order {
 
 					if ( ( $tax[ 'cart_tax' ] + $tax[ 'shipping_tax' ] ) == 0 )
 						continue;
-
-					$total_rows[ $tax[ 'label' ] ] = woocommerce_price( ( $tax[ 'cart_tax' ] + $tax[ 'shipping_tax' ] ) );
+					
+					$total_rows[ sanitize_title( $tax[ 'label' ] ) ] = array(
+						'label' => $tax[ 'label' ],
+						'value'	=> woocommerce_price( ( $tax[ 'cart_tax' ] + $tax[ 'shipping_tax' ] ) )
+					);
 				}
 			} else {
-				$total_rows[ $woocommerce->countries->tax_or_vat() ] = woocommerce_price($this->get_total_tax());
+				$total_rows['tax'] = array(
+					'label' => $woocommerce->countries->tax_or_vat(),
+					'value'	=> woocommerce_price( $this->get_total_tax() )
+				);
 			}
 
 		} elseif ( get_option( 'woocommerce_display_cart_taxes_if_zero' ) == 'yes' ) {
-			$total_rows[ $woocommerce->countries->tax_or_vat() ] = _x( 'N/A', 'Relating to tax', 'woocommerce' );
+			$total_rows['tax'] = array(
+				'label' => $woocommerce->countries->tax_or_vat(),
+				'value'	=> _x( 'N/A', 'Relating to tax', 'woocommerce' )
+			);
 		}
 		
 		if ( $this->get_order_discount() > 0 )
-			$total_rows[ __( 'Order Discount:', 'woocommerce' ) ] = '-' . $this->get_order_discount_to_display();
+			$total_rows['order_discount'] = array(
+				'label' => __( 'Order Discount:', 'woocommerce' ),
+				'value'	=> '-' . $this->get_order_discount_to_display()
+			);
 		
-		$total_rows[ __( 'Order Total:', 'woocommerce' ) ] = $this->get_formatted_order_total();
+		$total_rows['order_total'] = array(
+			'label' => __( 'Order Total:', 'woocommerce' ),
+			'value'	=> $this->get_formatted_order_total()
+		);
 		
 		return apply_filters( 'woocommerce_get_order_item_totals', $total_rows, $this );
 	}
@@ -661,14 +691,14 @@ class WC_Order {
 		$comment_author_url 	= '';
 		$comment_content 		= $note;
 		$comment_agent			= 'WooCommerce';
-		$comment_type			= '';
+		$comment_type			= 'order_note';
 		$comment_parent			= 0;
 		$comment_approved 		= 1;
 		$commentdata 			= compact( 'comment_post_ID', 'comment_author', 'comment_author_email', 'comment_author_url', 'comment_content', 'comment_agent', 'comment_type', 'comment_parent', 'comment_approved' );
 		
 		$comment_id = wp_insert_comment( $commentdata );
 		
-		add_comment_meta($comment_id, 'is_customer_note', $is_customer_note);
+		add_comment_meta( $comment_id, 'is_customer_note', $is_customer_note );
 		
 		if ($is_customer_note) do_action( 'woocommerce_new_customer_note', array( 'order_id' => $this->id, 'customer_note' => $note ) );
 		
@@ -688,21 +718,35 @@ class WC_Order {
 		
 		$old_status = get_term_by( 'slug', sanitize_title( $this->status ), 'shop_order_status');
 		$new_status = get_term_by( 'slug', sanitize_title( $new_status_slug ), 'shop_order_status');
+		
 		if ($new_status) {
 			
 			wp_set_object_terms($this->id, array( $new_status->slug ), 'shop_order_status', false);
 			
 			if ( $this->status != $new_status->slug ) {
+				
 				// Status was changed
 				do_action( 'woocommerce_order_status_' . $new_status->slug , $this->id );
 				do_action( 'woocommerce_order_status_' . $this->status . '_to_' . $new_status->slug, $this->id );
-				$this->add_order_note( $note . sprintf( __('Order status changed from %s to %s.', 'woocommerce'), __($old_status->name, 'woocommerce'), __($new_status->name, 'woocommerce') ) );
-
-				// Date
-				if ($new_status->slug=='completed') update_post_meta( $this->id, '_completed_date', current_time('mysql') );
 				
-				// Sales
-				if ($new_status->slug=='processing' || $new_status->slug=='completed' || $new_status->slug=='on-hold') $this->record_product_sales();
+				$this->add_order_note( $note . sprintf( __('Order status changed from %s to %s.', 'woocommerce'), __( $old_status->name, 'woocommerce' ), __( $new_status->name, 'woocommerce' ) ) );
+
+				// Record the completed date of the order
+				if ( $new_status->slug == 'completed' ) 
+					update_post_meta( $this->id, '_completed_date', current_time('mysql') );
+				
+				if ( $new_status->slug == 'processing' || $new_status->slug == 'completed' || $new_status->slug == 'on-hold' ) {
+					
+					// Record the sales
+					$this->record_product_sales();
+					
+					// Increase coupon usage counts
+					$this->increase_coupon_usage_counts();
+				}
+				
+				// If the order is cancelled, restore used coupons
+				if ( $new_status->slug == 'cancelled' ) 
+					$this->decrease_coupon_usage_counts();
 				
 			}
 
@@ -785,20 +829,77 @@ class WC_Order {
 	 */
 	function record_product_sales() {
 		
-		if ( get_post_meta( $this->id, '_recorded_sales', true )=='yes' ) return;
+		if ( get_post_meta( $this->id, '_recorded_sales', true ) == 'yes' ) 
+			return;
 		
-		if (sizeof($this->get_items())>0) foreach ($this->get_items() as $item) :
-			if ($item['id']>0) :
-				$sales 	= (int) get_post_meta( $item['id'], 'total_sales', true );
-				$sales += (int) $item['qty'];
-				if ($sales) update_post_meta( $item['id'], 'total_sales', $sales );
-			endif;
-		endforeach;
+		if ( sizeof( $this->get_items() ) > 0 ) {
+			foreach ( $this->get_items() as $item ) {
+				if ( $item['id'] > 0 ) {
+					$sales = (int) get_post_meta( $item['id'], 'total_sales', true );
+					$sales += (int) $item['qty'];
+					if ( $sales ) 
+						update_post_meta( $item['id'], 'total_sales', $sales );
+				}
+			}
+		}
 		
 		update_post_meta( $this->id, '_recorded_sales', 'yes' );
+	}
+
+	/**
+	 * Increase applied coupon counts
+	 */
+	function get_used_coupons() {
 		
+		$coupons = get_post_meta( $this->id, 'coupons', true );
+		
+		return array_map( 'trim', explode( ',', $coupons ) );
 	}
 	
+	/**
+	 * Increase applied coupon counts
+	 */
+	function increase_coupon_usage_counts() {
+		global $woocommerce;
+		
+		if ( get_post_meta( $this->id, '_recorded_coupon_usage_counts', true ) == 'yes' ) 
+			return;
+			
+		if ( sizeof( $this->get_used_coupons() ) > 0 ) {
+			foreach ( $this->get_used_coupons() as $code ) {
+				if ( ! $code )
+					continue;
+					
+				$coupon = $woocommerce->coupon( $code );
+				$coupon->inc_usage_count();
+			}
+		}
+		
+		update_post_meta( $this->id, '_recorded_coupon_usage_counts', 'yes' );
+	}
+	
+	/**
+	 * Decrease applied coupon counts
+	 */
+	function decrease_coupon_usage_counts() {
+		global $woocommerce;
+		
+		if ( get_post_meta( $this->id, '_recorded_coupon_usage_counts', true ) != 'yes' ) 
+			return;
+			
+		if ( sizeof( $this->get_used_coupons() ) > 0 ) {
+			foreach ( $this->get_used_coupons() as $code ) {
+				if ( ! $code )
+					continue;
+					
+				$coupon = $woocommerce->coupon( $code );
+				$coupon->dcr_usage_count();
+			}
+		}
+		
+		delete_post_meta( $this->id, '_recorded_coupon_usage_counts' );
+	}
+		
 	/**
 	 * Reduce stock levels
 	 */

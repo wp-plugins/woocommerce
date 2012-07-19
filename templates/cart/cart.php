@@ -15,10 +15,10 @@ global $woocommerce;
 		<tr>
 			<th class="product-remove">&nbsp;</th>
 			<th class="product-thumbnail">&nbsp;</th>
-			<th class="product-name"><span class="nobr"><?php _e('Product Name', 'woocommerce'); ?></span></th>
-			<th class="product-price"><span class="nobr"><?php _e('Unit', 'woocommerce'); ?></span></th>
+			<th class="product-name"><?php _e('Product', 'woocommerce'); ?></th>
+			<th class="product-price"><?php _e('Price', 'woocommerce'); ?></th>
 			<th class="product-quantity"><?php _e('Quantity', 'woocommerce'); ?></th>
-			<th class="product-subtotal"><?php _e('Price', 'woocommerce'); ?></th>
+			<th class="product-subtotal"><?php _e('Total', 'woocommerce'); ?></th>
 		</tr>
 	</thead>
 	<tbody>
@@ -49,13 +49,16 @@ global $woocommerce;
 						<!-- Product Name -->
 						<td class="product-name">
 							<?php 
-								printf('<a href="%s">%s</a>', esc_url( get_permalink( apply_filters('woocommerce_in_cart_product_id', $values['product_id'] ) ) ), apply_filters('woocommerce_in_cart_product_title', $_product->get_title(), $values, $cart_item_key ) );
-							
+								if ( ! $_product->is_visible() || ( $_product instanceof WC_Product_Variation && ! $_product->parent_is_visible() ) )
+									echo apply_filters( 'woocommerce_in_cart_product_title', $_product->get_title(), $values, $cart_item_key );
+								else
+									printf('<a href="%s">%s</a>', esc_url( get_permalink( apply_filters('woocommerce_in_cart_product_id', $values['product_id'] ) ) ), apply_filters('woocommerce_in_cart_product_title', $_product->get_title(), $values, $cart_item_key ) );
+														
 								// Meta data
 								echo $woocommerce->cart->get_item_data( $values );
                    				
                    				// Backorder notification
-                   				if ( $_product->backorders_require_notification() && $_product->get_total_stock() < 1 ) 
+                   				if ( $_product->backorders_require_notification() && $_product->is_on_backorder( $values['quantity'] ) )
                    					echo '<p class="backorder_notification">' . __('Available on backorder', 'woocommerce') . '</p>';
 							?>
 						</td>

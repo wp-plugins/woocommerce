@@ -16,8 +16,8 @@ global $woocommerce, $product, $post;
 		<tbody>
 			<?php $loop = 0; foreach ( $attributes as $name => $options ) : $loop++; ?>
 				<tr>
-					<td><label for="<?php echo sanitize_title($name); ?>"><?php echo $woocommerce->attribute_label($name); ?></label></td>
-					<td><select id="<?php echo esc_attr( sanitize_title($name) ); ?>" name="attribute_<?php echo sanitize_title($name); ?>">
+					<td class="label"><label for="<?php echo sanitize_title($name); ?>"><?php echo $woocommerce->attribute_label($name); ?></label></td>
+					<td class="value"><select id="<?php echo esc_attr( sanitize_title($name) ); ?>" name="attribute_<?php echo sanitize_title($name); ?>">
 						<option value=""><?php echo __('Choose an option', 'woocommerce') ?>&hellip;</option>
 						<?php 
 							if ( is_array( $options ) ) {
@@ -34,11 +34,11 @@ global $woocommerce, $product, $post;
 	
 									foreach ( $terms as $term ) {
 										if ( ! in_array( $term->slug, $options ) ) continue;
-										echo '<option value="' . $term->slug . '" ' . selected( $selected_value, $term->slug ) . '>' . $term->name . '</option>';
+										echo '<option value="' . $term->slug . '" ' . selected( $selected_value, $term->slug ) . '>' . apply_filters( 'woocommerce_variation_option_name', $term->name ) . '</option>';
 									}
 								} else {
-									foreach ($options as $option)
-										echo '<option value="' . $option . '" ' . selected( $selected_value, $option ) . '>' . $option . '</option>';
+									foreach ( $options as $option )
+										echo '<option value="' . $option . '" ' . selected( $selected_value, $option ) . '>' . apply_filters( 'woocommerce_variation_option_name', $option ) . '</option>';
 								}
 							}
 						?>

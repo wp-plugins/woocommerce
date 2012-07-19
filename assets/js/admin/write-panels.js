@@ -240,10 +240,10 @@ jQuery( function($){
 			
 			$('table.woocommerce_order_items').block({ message: null, overlayCSS: { background: '#fff url(' + woocommerce_writepanel_params.plugin_url + '/assets/images/ajax-loader.gif) no-repeat center', opacity: 0.6 } });
 		
+			var size = $('table.woocommerce_order_items tbody tr.item').size();
+			
 			$.each( add_item_ids, function( index, value ) {
 			
-				var size = $('table.woocommerce_order_items tbody tr.item').size();
-				
 				var data = {
 					action: 		'woocommerce_add_order_item',
 					item_to_add: 	value,
@@ -266,6 +266,8 @@ jQuery( function($){
 					    $('table.woocommerce_order_items').unblock();
 					}		
 				});
+				
+				size++;
 			
 			});
 
@@ -330,7 +332,7 @@ jQuery( function($){
 						$('input#_billing_address_2').val( info.billing_address_2 );
 						$('input#_billing_city').val( info.billing_city );
 						$('input#_billing_postcode').val( info.billing_postcode );
-						$('input#_billing_country').val( info.billing_country );
+						$('#_billing_country').val( info.billing_country );
 						$('input#_billing_state').val( info.billing_state );
 						$('input#_billing_email').val( info.billing_email );
 						$('input#_billing_phone').val( info.billing_phone );
@@ -380,7 +382,7 @@ jQuery( function($){
 						$('input#_shipping_address_2').val( info.shipping_address_2 );
 						$('input#_shipping_city').val( info.shipping_city );
 						$('input#_shipping_postcode').val( info.shipping_postcode );
-						$('input#_shipping_country').val( info.shipping_country );
+						$('#_shipping_country').val( info.shipping_country );
 						$('input#_shipping_state').val( info.shipping_state );
 					}
 					

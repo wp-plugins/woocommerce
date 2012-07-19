@@ -128,17 +128,6 @@ function woocommerce_update_catalog_ordering() {
 }
 
 /**
- * Increase coupon usage count
- */
-function woocommerce_increase_coupon_counts() {
-	global $woocommerce;
-	if ($applied_coupons = $woocommerce->cart->get_applied_coupons()) foreach ($applied_coupons as $code) :
-		$coupon = new WC_Coupon( $code );
-		$coupon->inc_usage_count();
-	endforeach;
-}
-
-/**
  * Remove from cart/update
  **/
 function woocommerce_update_cart_action() {
@@ -464,7 +453,7 @@ function woocommerce_pay_action() {
 				// Update meta
 				update_post_meta( $order_id, '_payment_method', $payment_method);
 				if (isset($available_gateways) && isset($available_gateways[$payment_method])) :
-					$payment_method_title = $available_gateways[$payment_method]->title;
+					$payment_method_title = $available_gateways[$payment_method]->get_title();
 				endif;
 				update_post_meta( $order_id, '_payment_method_title', $payment_method_title);
 	
@@ -639,6 +628,9 @@ function woocommerce_order_again() {
 	// Nonce security check
 	if ( ! $woocommerce->verify_nonce( 'order_again', '_GET' ) ) return;
 
+	// Clear current cart
+	$woocommerce->cart->empty_cart();
+	
 	// Load the previous order - Stop if the order does not exist
 	$order = new WC_Order( (int) $_GET['order_again'] );
 	

@@ -89,7 +89,10 @@ function woocommerce_get_weight( $weight, $to_unit ) {
 				$weight *= 0.001;
 			break;
 			case 'lbs':
-				$weight *= 0.4535;
+				$weight *= 0.4536;
+			break;
+			case 'oz':
+				$weight *= 0.0283;
 			break;
 		}
 
@@ -99,7 +102,10 @@ function woocommerce_get_weight( $weight, $to_unit ) {
 				$weight *= 1000;
 			break;
 			case 'lbs':
-				$weight *= 2.204;
+				$weight *= 2.2046;
+			break;
+			case 'oz':
+				$weight *= 35.274;
 			break;
 		}
 	}
@@ -343,7 +349,7 @@ function get_woocommerce_currency_symbol( $currency = '' ) {
 		case 'HUF' : $currency_symbol = '&#70;&#116;'; break;
 		case 'ILS' : $currency_symbol = '&#8362;'; break;
 		case 'PHP' : $currency_symbol = '&#8369;'; break;
-		case 'PLN' : $currency_symbol = '&#322;&#122;'; break;
+		case 'PLN' : $currency_symbol = '&#122;&#322;'; break;
 		case 'SEK' : $currency_symbol = '&#107;&#114;'; break;
 		case 'CHF' : $currency_symbol = '&#67;&#72;&#70;'; break;
 		case 'TWD' : $currency_symbol = '&#78;&#84;&#36;'; break;
@@ -397,10 +403,17 @@ function woocommerce_price( $price, $args = array() ) {
 }	
 	
 /**
- * Trim trailing zeros
+ * Trim trailing zeros off prices
  **/
 function woocommerce_trim_zeros( $price ) {
 	return preg_replace('/'.preg_quote(get_option('woocommerce_price_decimal_sep'), '/').'0++$/', '', $price);
+}
+
+/**
+ * Formal decimal numbers - format to 4 dp and remove trailing zeros
+ **/
+function woocommerce_format_decimal( $number ) {
+	return rtrim( rtrim( number_format( $number, 4, '.', '' ), '0' ), '.' );
 }
 
 /**
@@ -594,33 +607,39 @@ add_action( 'comment_feed_join', 'woocommerce_exclude_order_comments_from_feed_j
 add_action( 'comment_feed_where', 'woocommerce_exclude_order_comments_from_feed_where' );
 
 function woocommerce_exclude_order_comments( $clauses ) {
-	global $wpdb, $typenow;
+	global $wpdb, $typenow, $pagenow;
 	
-	if (is_admin() && $typenow=='shop_order') return $clauses; // Don't hide when viewing orders in admin
+	if ( is_admin() && ( $typenow == 'shop_order' || $pagenow == 'edit-comments.php' ) && current_user_can( 'manage_woocommerce' ) ) 
+		return $clauses; // Don't hide when viewing orders in admin
 	
-	$clauses['join'] = "LEFT JOIN $wpdb->posts ON $wpdb->comments.comment_post_ID = $wpdb->posts.ID";
+	if ( ! $clauses['join'] )
+		$clauses['join'] = '';
 	
-	if ($clauses['where']) $clauses['where'] .= ' AND ';
+	if ( ! strstr( $clauses['join'], "JOIN $wpdb->posts" ) )
+		$clauses['join'] .= " LEFT JOIN $wpdb->posts ON $wpdb->comments.comment_post_ID = $wpdb->posts.ID ";
 	
-	$clauses['where'] .= "
-		$wpdb->posts.post_type NOT IN ('shop_order')
-	";
+	if ( $clauses['where'] ) 
+		$clauses['where'] .= ' AND ';
+	
+	$clauses['where'] .= " $wpdb->posts.post_type NOT IN ('shop_order') ";
 	
 	return $clauses;	
 }
 function woocommerce_exclude_order_comments_from_feed_join( $join ) {
 	global $wpdb;
 	
-    if (!$join) $join = "JOIN $wpdb->posts ON ( $wpdb->comments.comment_post_ID = $wpdb->posts.ID )";
+    if ( ! $join ) 
+    	$join = " LEFT JOIN $wpdb->posts ON $wpdb->comments.comment_post_ID = $wpdb->posts.ID ";
 
     return $join;
 }
 function woocommerce_exclude_order_comments_from_feed_where( $where ) {
 	global $wpdb;
 
-    if ($where) $where .= ' AND ';
+    if ( $where ) 
+    	$where .= ' AND ';
 	
-	$where .= "$wpdb->posts.post_type NOT IN ('shop_order')";
+	$where .= " $wpdb->posts.post_type NOT IN ('shop_order') ";
     
     return $where;
 }
@@ -769,7 +788,7 @@ function woocommerce_terms_clauses($clauses, $taxonomies, $args ) {
 	// wordpress should give us the taxonomies asked when calling the get_terms function. Only apply to categories and pa_ attributes
 	$found = false;
 	foreach ((array) $taxonomies as $taxonomy) :
-		if ($taxonomy=='product_cat' || strstr($taxonomy, 'pa_')) :
+		if ( strstr($taxonomy, 'pa_') || in_array( $taxonomy, apply_filters( 'woocommerce_sortable_taxonomies', array( 'product_cat' ) ) ) ) :
 			$found = true;
 			break;
 		endif;
@@ -816,6 +835,9 @@ function woocommerce_terms_clauses($clauses, $taxonomies, $args ) {
  */
 function woocommerce_get_product_terms( $object_id, $taxonomy, $fields = 'all' ) {
 	
+	if ( ! taxonomy_exists( $taxonomy ) ) 
+		return array();
+	
 	$terms 			= array();
 	$object_terms 	= wp_get_object_terms( $object_id, $taxonomy );
 	$all_terms 		= array_flip( get_terms( $taxonomy, array( 'menu_order' => 'ASC', 'fields' => 'ids' ) ) );
@@ -850,7 +872,7 @@ function woocommerce_get_product_terms( $object_id, $taxonomy, $fields = 'all' )
  * Stuck with this until a fix for http://core.trac.wordpress.org/ticket/13258
  * We use a custom walker, just like WordPress does
  */
-function woocommerce_product_dropdown_categories( $show_counts = 1, $hierarchal = 1 ) {
+function woocommerce_product_dropdown_categories( $show_counts = 1, $hierarchal = 1, $show_uncategorized = 1 ) {
 	global $wp_query, $woocommerce;
 	
 	include_once( $woocommerce->plugin_path() . '/classes/walkers/class-product-cat-dropdown-walker.php' );
@@ -869,7 +891,10 @@ function woocommerce_product_dropdown_categories( $show_counts = 1, $hierarchal 
 	$output  = "<select name='product_cat' id='dropdown_product_cat'>";
 	$output .= '<option value="" ' .  selected( isset( $_GET['product_cat'] ) ? $_GET['product_cat'] : '', '', false ) . '>'.__('Select a category', 'woocommerce').'</option>';
 	$output .= woocommerce_walk_category_dropdown_tree( $terms, 0, $r );
-	$output .= '<option value="0" ' . selected( isset( $_GET['product_cat'] ) ? $_GET['product_cat'] : '', '0', false ) . '>' . __('Uncategorized', 'woocommerce') . '</option>';
+	
+	if ( $show_uncategorized )
+		$output .= '<option value="0" ' . selected( isset( $_GET['product_cat'] ) ? $_GET['product_cat'] : '', '0', false ) . '>' . __('Uncategorized', 'woocommerce') . '</option>';
+	
 	$output .="</select>";
 	
 	echo $output;
@@ -1031,4 +1056,39 @@ function woocommerce_let_to_num( $size ) {
 	        $ret *= 1024;
     }
     return $ret;
+}
+
+/**
+ * woocommerce_customer_bought_product
+ *
+ * Checks if a user (by email) has bought an item
+ **/
+function woocommerce_customer_bought_product( $customer_email, $user_id, $product_id ) {
+	global $wpdb;
+	
+	$emails = array();
+	
+	if ( $user_id ) {
+		$user = get_user_by( 'id', $user_id );
+		$emails[] = $user->user_email;
+	}
+	
+	if ( is_email( $customer_email ) ) 
+		$emails[] = $customer_email;
+	
+	if ( sizeof( $emails ) == 0 )
+		return false;
+	
+	$orders = $wpdb->get_col( $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta WHERE ( meta_key = '_billing_email' AND meta_value IN ( '" . implode( "','", array_unique( $emails ) ) . "' ) ) OR ( meta_key = '_customer_user' AND meta_value = %s AND meta_value > 0 )", $user_id ) );
+	
+	foreach ( $orders as $order_id ) {
+		
+		$items = maybe_unserialize( get_post_meta( $order_id, '_order_items', true ) );
+		
+		if ( $items )
+			foreach ( $items as $item )
+				if ( $item['id'] == $product_id || $item['variation_id'] == $product_id )
+					return true;
+			
+	}
 }

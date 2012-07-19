@@ -250,20 +250,20 @@ $woocommerce_settings['general'] = apply_filters('woocommerce_general_settings',
 	),
 	
 	array(  
-		'desc' 		=> __( 'Enable jQuery UI (used by the price slider widget)', 'woocommerce' ),
+		'desc' 		=> __( 'Enable jQuery UI (used by the price filter widget)', 'woocommerce' ),
 		'id' 		=> 'woocommerce_enable_jquery_ui',
 		'std' 		=> 'yes',
 		'type' 		=> 'checkbox',
-		'checkboxgroup'		=> ''
+		'checkboxgroup'		=> 'end'
 	),
 	
-	array(  
+	/*array(  
 	    'desc'     => __( 'Output WooCommerce JavaScript in the footer', 'woocommerce' ),
 	    'id'     => 'woocommerce_scripts_position',
 	    'std'     => 'yes',
 	    'type'     => 'checkbox',
 	    'checkboxgroup'		=> 'end'
-	),
+	),*/
 
 	array( 'type' => 'sectionend', 'id' => 'script_styling_options'),
 	
@@ -628,6 +628,7 @@ $woocommerce_settings['catalog'] = apply_filters('woocommerce_catalog_settings',
 			'kg'  => __( 'kg', 'woocommerce' ),
 			'g'   => __( 'g', 'woocommerce' ),
 			'lbs' => __( 'lbs', 'woocommerce' ),
+			'oz' => __( 'oz', 'woocommerce' ),
 		),
 		'desc_tip'	=>  true,
 	),
@@ -664,9 +665,18 @@ $woocommerce_settings['catalog'] = apply_filters('woocommerce_catalog_settings',
 		'id' 		=> 'woocommerce_review_rating_required',
 		'std' 		=> 'yes',
 		'type' 		=> 'checkbox',
-		'checkboxgroup'		=> 'end',
+		'checkboxgroup'		=> '',
 		'show_if_checked' => 'yes',
 	),	
+	
+	array(  
+		'desc' 		=> __( 'Show "verified owner" label for customer reviews', 'woocommerce' ),
+		'id' 		=> 'woocommerce_review_rating_verification_label',
+		'std' 		=> 'yes',
+		'type' 		=> 'checkbox',
+		'checkboxgroup'		=> 'end',
+		'show_if_checked' => 'yes',
+	),
 	
 	array( 'type' => 'sectionend', 'id' => 'product_review_options' ),
 

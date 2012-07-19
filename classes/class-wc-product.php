@@ -358,7 +358,7 @@ class WC_Product {
 			$url = add_query_arg('add-to-cart', $this->id);
 		endif;
 
-		return $url;
+		return apply_filters( 'woocommerce_add_to_cart_url', $url );
 	}
 	
 	/** Returns whether or not the product is stock managed */
@@ -370,20 +370,19 @@ class WC_Product {
 	
 	/** Returns whether or not the product is in stock */
 	function is_in_stock() {
-		if ($this->managing_stock()) :
-			if (!$this->backorders_allowed()) :
-				if ($this->get_total_stock()==0 || $this->get_total_stock()<0) :
+		if ( $this->managing_stock() ) :
+			if ( ! $this->backorders_allowed() ) :
+				if ( $this->get_total_stock() <  1 ) :
 					return false;
 				else :
-					if ($this->stock_status=='instock') return true;
+					if ( $this->stock_status == 'instock' ) return true;
 					return false;
 				endif;
 			else :
-				if ($this->stock_status=='instock') return true;
-				return false;
+				return true;
 			endif;
 		endif;
-		if ($this->stock_status=='instock') return true;
+		if ( $this->stock_status == 'instock' ) return true;
 		return false;
 	}
 	
@@ -396,6 +395,14 @@ class WC_Product {
 	/** Returns whether or not the product needs to notify the customer on backorder */
 	function backorders_require_notification() {
 		if ($this->managing_stock() && $this->backorders=='notify') return true;
+		return false;
+	}
+	
+	/**
+	 * is_on_backorder function.
+	 */
+	function is_on_backorder( $qty_in_cart = 0 ) {
+		if ( $this->managing_stock() && $this->backorders_allowed() && ( $this->get_total_stock() - $qty_in_cart ) < 0 ) return true;
 		return false;
 	}
 	
@@ -539,10 +546,15 @@ class WC_Product {
 	function get_weight() {
 		if ($this->weight) return $this->weight;
 	}
-	
+
+	/** Set a products price dynamically */
+	function set_price( $price ) {
+		$this->price = $price;
+	}
+		
 	/** Adjust a products price dynamically */
 	function adjust_price( $price ) {
-		if ($price>0) :
+		if ( $price > 0 ) :
 			$this->price += $price;
 		endif;
 	}
@@ -622,7 +634,7 @@ class WC_Product {
 
 				else :
 
-					if ( !$this->min_variation_price || $this->min_variation_price !== $this->max_variation_price ) 
+					if ( ! $this->min_variation_price || $this->min_variation_price !== $this->max_variation_price ) 
 						$price .= $this->get_price_html_from_text();
 						
 					$price .= woocommerce_price( $this->get_price() );
@@ -647,7 +659,7 @@ class WC_Product {
 
 				else :
 
-					if ( !$this->min_variation_price || $this->min_variation_price !== $this->max_variation_price ) 
+					if ( ! $this->min_variation_price || $this->min_variation_price !== $this->max_variation_price ) 
 						$price .= $this->get_price_html_from_text();
 						
 					$price .= __('Free!', 'woocommerce');
@@ -1059,9 +1071,12 @@ class WC_Product {
 
 				if ( has_post_thumbnail( $variation->get_variation_id() ) ) {
 					$attachment_id = get_post_thumbnail_id( $variation->get_variation_id() );
-					$large_thumbnail_size = apply_filters( 'single_product_large_thumbnail_size', 'shop_single' );
-					$image = current( wp_get_attachment_image_src( $attachment_id, $large_thumbnail_size  ) );
-					$image_link = current( wp_get_attachment_image_src( $attachment_id, 'full'  ) );
+					
+					$attachment = wp_get_attachment_image_src( $attachment_id, apply_filters( 'single_product_large_thumbnail_size', 'shop_single' )  );
+					$image = $attachment ? current( $attachment ) : '';
+					
+					$attachment = wp_get_attachment_image_src( $attachment_id, 'full'  );
+					$image_link = $attachment ? current( $attachment ) : '';
 				} else {
 					$image = $image_link = '';
 				}
@@ -1071,7 +1086,7 @@ class WC_Product {
 					'attributes' 			=> $variation_attributes,
 					'image_src' 			=> $image,
 					'image_link' 			=> $image_link,
-					'price_html' 			=> '<span class="price">' . $variation->get_price_html() . '</span>',
+					'price_html' 			=> $this->min_variation_price != $this->max_variation_price ? '<span class="price">' . $variation->get_price_html() . '</span>' : '',
 					'availability_html' 	=> $availability_html,
 					'sku' 					=> __( 'SKU:', 'woocommerce' ) . ' ' . $variation->get_sku(),
 					'min_qty' 				=> 1,
@@ -1087,56 +1102,60 @@ class WC_Product {
     }
     
     /**
-     * Gets the main product image
+     * Returns the main product image
      */ 
     function get_image( $size = 'shop_thumbnail' ) {
     	global $woocommerce;
     	
-    	if (has_post_thumbnail($this->id)) :
-			echo get_the_post_thumbnail($this->id, $size); 
-		elseif (($parent_id = wp_get_post_parent_id( $this->id )) && has_post_thumbnail($parent_id)) :
-			echo get_the_post_thumbnail($parent_id, $size); 
-		else :
-			echo '<img src="'. woocommerce_placeholder_img_src() . '" alt="Placeholder" width="'.$woocommerce->get_image_size('shop_thumbnail_image_width').'" height="'.$woocommerce->get_image_size('shop_thumbnail_image_height').'" />'; 
-		endif;
+    	$image = '';
+    	
+		if ( has_post_thumbnail( $this->id ) ) {
+			$image = get_the_post_thumbnail( $this->id, $size ); 
+		} elseif ( ( $parent_id = wp_get_post_parent_id( $this->id ) ) && has_post_thumbnail( $parent_id ) ) {
+			$image = get_the_post_thumbnail( $parent_id, $size ); 
+		} else {
+			$image = '<img src="' . woocommerce_placeholder_img_src() . '" alt="Placeholder" width="' . $woocommerce->get_image_size( 'shop_thumbnail_image_width' ) . '" height="' . $woocommerce->get_image_size( 'shop_thumbnail_image_height' ) . '" />'; 
+		}
+		
+		return $image;
     }
     
     /**
      * Checks sale data to see if the product is due to go on sale/sale has expired, and updates the main price
      */  
     function check_sale_price() {
-		global $woocommerce;
 		
-    	if ($this->sale_price_dates_from && $this->sale_price_dates_from < current_time('timestamp')) :
+    	if ( $this->sale_price_dates_from && $this->sale_price_dates_from < current_time('timestamp') ) {
     		
-    		if ($this->sale_price && $this->price!==$this->sale_price) :
+    		if ( $this->sale_price && $this->price !== $this->sale_price ) {
     			
+    			// Update price
     			$this->price = $this->sale_price;
-    			update_post_meta($this->id, '_price', $this->price);
+    			update_post_meta( $this->id, '_price', $this->price );
     			
     			// Grouped product prices and sale status are affected by children
     			$this->grouped_product_sync();
-    		endif;
+    		}
 
-    	endif;
+    	}
     	
-    	if ($this->sale_price_dates_to && $this->sale_price_dates_to < current_time('timestamp')) :
+    	if ( $this->sale_price_dates_to && $this->sale_price_dates_to < current_time('timestamp') ) {
     		
-    		if ($this->regular_price && $this->price!==$this->regular_price) :
+    		if ( $this->regular_price && $this->price !== $this->regular_price ) {
     			
     			$this->price = $this->regular_price;
-    			update_post_meta($this->id, '_price', $this->price);
+    			update_post_meta( $this->id, '_price', $this->price );
 		
 				// Sale has expired - clear the schedule boxes
-				update_post_meta($this->id, '_sale_price', '');
-				update_post_meta($this->id, '_sale_price_dates_from', '');
-				update_post_meta($this->id, '_sale_price_dates_to', '');
+				update_post_meta( $this->id, '_sale_price', '' );
+				update_post_meta( $this->id, '_sale_price_dates_from', '' );
+				update_post_meta( $this->id, '_sale_price_dates_to', '' );
 			
 				// Grouped product prices and sale status are affected by children
     			$this->grouped_product_sync();			
-			endif;
+			}
     		
-    	endif;
+    	}
     }
     
     /**
