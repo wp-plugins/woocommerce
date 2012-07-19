@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, affiliate
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.3
 Tested up to: 3.4.1
-Stable tag: 1.6.0
+Stable tag: 1.6.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -149,6 +149,11 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 3. WooCommerce sales reports
 
 == Changelog ==
+
+= 1.6.1 - 19/07/2012 =
+* Fix - Minor issue with woocommerce_content() - updated to new template system
+* Fix - Wrapped the deprecated content functions in function_exists
+* Fix - Put back deprecated loop-shop for older themes until they are updated
 
 = 1.6.0 - 17/07/2012 =
 * Feature - Support for ounces
