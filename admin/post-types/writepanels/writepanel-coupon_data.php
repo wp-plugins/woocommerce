@@ -41,7 +41,7 @@ function woocommerce_coupon_data_meta_box($post) {
 			woocommerce_wp_checkbox( array( 'id' => 'apply_before_tax', 'label' => __('Apply before tax', 'woocommerce'), 'description' => __('Check this box if the coupon should be applied before calculating cart tax', 'woocommerce') ) );
 			
 			// Free Shipping
-			woocommerce_wp_checkbox( array( 'id' => 'free_shipping', 'label' => __('Enable free shipping', 'woocommerce'), 'description' => sprintf(__('Check this box if the coupon enables free shipping (see <a href="%s">Free Shipping</a>)', 'woocommerce'), admin_url('admin.php?page=woocommerce&tab=shipping_methods&subtab=shipping-free_shipping')) ) );
+			woocommerce_wp_checkbox( array( 'id' => 'free_shipping', 'label' => __('Enable free shipping', 'woocommerce'), 'description' => sprintf(__('Check this box if the coupon enables free shipping (see <a href="%s">Free Shipping</a>)', 'woocommerce'), admin_url('admin.php?page=woocommerce_settings&tab=shipping_methods&subtab=shipping-free_shipping')) ) );
 			
 			echo '</div><div class="options_group">';
 			
@@ -163,6 +163,18 @@ add_action('woocommerce_process_shop_coupon_meta', 'woocommerce_process_shop_cou
 
 function woocommerce_process_shop_coupon_meta( $post_id, $post ) {
 	global $wpdb, $woocommerce_errors;
+	
+	// Check for dupe coupons
+	$coupon_found = $wpdb->get_var( $wpdb->prepare( "
+		SELECT $wpdb->posts.ID
+	    FROM $wpdb->posts
+	    WHERE $wpdb->posts.post_type = 'shop_coupon'
+	    AND $wpdb->posts.post_status = 'publish' 
+	    AND $wpdb->posts.post_title = '%s'
+	    AND $wpdb->posts.ID != %s
+	 ", esc_attr( $_POST['post_title'] ), $post_id ) );
+	if ( $coupon_found )
+		$woocommerce_errors[] = __( 'Coupon code already exists.', 'woocommerce' );
 	
 	// Add/Replace data to array
 		$type 			= strip_tags(stripslashes( $_POST['discount_type'] ));

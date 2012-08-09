@@ -529,13 +529,27 @@ class WC_Checkout {
 				update_post_meta( $order_id, '_order_currency', 		get_woocommerce_currency() );
 				update_post_meta( $order_id, '_prices_include_tax', 	get_option('woocommerce_prices_include_tax') );
 				
-				do_action('woocommerce_checkout_update_order_meta', $order_id, $this->posted);
+				// Store technical customer details in meta
+				$customer_ip = isset( $_SERVER['HTTP_X_FORWARD_FOR'] ) ? $_SERVER['HTTP_X_FORWARD_FOR'] : $_SERVER['REMOTE_ADDR'];
+				$customer_user_agent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : '';
+				
+				update_post_meta( $order_id, __( 'Customer IP Address', 'woocommerce' ), $customer_ip );
+				update_post_meta( $order_id, __( 'Customer UA', 'woocommerce' ), $customer_user_agent );
+				
+				// Let plugins add meta
+				do_action('woocommerce_checkout_update_order_meta', $order_id, $this->posted );
 				
 				// Order status
 				wp_set_object_terms( $order_id, 'pending', 'shop_order_status' );
 					
 				// Discount code meta
-				if ($applied_coupons = $woocommerce->cart->get_applied_coupons()) update_post_meta($order_id, 'coupons', implode(', ', $applied_coupons));
+				if ( $applied_coupons = $woocommerce->cart->get_applied_coupons() ) {
+				
+					update_post_meta( $order_id, 'coupons', implode(', ', $applied_coupons) );
+					
+					$order = new WC_Order( $order_id );
+					$order->add_order_note( sprintf( __( 'Coupon Code Used: %s', 'woocommerce' ), implode(', ', $applied_coupons ) ) );
+				}
 				
 				// Order is saved
 				do_action('woocommerce_checkout_order_processed', $order_id, $this->posted);
@@ -673,7 +687,7 @@ class WC_Checkout {
 	}
 }
 
-/** Depreciated */
+/** Deprecated */
 class woocommerce_checkout extends WC_Checkout {
 	public function __construct() { 
 		_deprecated_function( 'woocommerce_checkout', '1.4', 'WC_Checkout()' );
