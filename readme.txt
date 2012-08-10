@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, affiliate
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.3
 Tested up to: 3.4.1
-Stable tag: 1.6.2
+Stable tag: 1.6.3
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -149,6 +149,19 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 3. WooCommerce sales reports
 
 == Changelog ==
+
+= 1.6.3 - 10/08/2012 =
+* Feature - Option to register using the email address as the username instead of entering a username
+* Feature - Ability to change the demo notice text via settings
+* Feature - Copy billing to shipping address on order screen
+* Tweak - Payment methods and shipping method selection dropdowns on order page
+* Tweak - Removed rarely used settings
+* Tweak - Swapped invoice and custom in paypal and added prefix (https://github.com/woothemes/woocommerce/issues/1149)
+* Tweak - Order page styling
+* Fix - has_file() handling for variations
+* Fix - Hide if cart is empty option
+* Fix - Hide individual variations from frontend
+* Fix - Google Analytics ecommerce tracking
 
 = 1.6.2 - 09/08/2012 =
 * Feature - Added google analytics event tracking for add to cart buttons (thanks to Max Rice)
