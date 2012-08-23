@@ -1,12 +1,13 @@
 <?php
 /**
- * Defines the array of settings which are displayed in admin
+ * Defines the array of settings which are displayed in admin.
  *
  * Settings are defined here and displayed via functions.
  *
  * @author 		WooThemes
  * @category 	Admin
- * @package 	WooCommerce
+ * @package 	WooCommerce/Admin/Settings
+ * @version     1.6.4
  */
 
 $localisation_setting = ( defined('WPLANG') ) ? array(
@@ -67,6 +68,7 @@ $woocommerce_settings['general'] = apply_filters('woocommerce_general_settings',
 			'THB' => __( 'Thai Baht', 'woocommerce' ),
 			'TRY' => __( 'Turkish Lira (TL)', 'woocommerce' ),
 			'ZAR' => __( 'South African rand (R)', 'woocommerce' ),
+			'RON' => __( 'Romanian Leu (RON)', 'woocommerce' ),
 			))
 		)
 	),

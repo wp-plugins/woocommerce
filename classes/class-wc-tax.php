@@ -3,17 +3,23 @@
  * Performs tax calculations and loads tax rates.
  *
  * @class 		WC_Tax
- * @package		WooCommerce
- * @category	Class
- * @author		WooThemes
+ * @version		1.6.4
+ * @package		WooCommerce/Classes
+ * @author 		WooThemes
  */
 class WC_Tax {
 
-	var $rates;	// Simple array of rates
-	var $parsed_rates;	// Parsed into array with counties/states as keys
+	/** @var array Contains an array of tax rates. */
+	var $rates;
+
+	/** @var array Contains an array of parsed tax rates with counties/states as keys. */
+	var $parsed_rates;
 
 	/**
-	 * Get the tax rates as an array
+	 * Get the tax rates as an array.
+	 *
+	 * @access public
+	 * @return array
 	 */
 	function get_tax_rates() {
 		if ( ! is_array( $this->parsed_rates ) ) {
@@ -103,7 +109,7 @@ class WC_Tax {
 	}
 
 	/**
-	 * Searches for all matching country/state/postcode tax rates
+	 * Searches for all matching country/state/postcode tax rates.
 	 *
 	 * @since 	1.4
 	 * @param   string	country
@@ -186,7 +192,7 @@ class WC_Tax {
 	}
 
 	/**
-	 * Get's an array of matching rates for a tax class
+	 * Get's an array of matching rates for a tax class.
 	 *
 	 * @param   object	Tax Class
 	 * @return  array
@@ -218,7 +224,7 @@ class WC_Tax {
 	}
 
 	/**
-	 * Get's an array of matching rates for the shop's base country
+	 * Get's an array of matching rates for the shop's base country.
 	 *
 	 * @param   string	Tax Class
 	 * @return  array
@@ -234,13 +240,20 @@ class WC_Tax {
 		return $this->find_rates( $country, $state, '', $tax_class );
 	}
 
-	/** Deprecated before new tax system - added to stop errors before people upgrade */
+
+	/**
+	 * Deprecated before new tax system - added to stop errors before people upgrade.
+	 *
+	 * @deprecated 1.4
+	 * @access public
+	 * @return void
+	 */
 	function get_shipping_tax_rate() {
 		_deprecated_function( 'get_shipping_tax_rate', '1.4' );
 	}
 
 	/**
-	 * Gets an array of matching shipping tax rates for a given class
+	 * Gets an array of matching shipping tax rates for a given class.
 	 *
 	 * @param   string	Tax Class
 	 * @return  mixed
@@ -345,7 +358,7 @@ class WC_Tax {
 	}
 
 	/**
-	 * Calculate the tax using a passed array of rates
+	 * Calculate the tax using a passed array of rates.
 	 *
 	 * @param   float	price
 	 * @param   array	rates
@@ -392,7 +405,7 @@ class WC_Tax {
 
 				// Rounding
 				if ( get_option( 'woocommerce_tax_round_at_subtotal' ) == 'no' && ! $supress_rounding )
-					$tax_amount = round( $tax_amount, 2 );
+					$tax_amount = round( $tax_amount, get_option( 'woocommerce_price_num_decimals' ) );
 
 				// Add rate
 				if ( ! isset( $taxes[$key] ) )
@@ -421,7 +434,7 @@ class WC_Tax {
 
 				// Rounding
 				if ( get_option( 'woocommerce_tax_round_at_subtotal' ) == 'no' && ! $supress_rounding )
-					$tax_amount = round( $tax_amount, 2 );
+					$tax_amount = round( $tax_amount, get_option( 'woocommerce_price_num_decimals' ) );
 
 				// Add rate
 				if ( ! isset( $taxes[ $key ] ) )
@@ -451,7 +464,7 @@ class WC_Tax {
 
 				// Rounding
 				if ( get_option( 'woocommerce_tax_round_at_subtotal' ) == 'no' && ! $supress_rounding )
-					$tax_amount = round( $tax_amount, 2 );
+					$tax_amount = round( $tax_amount, get_option( 'woocommerce_price_num_decimals' ) );
 
 				// Add rate
 				if ( ! isset( $taxes[ $key ] ) )
@@ -467,7 +480,7 @@ class WC_Tax {
 	}
 
 	/**
-	 * Calculate the shipping tax using a passed array of rates
+	 * Calculate the shipping tax using a passed array of rates.
 	 *
 	 * @param   int		Price
 	 * @param	int		Taxation Rate
@@ -508,47 +521,52 @@ class WC_Tax {
 	}
 
 	/**
-	 * Return true/false depending on if a rate is a compound rate
+	 * Return true/false depending on if a rate is a compound rate.
 	 *
 	 * @param   int		key
 	 * @return  bool
 	 */
 	function is_compound( $key ) {
-		if (isset($this->rates[$key]) && $this->rates[$key]['compound']=='yes') return true;
-		return false;
+		return ( isset( $this->rates[$key] ) && $this->rates[$key]['compound'] == 'yes' ) ? true : false;
 	}
 
 	/**
-	 * Return a given rates label
+	 * Return a given rates label.
 	 *
 	 * @param   int		key
 	 * @return  string
 	 */
 	function get_rate_label( $key ) {
-		if (isset($this->rates[$key]) && $this->rates[$key]['label']) return $this->rates[$key]['label'];
+		if ( isset( $this->rates[ $key ] ) && $this->rates[ $key ]['label'] ) return $this->rates[ $key ]['label'];
 		return '';
 	}
 
 	/**
-	 * Round tax lines and return the sum
+	 * Round tax lines and return the sum.
 	 *
 	 * @param   array
 	 * @return  float
 	 */
 	function get_tax_total( $taxes ) {
-		return array_sum(array_map(array(&$this, 'round'), $taxes));
+		return array_sum( array_map( array(&$this, 'round'), $taxes ) );
 	}
 
 	/**
-	 * Round to 2 DP
+	 * Round to currency DP.
 	 */
 	function round( $in ) {
-		return round($in, 2);
+		return round( $in, get_option( 'woocommerce_price_num_decimals' ) );
 	}
 
 }
 
-/** Deprecated */
+/**
+ * woocommerce_tax class.
+ *
+ * @extends 	WC_Tax
+ * @deprecated 	1.4
+ * @package		WooCommerce/Classes
+ */
 class woocommerce_tax extends WC_Tax {
 	public function __construct() {
 		_deprecated_function( 'woocommerce_tax', '1.4', 'WC_Tax()' );

@@ -4,20 +4,31 @@
  *
  * The WooCommerce checkout class handles the checkout process, collecting user data and processing the payment.
  *
- * @class 		WC_Checkout
- * @package		WooCommerce
- * @category	Class
- * @author		WooThemes
+ * @class 		WC_Cart
+ * @version		1.6.4
+ * @package		WooCommerce/Classes
+ * @author 		WooThemes
  */
 class WC_Checkout {
 
+	/** @var array Array of posted form data. */
 	var $posted;
-	var $checkout_fields;
-	var $must_create_account;
-	var $creating_account;
-	var $localisation;
 
-	/** constructor */
+	/** @var array Array of fields to display on the checkout. */
+	var $checkout_fields;
+
+	/** @var bool Whether or not the user must create an account to checkout. */
+	var $must_create_account;
+
+	/** @var bool True when the user is creating an account. */
+	var $creating_account;
+
+	/**
+	 * Constructor for the checkout class. Hooks in methods and defines eheckout fields.
+	 *
+	 * @access public
+	 * @return void
+	 */
 	function __construct () {
 		global $woocommerce;
 
@@ -67,24 +78,46 @@ class WC_Checkout {
 		$this->checkout_fields = apply_filters('woocommerce_checkout_fields', $this->checkout_fields);
 	}
 
-	/** Checkout process */
+
+	/**
+	 * Checkout process
+	 *
+	 * @access public
+	 * @return void
+	 */
 	function checkout_process() {
 		// When we process the checkout, lets ensure cart items are rechecked to prevent checkout
 		do_action('woocommerce_check_cart_items');
 	}
 
-	/** Output the billing information form */
+
+	/**
+	 * Output the billing information form
+	 *
+	 * @access public
+	 * @return void
+	 */
 	function checkout_form_billing() {
 		woocommerce_get_template( 'checkout/form-billing.php', array( 'checkout' => $this ) );
 	}
 
-	/** Output the shipping information form */
+
+	/**
+	 * Output the shipping information form
+	 *
+	 * @access public
+	 * @return void
+	 */
 	function checkout_form_shipping() {
 		woocommerce_get_template( 'checkout/form-shipping.php', array( 'checkout' => $this ) );
 	}
 
+
 	/**
 	 * Process the checkout after the confirm order button is pressed
+	 *
+	 * @access public
+	 * @return void
 	 */
 	function process_checkout() {
 		global $wpdb, $woocommerce;
@@ -376,7 +409,7 @@ class WC_Checkout {
 					$_product = $values['data'];
 
 					// Store any item meta data - item meta class lets plugins add item meta in a standardized way
-					$item_meta = new order_item_meta();
+					$item_meta = new WC_Order_Item_Meta();
 
 					$item_meta->new_order_item( $values );
 
@@ -449,15 +482,13 @@ class WC_Checkout {
 
 				// Get better formatted shipping method (title)
 				$shipping_method = $this->posted['shipping_method'];
-				if (isset($available_methods) && isset($available_methods[$this->posted['shipping_method']])) :
-					$shipping_method = $available_methods[$this->posted['shipping_method']]->label;
-				endif;
+				if ( isset( $available_methods[ $this->posted['shipping_method'] ] ) )
+					$shipping_method = $available_methods[ $this->posted['shipping_method'] ]->label;
 
 				// Get better formatted payment method (title/label)
 				$payment_method = $this->posted['payment_method'];
-				if (isset($available_gateways) && isset($available_gateways[$this->posted['payment_method']])) :
-					$payment_method = $available_gateways[$this->posted['payment_method']]->get_title();
-				endif;
+				if ( isset( $available_gateways[ $this->posted['payment_method'] ] ) )
+					$payment_method = $available_gateways[ $this->posted['payment_method'] ]->get_title();
 
 				// UPDATE ORDER META
 
@@ -522,25 +553,25 @@ class WC_Checkout {
 					$shipping_tax = (isset($woocommerce->cart->shipping_taxes[$key])) ? $woocommerce->cart->shipping_taxes[$key] : 0;
 
 					$order_taxes[] = array(
-						'label' => $woocommerce->cart->tax->get_rate_label( $key ),
-						'compound' => $is_compound,
-						'cart_tax' => number_format($cart_tax, 2, '.', ''),
-						'shipping_tax' => number_format($shipping_tax, 2, '.', '')
+						'label' 		=> $woocommerce->cart->tax->get_rate_label( $key ),
+						'compound' 		=> $is_compound,
+						'cart_tax' 		=> woocommerce_format_total( $cart_tax ),
+						'shipping_tax' 	=> woocommerce_format_total( $shipping_tax )
 					);
 				}
 
 				// Save other order meta fields
 				update_post_meta( $order_id, '_shipping_method', 		$this->posted['shipping_method']);
 				update_post_meta( $order_id, '_payment_method', 		$this->posted['payment_method']);
-				update_post_meta( $order_id, '_shipping_method_title', 	$shipping_method);
-				update_post_meta( $order_id, '_payment_method_title', 	$payment_method);
-				update_post_meta( $order_id, '_order_shipping', 		number_format( (float) $woocommerce->cart->shipping_total, 2, '.', '' ));
-				update_post_meta( $order_id, '_order_discount', 		number_format( (float) $woocommerce->cart->get_order_discount_total(), 2, '.', '' ));
-				update_post_meta( $order_id, '_cart_discount', 			number_format( (float) $woocommerce->cart->get_cart_discount_total(), 2, '.', '' ));
-				update_post_meta( $order_id, '_order_tax', 				number_format( (float) $woocommerce->cart->tax_total, 2, '.', '' ));
-				update_post_meta( $order_id, '_order_shipping_tax', 	number_format( (float) $woocommerce->cart->shipping_tax_total, 2, '.', '' ));
-				update_post_meta( $order_id, '_order_total', 			number_format( (float) $woocommerce->cart->total, 2, '.', '' ));
-				update_post_meta( $order_id, '_order_key', 				apply_filters('woocommerce_generate_order_key', uniqid('order_') ));
+				update_post_meta( $order_id, '_shipping_method_title', 	$shipping_method );
+				update_post_meta( $order_id, '_payment_method_title', 	$payment_method );
+				update_post_meta( $order_id, '_order_shipping', 		woocommerce_format_total( $woocommerce->cart->shipping_total ) );
+				update_post_meta( $order_id, '_order_discount', 		woocommerce_format_total( $woocommerce->cart->get_order_discount_total() ) );
+				update_post_meta( $order_id, '_cart_discount', 			woocommerce_format_total( $woocommerce->cart->get_cart_discount_total() ) );
+				update_post_meta( $order_id, '_order_tax', 				woocommerce_format_total( $woocommerce->cart->tax_total ) );
+				update_post_meta( $order_id, '_order_shipping_tax', 	woocommerce_format_total( $woocommerce->cart->shipping_tax_total ) );
+				update_post_meta( $order_id, '_order_total', 			woocommerce_format_total( $woocommerce->cart->total ) );
+				update_post_meta( $order_id, '_order_key', 				apply_filters('woocommerce_generate_order_key', uniqid('order_') ) );
 				update_post_meta( $order_id, '_customer_user', 			(int) $user_id );
 				update_post_meta( $order_id, '_order_items', 			$order_items );
 				update_post_meta( $order_id, '_order_taxes', 			$order_taxes );
@@ -565,7 +596,9 @@ class WC_Checkout {
 
 					update_post_meta( $order_id, 'coupons', implode(', ', $applied_coupons) );
 
-					$order = new WC_Order( $order_id );
+					if ( empty( $order ) )
+						$order = new WC_Order( $order_id );
+
 					$order->add_order_note( sprintf( __( 'Coupon Code Used: %s', 'woocommerce' ), implode(', ', $applied_coupons ) ) );
 				}
 
@@ -601,7 +634,8 @@ class WC_Checkout {
 
 				else :
 
-					$order = new WC_Order($order_id);
+					if ( empty( $order ) )
+						$order = new WC_Order( $order_id );
 
 					// No payment was required for order
 					$order->payment_complete();
@@ -658,7 +692,14 @@ class WC_Checkout {
 		endif;
 	}
 
-	/** Gets the value either from the posted data, or from the users meta data */
+
+	/**
+	 * Gets the value either from the posted data, or from the users meta data
+	 *
+	 * @access public
+	 * @param string $input
+	 * @return string
+	 */
 	function get_value( $input ) {
 		global $woocommerce;
 
@@ -705,7 +746,13 @@ class WC_Checkout {
 	}
 }
 
-/** Deprecated */
+/**
+ * woocommerce_checkout class.
+ *
+ * @extends		WC_Checkout
+ * @deprecated 	1.4
+ * @package		WooCommerce/Classes
+ */
 class woocommerce_checkout extends WC_Checkout {
 	public function __construct() {
 		_deprecated_function( 'woocommerce_checkout', '1.4', 'WC_Checkout()' );

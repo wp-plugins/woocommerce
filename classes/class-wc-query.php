@@ -3,28 +3,49 @@
  * Contains the query functions for WooCommerce which alter the front-end post queries and loops.
  *
  * @class 		WC_Query
- * @package		WooCommerce
- * @category	Class
- * @author		WooThemes
+ * @version		1.6.4
+ * @package		WooCommerce/Classes
+ * @author 		WooThemes
  */
 class WC_Query {
 
-	var $unfiltered_product_ids 	= array(); 	// Unfiltered product ids (before layered nav etc)
-	var $filtered_product_ids 		= array(); 	// Filtered product ids (after layered nav)
-	var $post__in 					= array(); 	// Product id's that match the layered nav + price filter
-	var $meta_query 				= ''; 		// The meta query for the page
-	var $layered_nav_post__in 		= array(); 	// posts matching layered nav only
-	var $layered_nav_product_ids 	= array();	// Stores posts matching layered nav, so price filter can find max price in view
+	/** @var array Unfiltered product ids (before layered nav etc) */
+	var $unfiltered_product_ids 	= array();
 
-	/** constructor */
+	/** @var array Filtered product ids (after layered nav) */
+	var $filtered_product_ids 		= array();
+
+	/** @var array Product IDs that match the layered nav + price filter */
+	var $post__in 					= array();
+
+	/** @var array The meta query for the page */
+	var $meta_query 				= '';
+
+	/** @var array Post IDs matching layered nav only */
+	var $layered_nav_post__in 		= array();
+
+	/** @var array Stores post IDs matching layered nav, so price filter can find max price in view */
+	var $layered_nav_product_ids 	= array();
+
+	/**
+	 * Constructor for the query class. Hooks in methods.
+	 *
+	 * @access public
+	 * @return void
+	 */
 	function __construct() {
 		add_filter( 'pre_get_posts', array( &$this, 'pre_get_posts') );
 		add_filter( 'the_posts', array( &$this, 'the_posts'), 11, 2 );
 		add_filter( 'wp', array( &$this, 'remove_product_query') );
 	}
 
+
 	/**
 	 * Hook into pre_get_posts to do the main product query
+	 *
+	 * @access public
+	 * @param mixed $q query object
+	 * @return void
 	 */
 	function pre_get_posts( $q ) {
 		global $woocommerce;
@@ -48,9 +69,9 @@ class WC_Query {
 			// Get the actual WP page to avoid errors and let us use is_front_page()
 			// This is hacky but works. Awaiting http://core.trac.wordpress.org/ticket/21096
 			global $wp_post_types;
-
-			$q->is_page = true;
+			
 			$shop_page 	= get_post( woocommerce_get_page_id('shop') );
+			$q->is_page = true;
 
 			$wp_post_types['product']->ID 			= $shop_page->ID;
 			$wp_post_types['product']->post_title 	= $shop_page->post_title;
@@ -60,6 +81,12 @@ class WC_Query {
 	        $q->is_singular = false;
 	        $q->is_post_type_archive = true;
 	        $q->is_archive = true;
+	        
+	        // Fix WP SEO
+	        if ( function_exists( 'wpseo_get_value' ) ) {
+	       		add_filter( 'wpseo_metadesc', array( &$this, 'wpseo_metadesc' ) );
+	       		add_filter( 'wpseo_metakey', array( &$this, 'wpseo_metakey' ) );
+	       	}
 
 		} else {
 
@@ -77,9 +104,38 @@ class WC_Query {
 	    // And remove the pre_get_posts hook
 	    $this->remove_product_query();
 	}
+	
+
+	/**
+	 * wpseo_metadesc function.
+	 * 
+	 * @access public
+	 * @param mixed $meta
+	 * @return void
+	 */
+	function wpseo_metadesc() {
+		return wpseo_get_value( 'metadesc', woocommerce_get_page_id('shop') );
+	}
+	
+	
+	/**
+	 * wpseo_metakey function.
+	 * 
+	 * @access public
+	 * @return void
+	 */
+	function wpseo_metakey() {
+		return wpseo_get_value( 'metakey', woocommerce_get_page_id('shop') );
+	}
+
 
 	/**
 	 * Hook into the_posts to do the main product query if needed - relevanssi compatibility
+	 *
+	 * @access public
+	 * @param mixed $posts
+	 * @param bool $query (default: false)
+	 * @return void
 	 */
 	function the_posts( $posts, $query = false ) {
 		global $woocommerce;
@@ -130,8 +186,13 @@ class WC_Query {
 	    return $filtered_posts;
 	}
 
+
 	/**
 	 * Query the products, applying sorting/ordering etc. This applies to the main wordpress loop
+	 *
+	 * @access public
+	 * @param mixed $q
+	 * @return void
 	 */
 	function product_query( $q ) {
 
@@ -169,15 +230,23 @@ class WC_Query {
 	    do_action( 'woocommerce_product_query', $q, $this );
 	}
 
+
 	/**
 	 * Remove the query
+	 *
+	 * @access public
+	 * @return void
 	 */
 	function remove_product_query() {
 		remove_filter( 'pre_get_posts', array( &$this, 'pre_get_posts') );
 	}
 
+
 	/**
 	 * Get an unpaginated list all product ID's (both filtered and unfiltered). Makes use of transients.
+	 *
+	 * @access public
+	 * @return void
 	 */
 	function get_products_in_view() {
 		global $wp_the_query;
@@ -232,8 +301,12 @@ class WC_Query {
 			$this->layered_nav_product_ids = $this->unfiltered_product_ids;
 	}
 
+
 	/**
 	 * Returns an array of arguments for ordering products based on the selected values
+	 *
+	 * @access public
+	 * @return array
 	 */
 	function get_catalog_ordering_args() {
 		$current_order = ( isset( $_SESSION['orderby'] ) ) ? $_SESSION['orderby'] : apply_filters( 'woocommerce_default_catalog_orderby', get_option( 'woocommerce_default_catalog_orderby' ) );
@@ -268,11 +341,16 @@ class WC_Query {
 		if ($meta_key)
 			$args['meta_key'] = $meta_key;
 
-		return apply_filters('woocommerce_get_catalog_ordering_args', $args);
+		return apply_filters('woocommerce_get_catalog_ordering_args', $args );
 	}
+
 
 	/**
 	 * Returns a meta query to handle product visibility
+	 *
+	 * @access public
+	 * @param string $compare (default: 'IN')
+	 * @return array
 	 */
 	function visibility_meta_query( $compare = 'IN' ) {
 		if ( is_search() ) $in = array( 'visible', 'search' ); else $in = array( 'visible', 'catalog' );
@@ -286,8 +364,13 @@ class WC_Query {
 	    return $meta_query;
 	}
 
+
 	/**
 	 * Returns a meta query to handle product stock status
+	 *
+	 * @access public
+	 * @param string $status (default: 'instock')
+	 * @return array
 	 */
 	function stock_status_meta_query( $status = 'instock' ) {
 		$meta_query = array();

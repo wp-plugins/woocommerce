@@ -132,7 +132,7 @@
 @media only screen and (-webkit-min-device-pixel-ratio: 1.5) {
 	#icon-woocommerce, .woocommerce_icon, .icon32-posts-product, .icon32-posts-shop_order, .icon32-posts-shop_coupon, .icon32-posts-product_variation {
 		background-image: url(../images/icons/woocommerce-icons-x2.png) !important;
-		background-size: 928px 45px !important;
+		background-size: 986px 45px !important;
 	}
 }
 
@@ -174,6 +174,9 @@
 }
 .icon32-woocommerce-nav {
 	background-position: -882px -5px !important;
+}
+.icon32-woocommerce-email {
+	background-position: -940px -5px !important;
 }
 
 .wrap.woocommerce div.updated, .wrap.woocommerce div.error {
@@ -583,6 +586,14 @@ table.wc_status_table {
 				width: 100%;
 			}
 		}
+		li.wide {
+			float: left;
+			width: 100%;
+			clear: left;
+			input {
+				width: 100%;
+			}
+		}
 		.calculated {
 			border-color: #ae8ca2;
 			border-style: dotted;
@@ -776,9 +787,15 @@ table.wc_status_table {
 		}
 	}
 	.column-order_actions {
+		width:110px;
 		a.button {
 			float:left;
 			margin: 0 4px 2px 0;
+			cursor: pointer;
+			padding:3px 6px;
+			img {
+				display: block;
+			}
 		}
 	}
 	small.meta {
@@ -791,54 +808,45 @@ table.wc_status_table {
 		width:9%;
 	}
 	.column-order_status {
-		width:90px;
+		width:75px;
 		text-align: center;
 		mark {
 			display:block;
 			text-align: center;
 			white-space: nowrap;
 			padding: 0 2px;
+			
 			background: #999;
-			border: 1px solid #999;
-			-webkit-box-shadow:inset 0 0 2px 1px rgba(255,255,255,0.5);
-			-webkit-border-radius:4px;
-			-moz-border-radius:4px;
-			-o-border-radius:4px;
-			border-radius:4px;
+			font-size:11px;
+			line-height: 1.75;
+			-webkit-border-radius:3px;
+			-moz-border-radius:3px;
+			-o-border-radius:3px;
+			border-radius:3px;
 			margin: 0;
-			font-size:9px;
-			text-transform: uppercase;
 			color:#fff;
 			font-weight: bold;
-			text-shadow:0 1px 0 rgba(0,0,0,0.3);
 		}
 		mark.pending {
 			background-color: #999;
-			border-color: #999;
 		}
 		mark.completed {
 			background-color: #a0658b;
-			border-color: #a0658b;
 		}
 		mark.on-hold {
 			background-color: #E66F00;
-			border-color: #E66F00;
 		}
 		mark.failed {
 			background-color: red;
-			border-color: red;
 		}
 		mark.cancelled {
 			background-color: #ccc;
-			border-color: #ccc;
 		}
 		mark.processing {
 			background-color: #2184c2;
-			border-color: #2184c2;
 		}
 		mark.refunded {
 			background-color: #ccc;
-			border-color: #ccc;
 		}
 	}
 }
@@ -1421,7 +1429,7 @@ img.help_tip {
 		}
 	}
 }
-#woocommerce-product-data ul.product_data_tabs, .woocommerce ul.tabs {
+#woocommerce-product-data ul.product_data_tabs, .woocommerce ul.wc-tabs {
 	background: #f9f9f9;
 	border-top: 1px solid #fff;
 	padding: 3px 9px 0;

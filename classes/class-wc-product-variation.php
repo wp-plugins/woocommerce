@@ -5,30 +5,59 @@
  * The WooCommerce product variation class handles product variation data.
  *
  * @class 		WC_Product_Variation
- * @package		WooCommerce
- * @category	Class
- * @author		WooThemes
+ * @version		1.6.4
+ * @package		WooCommerce/Classes
+ * @author 		WooThemes
  */
 class WC_Product_Variation extends WC_Product {
 
+	/** @var array Stores variation data (attributes) for the current variation. */
 	var $variation_data;
+
+	/** @var int ID of the variable product. */
 	var $variation_id;
+
+	/** @var bool True if the variation has a length. */
 	var $variation_has_length;
+
+	/** @var bool True if the variation has a width. */
 	var $variation_has_width;
+
+	/** @var bool True if the variation has a height. */
 	var $variation_has_height;
+
+	/** @var bool True if the variation has a weight. */
 	var $variation_has_weight;
+
+	/** @var bool True if the variation has a price. */
 	var $variation_has_price;
+
+	/** @var bool True if the variation has a sale price. */
 	var $variation_has_sale_price;
+
+	/** @var bool True if the variation has stock and is managing stock. */
 	var $variation_has_stock;
+
+	/** @var bool True if the variation has a sku. */
 	var $variation_has_sku;
+
+	/** @var string Stores the shipping class of the variation. */
 	var $variation_shipping_class;
+
+	/** @var int Stores the shipping class ID of the variation. */
 	var $variation_shipping_class_id;
+
+	/** @var bool True if the variation has a tax class. */
 	var $variation_has_tax_class;
 
 	/**
 	 * Loads all product data from custom fields
 	 *
-	 * @param   int		$id		ID of the product to load
+	 * @access public
+	 * @param mixed $variation_id ID of the variation to load
+	 * @param int $parent_id (default: '') ID of the parent product
+	 * @param array $parent_custom_fields (default: '') Array of the parent products meta data
+	 * @return void
 	 */
 	function __construct( $variation_id, $parent_id = '', $parent_custom_fields = '' ) {
 
@@ -38,13 +67,13 @@ class WC_Product_Variation extends WC_Product {
 
 		$this->variation_data = array();
 
-		foreach ( $product_custom_fields as $name => $value ) :
+		foreach ( $product_custom_fields as $name => $value ) {
 
 			if ( ! strstr( $name, 'attribute_' ) ) continue;
 
 			$this->variation_data[$name] = $value[0];
 
-		endforeach;
+		}
 
 		/* Get main product data from parent */
 		$this->id = ($parent_id>0) ? $parent_id : wp_get_post_parent_id( $this->variation_id );
@@ -143,7 +172,13 @@ class WC_Product_Variation extends WC_Product {
 		$this->total_stock = $this->stock;
 	}
 
-	/** Returns whether or not the variation is visible */
+
+	/**
+	 * Returns whether or not the variation is visible.
+	 *
+	 * @access public
+	 * @return bool
+	 */
 	function is_visible() {
 
 		$visible = true;
@@ -152,10 +187,16 @@ class WC_Product_Variation extends WC_Product {
 		if ( get_option('woocommerce_hide_out_of_stock_items') == 'yes' && ! $this->is_in_stock() )
 			$visible = false;
 
-		return apply_filters('woocommerce_product_is_visible', $visible, $this->id);
+		return apply_filters( 'woocommerce_product_is_visible', $visible, $this->id );
 	}
 
-	/** Returns whether or not the variations parent is visible */
+
+	/**
+	 * Returns whether or not the variations parent is visible.
+	 *
+	 * @access public
+	 * @return bool
+	 */
 	function parent_is_visible() {
 		return parent::is_visible();
 	}
@@ -203,27 +244,39 @@ class WC_Product_Variation extends WC_Product {
 		endif;
 	}
 
-	/**
-     * Gets the main product image
+
+    /**
+     * Gets the main product image.
+     *
+     * @access public
+     * @param string $size (default: 'shop_thumbnail')
+     * @return string
      */
     function get_image( $size = 'shop_thumbnail' ) {
     	global $woocommerce;
 
-    	if ($this->variation_id && has_post_thumbnail($this->variation_id)) :
-			echo get_the_post_thumbnail($this->variation_id, $size);
-		elseif (has_post_thumbnail($this->id)) :
-			echo get_the_post_thumbnail($this->id, $size);
-		elseif ($parent_id = wp_get_post_parent_id( $this->id ) && has_post_thumbnail($parent_id)) :
-			echo get_the_post_thumbnail($parent_id, $size);
-		else :
-			echo '<img src="'. woocommerce_placeholder_img_src() . '" alt="Placeholder" width="'.$woocommerce->get_image_size('shop_thumbnail_image_width').'" height="'.$woocommerce->get_image_size('shop_thumbnail_image_height').'" />';
-		endif;
+    	$image = '';
+
+    	if ( $this->variation_id && has_post_thumbnail( $this->variation_id ) ) {
+			$image = get_the_post_thumbnail( $this->variation_id, $size );
+		} elseif ( has_post_thumbnail( $this->id ) ) {
+			$image = get_the_post_thumbnail( $this->id, $size );
+		} elseif ( $parent_id = wp_get_post_parent_id( $this->id ) && has_post_thumbnail( $parent_id ) ) {
+			$image = get_the_post_thumbnail( $parent_id, $size );
+		} else {
+			$image = '<img src="' . woocommerce_placeholder_img_src() . '" alt="Placeholder" width="' . $woocommerce->get_image_size( 'shop_thumbnail_image_width' ) . '" height="' . $woocommerce->get_image_size( 'shop_thumbnail_image_height' ) . '" />';
+		}
+
+		return $image;
     }
 
+
 	/**
-	 * Reduce stock level of the product
+	 * Reduce stock level of the product.
 	 *
-	 * @param   int		$by		Amount to reduce by
+	 * @access public
+	 * @param int $by (default: 1) Amount to reduce by
+	 * @return int stock level
 	 */
 	function reduce_stock( $by = 1 ) {
 		global $woocommerce;
@@ -258,10 +311,13 @@ class WC_Product_Variation extends WC_Product {
 		}
 	}
 
+
 	/**
-	 * Increase stock level of the product
+	 * Increase stock level of the product.
 	 *
-	 * @param   int		$by		Amount to increase by
+	 * @access public
+	 * @param int $by (default: 1) Amount to increase by
+	 * @return int stock level
 	 */
 	function increase_stock( $by = 1 ) {
 		global $woocommerce;
@@ -285,8 +341,12 @@ class WC_Product_Variation extends WC_Product {
 		endif;
 	}
 
+
 	/**
-	 * Get the shipping class, and if not set, get the shipping class of the parent
+	 * Get the shipping class, and if not set, get the shipping class of the parent.
+	 *
+	 * @access public
+	 * @return string
 	 */
 	function get_shipping_class() {
 		if (!$this->variation_shipping_class) :
@@ -296,7 +356,13 @@ class WC_Product_Variation extends WC_Product {
 		return $this->variation_shipping_class;
 	}
 
-	/** Returns the product shipping class ID */
+
+	/**
+	 * Returns the product shipping class ID.
+	 *
+	 * @access public
+	 * @return int
+	 */
 	function get_shipping_class_id() {
 		if ( ! $this->variation_shipping_class_id ) {
 
@@ -325,10 +391,15 @@ class WC_Product_Variation extends WC_Product {
 
 		return false;
 	}
-
 }
 
-/** Deprecated */
+/**
+ * woocommerce_product_variation class.
+ *
+ * @extends 	WC_Product_Variation
+ * @deprecated 	1.4
+ * @package		WooCommerce/Classes
+ */
 class woocommerce_product_variation extends WC_Product_Variation {
 	public function __construct( $variation_id, $parent_id = '', $parent_custom_fields = '' ) {
 		_deprecated_function( 'woocommerce_product_variation', '1.4', 'WC_Product_Variation()' );

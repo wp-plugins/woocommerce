@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, affiliate
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.3
 Tested up to: 3.4.1
-Stable tag: 1.6.3
+Stable tag: 1.6.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -149,6 +149,29 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 3. WooCommerce sales reports
 
 == Changelog ==
+
+= 1.6.4 - 23/08/2012 =
+* Feature - New input for shipping method title (as the customer sees it)
+* Tweak - Made the currency DP rule apply to order totals for currencies which don't have cent values https://github.com/woothemes/woocommerce/issues/1383
+* Tweak - Made proceed to checkout button update totals too
+* Tweak - Rewritten variation javascript to add scope. Please ensure that if you have a custom variable.php add to cart template, that you update them.
+* Tweak - Classes for order info in my-account
+* Tweak - Iconised order action buttons
+* Tweak - Simplified order status markers
+* Tweak - Product data tabs class change
+* Tweak - Moved upsells above related products as they should have higher priority
+* Tweak - Added utm_nooverride to improve tracking after paypal payment
+* Tweak - get_allowed_country_states() function
+* Fix - Shipping method dropdown for id's which vary
+* Fix - Missing grouped product cart buttons
+* Fix - Notice in invoice template with number_format
+* Fix - Made variation get_image() return instead of echo
+* Fix - Remove is_product check so variation JS can register itself for use. Same for the single product JS
+* Fix - Above fix also fixes single product shortcodes
+* Fix - ajax url for login widget to support SSL
+* Misc - Updated all inline documentation for use in our API docs.
+* Localization - Added Norwegian translation by Espen André Corneliussen
+* Localization - Added Romanian Leu
 
 = 1.6.3 - 10/08/2012 =
 * Feature - Option to register using the email address as the username instead of entering a username
