@@ -27,7 +27,7 @@ jQuery(document).ready(function($) {
 				
 				var this_page = window.location.toString();
 				
-				this_page = this_page.split("?")[0];
+				this_page = this_page.replace( 'add-to-cart', 'added-to-cart' );
 				
 				$thisbutton.removeClass('loading');
 
@@ -49,7 +49,7 @@ jQuery(document).ready(function($) {
 				}
 				
 				// Block widgets and fragments
-				$('.widget_shopping_cart, .shop_table.cart, .updating, .cart_totals').fadeTo('400', '0.6').block({message: null, overlayCSS: {background: 'transparent url(' + woocommerce_params.plugin_url + '/assets/images/ajax-loader.gif) no-repeat center', opacity: 0.6 } } );
+				$('.widget_shopping_cart, .shop_table.cart, .updating, .cart_totals').fadeTo('400', '0.6').block({message: null, overlayCSS: {background: 'transparent url(' + woocommerce_params.ajax_loader_url + ') no-repeat center', opacity: 0.6 } } );
 				
 				// Changes button classes
 				$thisbutton.addClass('added');

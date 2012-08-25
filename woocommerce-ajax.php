@@ -428,7 +428,8 @@ add_action('wp_ajax_woocommerce_add_variation', 'woocommerce_add_variation');
  * @return void
  */
 function woocommerce_link_all_variations() {
-
+	global $woocommerce;
+	
 	check_ajax_referer( 'link-variations', 'security' );
 
 	@set_time_limit(0);
@@ -569,6 +570,8 @@ function woocommerce_link_all_variations() {
 		if ($added>49) break;
 
 	endforeach;
+	
+	$woocommerce->clear_product_transients( $post_id );
 
 	echo $added;
 
@@ -632,7 +635,7 @@ function woocommerce_grant_access_to_download() {
     // Default value is NULL in the table schema
 	$expiry = (empty($expiry)) ? null : (int) $expiry;
 
-	if ($expiry) $expiry = date("Y-m-d", strtotime('NOW + ' . $expiry . ' DAY'));
+	if ($expiry) $expiry = date_i18n( "Y-m-d", strtotime( 'NOW + ' . $expiry . ' DAY' ) );
 
 	$wpdb->hide_errors();
 
