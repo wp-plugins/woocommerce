@@ -89,7 +89,7 @@ If on the off-chance you do encounter issues with the shop/category pages after 
 
 WooCommerce comes with some dummy data you can use to see how products look; either import dummy_data.xml via the [WordPress importer](http://wordpress.org/extend/plugins/wordpress-importer/) or use our [CSV Import Suite plugin](http://www.woothemes.com/products/product-csv-import-suite/) to import dummy_data.csv and dummy_data_variations.csv.
 
-== Premium Extensions ==
+= Premium Extensions =
 
 [Click here to view our extensions](http://www.woothemes.com/extensions/woocommerce-extensions/ "eCommerce extensions for WooCommerce from WooThemes"). Some of our more popular plugins are listed below.
 
@@ -116,7 +116,7 @@ WooCommerce comes with some dummy data you can use to see how products look; eit
 	* [Product CSV Import Suite](http://www.woothemes.com/extension/product-csv-import-suite/) - Import and Export variations and products via a CSV
 	* [Order/Customer CSV Export](http://www.woothemes.com/extension/order-customer-csv-export/) - Export your orders and customer records to a CSV
 
-== Free Extensions ==
+= Free Extensions =
 
 WordPress.org is home to some cool free extensions too ([search WordPress.org for more](http://wordpress.org/extend/plugins/search.php?q=woocommerce&sort=popular)).
 
@@ -165,7 +165,7 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 
 == Changelog ==
 
-= 2.0.0 - 04/03/2013 =
+= 2.0.0 =
 * Feature - Sucuri audited and secured.
 * Feature - Added sales by category report.
 * Feature - Added sales by coupon report (kudos Max Rice).
@@ -1202,4 +1202,12 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 == Upgrade Notice ==
 
 = 2.0.0 =
-This is a major update - Test extensions and your theme prior to updating and ensure that you keep backups. After updating there is no undo. See our [release post](http://www.woothemes.com/?p=165321) and our [preparation guide](http://www.woothemes.com/?p=158537) before upgrading.
+There are many improvements in this major release - see the changelog for full details.
+
+The biggest change is that we've redone order item storage making them easier (and faster) to access for reporting and querying purchases; there are huge performance gains for reports.
+
+Order items are no longer serialised data and store in meta - they are stored in there own table with their own meta. Existing data can be updated upon upgrade (you will be prompted). You should backup before upgrading.
+
+On the frontend; if your store is overwriting the core WooCommerce CSS you will need to prefix those overrides with the .woocommerce class as we do in woocommerce.css as of 2.0. Also replaced all instances of .woocommerce_ and .wc- with standardised .woocommerce-.
+
+Fancybox (lightbox popup script) has been replaced with prettyPhoto.
