@@ -304,7 +304,7 @@ class WC_Countries {
 			'SI' => array(),
 			'LK' => array(),
 			'SE' => array(),
-			'VN' => array()
+			'VN' => array(),
 		);
 
 		// Load only the state files the shop owner wants/needs
@@ -900,6 +900,11 @@ class WC_Countries {
 					'address_2' => array(
 						'required' 	=> false,
 						'hidden'	=> true
+					)
+				),
+				'ZA' => array(
+					'state'	=> array(
+						'label'			=> __( 'Province', 'woocommerce' ),
 					)
 				),
 				'ZW' => array(

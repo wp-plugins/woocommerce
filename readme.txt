@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, affiliate
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.5
 Tested up to: 3.5
-Stable tag: 2.0.1
+Stable tag: 2.0.2
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -164,6 +164,18 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 6. A product archive (grid).
 
 == Changelog ==
+
+= 2.0.2 - 06/03/2013 =
+* Fix - Frontpage shop when 'orderby' is set.
+* Fix - Fix add-to-cart for grouped products which are sold individually.
+* Fix - Payment method animation on the checkout.
+* Fix - Updated chosen library.
+* Fix - Saving of attributes/variations with custom product-level attributes.
+* Fix - Include once to prevent class exist errors with widgets.
+* Fix - Fixed welcome screen bug shown in updater frame
+* Fix - Upgrade if DB version is lower than current.
+* Fix - FROM prices now ignore blank strings for variations.
+* Fix - Ensure order contents are saved before mailing via admin interface.
 
 = 2.0.1 - 04/03/2013 =
 * Fix - Added an extra permalink flush after upgrade to save needing to do it manually.
