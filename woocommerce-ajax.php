@@ -280,7 +280,7 @@ function woocommerce_ajax_add_to_cart() {
 		// If there was an error adding to the cart, redirect to the product page to show any errors
 		$data = array(
 			'error' => true,
-			'product_url' => get_permalink( $product_id )
+			'product_url' => apply_filters('woocommerce_cart_redirect_after_error', get_permalink( $product_id ), $product_id)
 		);
 
 		$woocommerce->set_messages();
@@ -483,15 +483,16 @@ function woocommerce_save_attributes() {
 
 	check_ajax_referer( 'save-attributes', 'security' );
 
-	// Get post ID
-	$post_id 	= absint( $_POST['post_id'] );
+	// Get post data
 	parse_str( $_POST['data'], $data );
+	$post_id = absint( $_POST['post_id'] );
 
 	// Save Attributes
 	$attributes = array();
 
 	if ( isset( $data['attribute_names'] ) ) {
-		$attribute_names = $data['attribute_names'];
+
+		$attribute_names  = array_map( 'stripslashes', $data['attribute_names'] );
 		$attribute_values = $data['attribute_values'];
 
 		if ( isset( $data['attribute_visibility'] ) )
@@ -519,12 +520,10 @@ function woocommerce_save_attributes() {
 
 			 		// Format values
 			 		if ( is_array( $attribute_values[ $i ] ) ) {
-				 		$values = array_map('htmlspecialchars', array_map('stripslashes', $attribute_values[ $i ]));
+				 		$values = array_map( 'woocommerce_clean', array_map( 'stripslashes', $attribute_values[ $i ] ) );
 				 	} else {
 				 		// Text based, separate by pipe
-				 		$values = htmlspecialchars( stripslashes( $attribute_values[ $i ] ) );
-				 		$values = explode( '|', $values );
-				 		$values = array_map( 'trim', $values );
+				 		$values = array_map( 'woocommerce_clean', array_map( 'stripslashes', explode( '|', $attribute_values[ $i ] ) ) );
 				 	}
 
 				 	// Remove empty items in the array
@@ -541,7 +540,7 @@ function woocommerce_save_attributes() {
 		 		if ( $values ) {
 			 		// Add attribute to array, but don't set values
 			 		$attributes[ sanitize_title( $attribute_names[ $i ] ) ] = array(
-				 		'name' 			=> htmlspecialchars( stripslashes( $attribute_names[ $i ] ) ),
+				 		'name' 			=> woocommerce_clean( $attribute_names[ $i ] ),
 				 		'value' 		=> '',
 				 		'position' 		=> $attribute_position[ $i ],
 				 		'is_visible' 	=> $is_visible,
@@ -553,11 +552,11 @@ function woocommerce_save_attributes() {
 		 	} elseif ( isset( $attribute_values[ $i ] ) ) {
 
 		 		// Text based, separate by pipe
-		 		$values = implode( '|', array_map( 'trim', explode( '|', stripslashes( $attribute_values[ $i ] ) ) ) );
+		 		$values = implode( ' | ', array_map( 'woocommerce_clean', array_map( 'stripslashes', explode( '|', $attribute_values[ $i ] ) ) ) );
 
 		 		// Custom attribute - Add attribute to array and set the values
 			 	$attributes[ sanitize_title( $attribute_names[ $i ] ) ] = array(
-			 		'name' 			=> htmlspecialchars( stripslashes( $attribute_names[ $i ] ) ),
+			 		'name' 			=> woocommerce_clean( $attribute_names[ $i ] ),
 			 		'value' 		=> $values,
 			 		'position' 		=> $attribute_position[ $i ],
 			 		'is_visible' 	=> $is_visible,

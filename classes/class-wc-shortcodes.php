@@ -26,6 +26,7 @@ class WC_Shortcodes {
 		add_shortcode( 'top_rated_products', array( $this, 'top_rated_products' ) );
 		add_shortcode( 'featured_products', array( $this, 'featured_products' ) );
 		add_shortcode( 'woocommerce_messages', array( $this, 'messages_shortcode' ) );
+		add_shortcode( 'product_attribute', array( $this, 'product_attribute' ) );
 
 		// Pages
 		add_shortcode( 'woocommerce_cart', array( $this, 'cart' ) );
@@ -952,5 +953,77 @@ class WC_Shortcodes {
 		$args['groupby'] = "$wpdb->posts.ID";
 
 		return $args;
+	}
+
+
+	/**
+	 * List products with an attribute shortcode
+	 * Example [product_attribute attribute='color' filter='black']
+	 *
+	 * @access public
+	 * @param array $atts
+	 * @return string
+	 */
+	function product_attribute( $atts ) {
+		global $woocommerce_loop;
+
+		extract( shortcode_atts( array(
+			'per_page'  => '12',
+			'columns'   => '4',
+			'orderby'   => 'title',
+			'order'     => 'asc',
+			'attribute' => '',
+		  	'filter'    => ''
+		), $atts ) );
+
+		$attribute 	= strstr( $attribute, 'pa_' ) ? sanitize_title( $attribute ) : 'pa_' . sanitize_title( $attribute );
+		$filter 	= sanitize_title( $filter );
+
+		$args = array(
+			'post_type'           => 'product',
+			'post_status'         => 'publish',
+			'ignore_sticky_posts' => 1,
+			'posts_per_page'      => $per_page,
+			'orderby'             => $orderby,
+			'order'               => $order,
+			'meta_query'          => array(
+				array(
+					'key'               => '_visibility',
+					'value'             => array('catalog', 'visible'),
+					'compare'           => 'IN'
+				)
+			),
+			'tax_query' 			=> array(
+				array(
+					'taxonomy' 	=> $attribute,
+					'terms' 	=> $filter,
+					'field' 	=> 'slug'
+				)
+			)
+		);
+
+		ob_start();
+
+		$products = new WP_Query( $args );
+
+		$woocommerce_loop['columns'] = $columns;
+
+		if ( $products->have_posts() ) : ?>
+
+			<?php woocommerce_product_loop_start(); ?>
+
+				<?php while ( $products->have_posts() ) : $products->the_post(); ?>
+
+					<?php woocommerce_get_template_part( 'content', 'product' ); ?>
+
+				<?php endwhile; // end of the loop. ?>
+
+			<?php woocommerce_product_loop_end(); ?>
+
+		<?php endif;
+
+		wp_reset_postdata();
+
+		return '<div class="woocommerce">' . ob_get_clean() . '</div>';
 	}
 }

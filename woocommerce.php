@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce
  * Plugin URI: http://www.woothemes.com/woocommerce/
  * Description: An e-commerce toolkit that helps you sell anything. Beautifully.
- * Version: 2.0.2
+ * Version: 2.0.3
  * Author: WooThemes
  * Author URI: http://woothemes.com
  * Requires at least: 3.5
@@ -37,7 +37,7 @@ class Woocommerce {
 	/**
 	 * @var string
 	 */
-	public $version = '2.0.2';
+	public $version = '2.0.3';
 
 	/**
 	 * @var string
@@ -473,7 +473,7 @@ class Woocommerce {
 			$this->load_messages();
 
 			// Hooks
-			add_action( 'wp', array( $this, 'init_checkout' ) );
+			add_action( 'get_header', array( $this, 'init_checkout' ) );
 			add_filter( 'template_include', array( $this, 'template_loader' ) );
 			add_filter( 'comments_template', array( $this, 'comments_template_loader' ) );
 			add_filter( 'wp_redirect', array( $this, 'redirect' ), 1, 2 );

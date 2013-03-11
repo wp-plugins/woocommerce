@@ -949,8 +949,6 @@ function woocommerce_get_formatted_variation( $variation = '', $flat = false ) {
             	$term = get_term_by( 'slug', $value, esc_attr( str_replace( 'attribute_', '', $name ) ) );
             	if ( ! is_wp_error( $term ) && $term->name )
             		$value = $term->name;
-            } else {
-            	$value = ucfirst( $value );
             }
 
 			if ( $flat )
@@ -2408,7 +2406,7 @@ function woocommerce_cancel_unpaid_orders() {
 
 	$held_duration = get_option( 'woocommerce_hold_stock_minutes' );
 
-	if ( $held_duration == '' )
+	if ( $held_duration == '' || get_option( 'woocommerce_manage_stock' ) != 'yes' )
 		return;
 
 	$date = date( "Y-m-d H:i:s", strtotime( '-' . absint( $held_duration ) . ' MINUTES', current_time( 'timestamp' ) ) );
@@ -2430,7 +2428,9 @@ function woocommerce_cancel_unpaid_orders() {
 	if ( $unpaid_orders ) {
 		foreach ( $unpaid_orders as $unpaid_order ) {
 			$order = new WC_Order( $unpaid_order );
-			$order->update_status( 'cancelled', __( 'Unpaid order cancelled - time limit reached.', 'woocommerce' ) );
+
+			if ( apply_filters( 'woocommerce_cancel_unpaid_order', true, $order ) )
+				$order->update_status( 'cancelled', __( 'Unpaid order cancelled - time limit reached.', 'woocommerce' ) );
 		}
 	}
 

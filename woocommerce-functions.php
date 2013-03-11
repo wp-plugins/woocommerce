@@ -11,6 +11,24 @@
  */
 
 /**
+ * Handle IPN requests for the legacy paypal gateway by calling gateways manually if needed.
+ *
+ * @access public
+ * @return void
+ */
+function woocommerce_legacy_paypal_ipn() {
+	if ( ! empty( $_GET['paypalListener'] ) && $_GET['paypalListener'] == 'paypal_standard_IPN' ) {
+		global $woocommerce;
+
+		$woocommerce->payment_gateways();
+
+		do_action( 'woocommerce_api_wc_gateway_paypal' );
+	}
+}
+
+add_action( 'init', 'woocommerce_legacy_paypal_ipn' );
+
+/**
  * Handle redirects before content is output - hooked into template_redirect so is_page works.
  *
  * @access public
@@ -311,16 +329,27 @@ function woocommerce_add_to_cart_action( $url = false ) {
             if ( ! empty( $_REQUEST[ $taxonomy ] ) ) {
 
                 // Get value from post data
-                $value = woocommerce_clean( $_REQUEST[ $taxonomy ] );
+                // Don't use woocommerce_clean as it destroys sanitized characters
+                $value = sanitize_title( trim( stripslashes( $_REQUEST[ $taxonomy ] ) ) );
 
                 // Get valid value from variation
                 $valid_value = $variation->variation_data[ $taxonomy ];
 
                 // Allow if valid
                 if ( $valid_value == '' || $valid_value == $value ) {
-
-	                // Use name so it looks nicer in the cart widget/order page etc - instead of a sanitized string
-	                $variations[ esc_html( $attribute['name'] ) ] = $value;
+	                if ( $attribute['is_taxonomy'] )
+	                	$variations[ esc_html( $attribute['name'] ) ] = $value;
+	                else {
+		                // For custom attributes, get the name from the slug
+		                $options = array_map( 'trim', explode( '|', $attribute['value'] ) );
+		                foreach ( $options as $option ) {
+		                	if ( sanitize_title( $option ) == $value ) {
+		                		$value = $option;
+		                		break;
+		                	}
+		                }
+		                 $variations[ esc_html( $attribute['name'] ) ] = $value;
+	                }
 	                continue;
 	            }
 
@@ -1315,7 +1344,7 @@ function woocommerce_track_product_view() {
 	setcookie( "woocommerce_recently_viewed", implode( '|', $viewed_products ), 0, COOKIEPATH, COOKIE_DOMAIN, false, true );
 }
 
-add_action( 'wp', 'woocommerce_track_product_view', 10 );
+add_action( 'get_header', 'woocommerce_track_product_view', 10 );
 
 /**
  * Layered Nav Init

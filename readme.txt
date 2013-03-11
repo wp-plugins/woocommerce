@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, affiliate
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.5
 Tested up to: 3.5
-Stable tag: 2.0.2
+Stable tag: 2.0.3
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -164,6 +164,29 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 6. A product archive (grid).
 
 == Changelog ==
+
+= 2.0.3 - 11/03/2013 =
+* Feature - Added products by attribute shortcode, e.g. [product_attribute attribute="color" filter="blue"]
+* Tweak - Made coupon label more clear.
+* Tweak - woocommerce_cart_redirect_after_error hook.
+* Tweak - woocommerce_cancel_unpaid_order hook to control if an order should be cancelled (if unpaid)
+* Tweak - woocommerce_valid_order_statuses_for_payment and woocommerce_valid_order_statuses_for_cancel hooks for pay pages/my account.
+* Tweak - WC_START in checkout json requests to prevent notices breaking checkout.
+* Tweak - Add filters to product images and thumbnails.
+* Tweak - IPN email mismatch puts order on-hold.
+* Tweak - Option to set main paypal receiver email.
+* Tweak - Download file links show filename as part of link.
+* Fix - Samoa -> Western Samoa
+* Fix - Re-applied image setting tooltips
+* Fix - Post code ranges (taxes) on insert.
+* Fix - Moved init checkout to a later hook to prevent canonical template redirects kicking in.
+* Fix - Made custom attributes more robust by using sanitized values for variations.
+* Fix - woocommerce_cancel_unpaid_orders respects the manage stock setting.
+* Fix - Mijireh Page Slurp.
+* Fix - Removed unused 'woocommerce_prepend_shop_page_to_urls' setting from breadcrumbs.
+* Fix - hide_cart_widget_if_empty option.
+* Fix - Added legacy paypal IPN handling.
+* Localization - Finnish translation by Arhi Paivarinta.
 
 = 2.0.2 - 06/03/2013 =
 * Fix - Frontpage shop when 'orderby' is set.
@@ -951,7 +974,7 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 * Fixed sale widget
 * File download method option so force download can be switched off
 * Improved product cat dropdowns
-* Czech translation by Martin Nečas
+* Czech translation by Martin Nečas
 * Turkish translation by Ercan
 
 = 1.3 - 01/12/2011 =
