@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce
  * Plugin URI: http://www.woothemes.com/woocommerce/
  * Description: An e-commerce toolkit that helps you sell anything. Beautifully.
- * Version: 2.0.3
+ * Version: 2.0.4
  * Author: WooThemes
  * Author URI: http://woothemes.com
  * Requires at least: 3.5
@@ -37,7 +37,7 @@ class Woocommerce {
 	/**
 	 * @var string
 	 */
-	public $version = '2.0.3';
+	public $version = '2.0.4';
 
 	/**
 	 * @var string
@@ -281,6 +281,9 @@ class Woocommerce {
 		// Functions
 		include_once( 'woocommerce-core-functions.php' );					// Contains core functions for the front/back end
 
+		// API Class
+		include_once( 'classes/class-wc-api.php' );
+
 		// Include abstract classes
 		include_once( 'classes/abstracts/abstract-wc-product.php' );			// Products
 		include_once( 'classes/abstracts/abstract-wc-settings-api.php' );	// Settings API (for gateways, shipping, and integrations)
@@ -412,7 +415,6 @@ class Woocommerce {
 		include_once( 'classes/widgets/class-wc-widget-recently-viewed.php' );
 		include_once( 'classes/widgets/class-wc-widget-best-sellers.php' );
 		include_once( 'classes/widgets/class-wc-widget-onsale.php' );
-		include_once( 'classes/widgets/class-wc-widget-login.php' );
 		include_once( 'classes/widgets/class-wc-widget-random-products.php' );
 
 		// Register widgets
@@ -430,7 +432,6 @@ class Woocommerce {
 		register_widget( 'WC_Widget_Recently_Viewed' );
 		register_widget( 'WC_Widget_Best_Sellers' );
 		register_widget( 'WC_Widget_Onsale' );
-		register_widget( 'WC_Widget_Login' );
 		register_widget( 'WC_Widget_Random_Products' );
 	}
 
@@ -759,7 +760,7 @@ class Woocommerce {
 		// Get bases
 		$product_category_slug 	= empty( $permalinks['category_base'] ) ? _x( 'product-category', 'slug', 'woocommerce' ) : $permalinks['category_base'];
 		$product_tag_slug 		= empty( $permalinks['tag_base'] ) ? _x( 'product-tag', 'slug', 'woocommerce' ) : $permalinks['tag_base'];
-		$product_attribute_base	= empty( $permalinks['attribute_base'] ) ? '' : $permalinks['attribute_base'];
+		$product_attribute_base	= empty( $permalinks['attribute_base'] ) ? '' : trailingslashit( $permalinks['attribute_base'] );
 		$product_permalink 		= empty( $permalinks['product_base'] ) ? _x( 'product', 'slug', 'woocommerce' ) : $permalinks['product_base'];
 
 		if ( $product_permalink )

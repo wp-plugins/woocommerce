@@ -281,7 +281,7 @@ function woocommerce_product_data_box() {
 				// Size fields
 				if( get_option( 'woocommerce_enable_dimensions', true ) !== 'no' ) :
 					?><p class="form-field dimensions_field">
-						<label for"product_length"><?php echo __( 'Dimensions', 'woocommerce' ) . ' (' . get_option( 'woocommerce_dimension_unit' ) . ')'; ?></label>
+						<label for="product_length"><?php echo __( 'Dimensions', 'woocommerce' ) . ' (' . get_option( 'woocommerce_dimension_unit' ) . ')'; ?></label>
 						<span class="wrap">
 							<input id="product_length" placeholder="<?php _e( 'Length', 'woocommerce' ); ?>" class="input-text" size="6" type="number" name="_length" value="<?php echo esc_attr( get_post_meta( $thepostid, '_length', true ) ); ?>" step="any" min="0" />
 							<input placeholder="<?php _e( 'Width', 'woocommerce' ); ?>" class="input-text" size="6" type="number" name="_width" value="<?php echo esc_attr( get_post_meta( $thepostid, '_width', true ) ); ?>"  step="any" min="0" />
@@ -416,13 +416,27 @@ function woocommerce_product_data_box() {
 										</tr>
 										<tr>
 											<td>
-												<label><input type="checkbox" class="checkbox" <?php if ( ! empty( $attribute['is_visible'] ) ) checked( $attribute['is_visible'], 1 ); ?> name="attribute_visibility[<?php echo $i; ?>]" value="1" /> <?php _e( 'Visible on the product page', 'woocommerce' ); ?></label>
+												<label><input type="checkbox" class="checkbox" <?php
+
+													if ( isset( $attribute['is_visible'] ) )
+														checked( $attribute['is_visible'], 1 );
+													else
+														checked( apply_filters( 'default_attribute_visibility', false, $tax ), true );
+
+												?> name="attribute_visibility[<?php echo $i; ?>]" value="1" /> <?php _e( 'Visible on the product page', 'woocommerce' ); ?></label>
 											</td>
 										</tr>
 										<tr>
 											<td>
 												<div class="enable_variation show_if_variable">
-												<label><input type="checkbox" class="checkbox" <?php if ( ! empty( $attribute['is_variation'] ) ) checked( $attribute['is_variation'], 1 ); ?> name="attribute_variation[<?php echo $i; ?>]" value="1" /> <?php _e( 'Used for variations', 'woocommerce' ); ?></label>
+												<label><input type="checkbox" class="checkbox" <?php
+
+													if ( isset( $attribute['is_variation'] ) )
+														checked( $attribute['is_variation'], 1 );
+													else
+														checked( apply_filters( 'default_attribute_variation', false, $tax ), true );
+
+												?> name="attribute_variation[<?php echo $i; ?>]" value="1" /> <?php _e( 'Used for variations', 'woocommerce' ); ?></label>
 												</div>
 											</td>
 										</tr>
