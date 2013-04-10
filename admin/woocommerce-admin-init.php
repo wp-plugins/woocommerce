@@ -171,7 +171,7 @@ function woocommerce_admin_notices_styles() {
 
 	$template = get_option( 'template' );
 
-	if ( ! current_theme_supports( 'woocommerce' ) && ! in_array( $template, array( 'twentyeleven', 'twentytwelve', 'twentyten' ) ) ) {
+	if ( ! current_theme_supports( 'woocommerce' ) && ! in_array( $template, array( 'twentythirteen', 'twentyeleven', 'twentytwelve', 'twentyten' ) ) ) {
 
 		if ( ! empty( $_GET['hide_woocommerce_theme_support_check'] ) ) {
 			update_option( 'woocommerce_theme_support_check', $template );
@@ -838,7 +838,7 @@ function woocommerce_permalink_settings_save() {
 		return;
 
 	// We need to save the options ourselves; settings api does not trigger save for the permalinks page
-	if ( isset( $_POST['permalink_structure'] ) || isset( $_POST['category_base'] ) ) {
+	if ( isset( $_POST['permalink_structure'] ) || isset( $_POST['category_base'] ) && isset( $_POST['product_permalink'] ) ) {
 		// Cat and tag bases
 		$woocommerce_product_category_slug = woocommerce_clean( $_POST['woocommerce_product_category_slug'] );
 		$woocommerce_product_tag_slug = woocommerce_clean( $_POST['woocommerce_product_tag_slug'] );

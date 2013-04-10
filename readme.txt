@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, affiliate
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.5
 Tested up to: 3.5
-Stable tag: 2.0.5
+Stable tag: 2.0.6
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -164,6 +164,40 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 6. A product archive (grid).
 
 == Changelog ==
+
+= 2.0.6 - 10/04/2013 =
+* Tweak/Fix - Merge taxes by CODE so totals are displayed clearer. Also added additonal function for getting merged tax totals, and to keep compatibility with themes.
+* Tweak/Fix - Recent reviews show actual review stars, and allowed get_rating_html() to be passed a rating. Also removed unused $location var.
+* Fix - Saving of meta values from paypal after payment.
+* Fix - woocommerce_nav_menu_items - only hide pages, not other objects.
+* Fix - woocommerce_add_tinymce_lang array key.
+* Fix - Find_rates now works with both postcode and city together.
+* Fix - PrettyPhoto content clearfixed.
+* Fix - Fix the download method when force SSL is on.
+* Fix - Put back sandbox pending fix. Aparently still needed for some accounts.
+* Fix - Do not sanitize old attribute name to not mess up comparing
+* Fix - Settings API empty value only used if set. In turn fixes blank values in flat rate shipping.
+* Fix - Ensure API Request URL scheme is not relative to the current page.
+* Fix - Fix saving of download permissions in order admin.
+* Fix - Action woocommerce_product_bulk_edit_end is now properly executed instead of outputted as HTML.
+* Fix - Fix IE Download via SSL bug and fix http file over SSL.
+* Fix - Show non-existing product line items.
+* Fix - Conflicts with W3 Total Cache DB Cache
+* Fix - piwik tracking.
+* Tweak - Added a check to parent theme for comments_template before loading plugin template.
+* Tweak - Remove hard coded max from random products widget.
+* Tweak - Add filter hook to the place order button for easy 3rd party manipulation.
+* Tweak - UX - Placeholder fades out on focus
+* Tweak - UX - Only display validation result on required fields
+* Tweak - Product column widths in admin
+* Tweak - .shipping_address clears to avoid flash of ugliness in some themes when revealing shipping address
+* Tweak - created an icon font for the star ratings to improve consistency
+* Tweak - woocommerce_show_page_title filter
+* Tweak - wrapper / css tweaks for TwentyThirteen compatibility
+* Tweak - Added filters for controlling cross-sell display
+* Tweak - Made hierarchy code in breadcrumbs more reliable.
+* Localisation - NZ States
+* Other minor fixes and localisation updates.
 
 = 2.0.5 - 26/03/2013 =
 * Tweak - Made no shipping available messages filterable via woocommerce_cart_no_shipping_available_html and woocommerce_no_shipping_available_html.

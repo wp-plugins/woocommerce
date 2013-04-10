@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce
  * Plugin URI: http://www.woothemes.com/woocommerce/
  * Description: An e-commerce toolkit that helps you sell anything. Beautifully.
- * Version: 2.0.5
+ * Version: 2.0.6
  * Author: WooThemes
  * Author URI: http://woothemes.com
  * Requires at least: 3.5
@@ -37,7 +37,7 @@ class Woocommerce {
 	/**
 	 * @var string
 	 */
-	public $version = '2.0.5';
+	public $version = '2.0.6';
 
 	/**
 	 * @var string
@@ -124,6 +124,9 @@ class Woocommerce {
 	public function __construct() {
 
 		// Auto-load classes on demand
+		if ( function_exists( "__autoload" ) ) {
+			spl_autoload_register( "__autoload" );
+    	}
 		spl_autoload_register( array( $this, 'autoload' ) );
 
 		// Define version constant
@@ -142,6 +145,7 @@ class Woocommerce {
 		$this->api = new WC_API();
 
 		// Hooks
+		add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'action_links' ) );
 		add_filter( 'woocommerce_shipping_methods', array( $this, 'core_shipping' ) );
 		add_filter( 'woocommerce_payment_gateways', array( $this, 'core_gateways' ) );
 		add_action( 'widgets_init', array( $this, 'register_widgets' ) );
@@ -151,6 +155,24 @@ class Woocommerce {
 
 		// Loaded action
 		do_action( 'woocommerce_loaded' );
+	}
+
+	/**
+	 * action_links function.
+	 *
+	 * @access public
+	 * @param mixed $links
+	 * @return void
+	 */
+	public function action_links( $links ) {
+
+		$plugin_links = array(
+			'<a href="' . admin_url( 'admin.php?page=woocommerce_settings' ) . '">' . __( 'Settings', 'woocommerce' ) . '</a>',
+			'<a href="http://docs.woothemes.com/">' . __( 'Docs', 'woocommerce' ) . '</a>',
+			'<a href="http://support.woothemes.com/">' . __( 'Premium Support', 'woocommerce' ) . '</a>',
+		);
+
+		return array_merge( $plugin_links, $links );
 	}
 
 	/**
@@ -286,15 +308,16 @@ class Woocommerce {
 
 		// Include abstract classes
 		include_once( 'classes/abstracts/abstract-wc-product.php' );			// Products
-		include_once( 'classes/abstracts/abstract-wc-settings-api.php' );	// Settings API (for gateways, shipping, and integrations)
+		include_once( 'classes/abstracts/abstract-wc-settings-api.php' );		// Settings API (for gateways, shipping, and integrations)
 		include_once( 'classes/abstracts/abstract-wc-shipping-method.php' );	// A Shipping method
-		include_once( 'classes/abstracts/abstract-wc-payment-gateway.php' ); // A Payment gateway
+		include_once( 'classes/abstracts/abstract-wc-payment-gateway.php' ); 	// A Payment gateway
 		include_once( 'classes/abstracts/abstract-wc-integration.php' );		// An integration with a service
 
 		// Classes (used on all pages)
-		include_once( 'classes/class-wc-product-factory.php' );				// Product factory
-		include_once( 'classes/class-wc-countries.php' );					// Defines countries and states
+		include_once( 'classes/class-wc-product-factory.php' );					// Product factory
+		include_once( 'classes/class-wc-countries.php' );						// Defines countries and states
 		include_once( 'classes/class-wc-integrations.php' );					// Loads integrations
+		include_once( 'classes/class-wc-cache-helper.php' );					// Cache Helper
 
 		// Include Core Integrations - these are included sitewide
 		include_once( 'classes/integrations/google-analytics/class-wc-google-analytics.php' );
@@ -487,7 +510,7 @@ class Woocommerce {
 			add_action( 'wp_footer', array( $this, 'output_inline_js' ), 25 );
 
 			// HTTPS urls with SSL on
-			$filters = array( 'post_thumbnail_html', 'widget_text', 'wp_get_attachment_url', 'wp_get_attachment_image_attributes', 'wp_get_attachment_url', 'option_siteurl', 'option_homeurl', 'option_home', 'option_url', 'option_wpurl', 'option_stylesheet_url', 'option_template_url', 'script_loader_src', 'style_loader_src', 'template_directory_uri', 'stylesheet_directory_uri', 'site_url' );
+			$filters = array( 'post_thumbnail_html', 'widget_text', 'wp_get_attachment_url', 'wp_get_attachment_image_attributes', 'wp_get_attachment_url', 'option_stylesheet_url', 'option_template_url', 'script_loader_src', 'style_loader_src', 'template_directory_uri', 'stylesheet_directory_uri', 'site_url' );
 
 			foreach ( $filters as $filter )
 				add_filter( $filter, array( $this, 'force_ssl' ) );
@@ -623,6 +646,8 @@ class Woocommerce {
 
 		if ( file_exists( STYLESHEETPATH . '/' . $this->template_url . 'single-product-reviews.php' ))
 			return STYLESHEETPATH . '/' . $this->template_url . 'single-product-reviews.php';
+		elseif ( file_exists( TEMPLATEPATH . '/' . $this->template_url . 'single-product-reviews.php' ))
+			return TEMPLATEPATH . '/' . $this->template_url . 'single-product-reviews.php';
 		else
 			return $this->plugin_path() . '/templates/single-product-reviews.php';
 	}
@@ -1046,7 +1071,7 @@ class Woocommerce {
 							'menu_name'				=> $menu_name
 						),
 					'description' 			=> __( 'This is where store orders are stored.', 'woocommerce' ),
-					'public' 				=> true,
+					'public' 				=> false,
 					'show_ui' 				=> true,
 					'capability_type' 		=> 'shop_order',
 					'map_meta_cap'			=> true,
@@ -1056,7 +1081,7 @@ class Woocommerce {
 					'hierarchical' 			=> false,
 					'show_in_nav_menus' 	=> false,
 					'rewrite' 				=> false,
-					'query_var' 			=> true,
+					'query_var' 			=> false,
 					'supports' 				=> array( 'title', 'comments', 'custom-fields' ),
 					'has_archive' 			=> false,
 				)
@@ -1134,8 +1159,8 @@ class Woocommerce {
 		$frontend_script_path 	= $this->plugin_url() . '/assets/js/frontend/';
 
 		// Register any scripts for later use, or used as dependencies
-		wp_register_script( 'chosen', $this->plugin_url() . '/assets/js/chosen/chosen.jquery' . $suffix . '.js', array( 'jquery' ), $this->version, true );
-		wp_register_script( 'jquery-blockui', $this->plugin_url() . '/assets/js/jquery-blockui/jquery.blockUI' . $suffix . '.js', array( 'jquery' ), $this->version, true );
+		wp_register_script( 'chosen', $this->plugin_url() . '/assets/js/chosen/chosen.jquery' . $suffix . '.js', array( 'jquery' ), '0.9.11', true );
+		wp_register_script( 'jquery-blockui', $this->plugin_url() . '/assets/js/jquery-blockui/jquery.blockUI' . $suffix . '.js', array( 'jquery' ), '2.50', true );
 		wp_register_script( 'jquery-placeholder', $this->plugin_url() . '/assets/js/jquery-placeholder/jquery.placeholder' . $suffix . '.js', array( 'jquery' ), $this->version, true );
 
 		wp_register_script( 'wc-add-to-cart-variation', $frontend_script_path . 'add-to-cart-variation' . $suffix . '.js', array( 'jquery' ), $this->version, true );
@@ -1159,7 +1184,7 @@ class Woocommerce {
 		}
 
 		if ( $lightbox_en && ( is_product() || ( ! empty( $post->post_content ) && strstr( $post->post_content, '[product_page' ) ) ) ) {
-			wp_enqueue_script( 'prettyPhoto', $this->plugin_url() . '/assets/js/prettyPhoto/jquery.prettyPhoto' . $suffix . '.js', array( 'jquery' ), $this->version, true );
+			wp_enqueue_script( 'prettyPhoto', $this->plugin_url() . '/assets/js/prettyPhoto/jquery.prettyPhoto' . $suffix . '.js', array( 'jquery' ), '3.1.5', true );
 			wp_enqueue_script( 'prettyPhoto-init', $this->plugin_url() . '/assets/js/prettyPhoto/jquery.prettyPhoto.init' . $suffix . '.js', array( 'jquery' ), $this->version, true );
 			wp_enqueue_style( 'woocommerce_prettyPhoto_css', $this->plugin_url() . '/assets/css/prettyPhoto.css' );
 		}
@@ -1327,7 +1352,7 @@ class Woocommerce {
 	 */
 	public function plugin_url() {
 		if ( $this->plugin_url ) return $this->plugin_url;
-		return $this->plugin_url = plugins_url( basename( plugin_dir_path(__FILE__) ), basename( __FILE__ ) );
+		return $this->plugin_url = untrailingslashit( plugins_url( '/', __FILE__ ) );
 	}
 
 
@@ -1364,13 +1389,15 @@ class Woocommerce {
 	 * @return string
 	 */
 	public function api_request_url( $request, $ssl = null ) {
-		if ( is_null( $ssl ) )
-			$ssl = is_ssl();
+		if ( is_null( $ssl ) ) {
+			$scheme = parse_url( get_option( 'home' ), PHP_URL_SCHEME );
+		} elseif ( $ssl ) {
+			$scheme = 'https';
+		} else {
+			$scheme = 'http';
+		}
 
-		$url = trailingslashit( home_url( '/wc-api/' . $request ) );
-		$url = $ssl ? str_replace( 'http:', 'https:', $url ) : str_replace( 'https:', 'http:', $url );
-
-		return esc_url_raw( $url );
+		return esc_url_raw( trailingslashit( home_url( '/wc-api/' . $request, $scheme ) ) );
 	}
 
 
@@ -1771,62 +1798,6 @@ class Woocommerce {
 		return ob_get_clean();
 	}
 
-	/** Cache Helpers *********************************************************/
-
-	/**
-	 * Sets a constant preventing some caching plugins from caching a page. Used on dynamic pages
-	 *
-	 * @access public
-	 * @return void
-	 */
-	public function nocache() {
-		if ( ! defined('DONOTCACHEPAGE') )
-			define("DONOTCACHEPAGE", "true"); // WP Super Cache constant
-	}
-
-
-	/**
-	 * Sets a cookie when the cart has something in it. Can be used by hosts to prevent caching if set.
-	 *
-	 * @access public
-	 * @param mixed $set
-	 * @return void
-	 */
-	public function cart_has_contents_cookie( $set ) {
-		if ( ! headers_sent() ) {
-			if ( $set ) {
-				setcookie( "woocommerce_items_in_cart", "1", 0, COOKIEPATH, COOKIE_DOMAIN, false );
-				setcookie( "woocommerce_cart_hash", md5( json_encode( $this->cart->get_cart() ) ), 0, COOKIEPATH, COOKIE_DOMAIN, false );
-			} else {
-				setcookie( "woocommerce_items_in_cart", "0", time() - 3600, COOKIEPATH, COOKIE_DOMAIN, false );
-				setcookie( "woocommerce_cart_hash", "0", time() - 3600, COOKIEPATH, COOKIE_DOMAIN, false );
-			}
-		}
-	}
-
-	/**
-	 * mfunc_wrapper function.
-	 *
-	 * Wraps a function in mfunc to keep it dynamic.
-	 *
-	 * If running WP Super Cache this checks for late_init (because functions calling this require WP to be loaded)
-	 *
-	 * @access public
-	 * @param mixed $function
-	 * @return void
-	 */
-	public function mfunc_wrapper( $mfunction, $function, $args ) {
-		global $wp_super_cache_late_init;
-
-		if ( is_null( $wp_super_cache_late_init ) || $wp_super_cache_late_init == 1 ) {
-			echo '<!--mfunc ' . $mfunction . ' -->';
-			$function( $args );
-			echo '<!--/mfunc-->';
-		} else {
-			$function( $args );
-		}
-	}
-
 	/** Transients ************************************************************/
 
 	/**
@@ -1986,6 +1957,46 @@ class Woocommerce {
 			$this->_inline_js = '';
 		}
 	}
+
+	/** Deprecated functions *********************************************************/
+
+	/**
+	 * Sets a constant preventing some caching plugins from caching a page. Used on dynamic pages.
+	 *
+	 * @deprecated 2.0.0 No longer needed - Cache Helper class sets up nocache automatically.
+	 * @access public
+	 * @return void
+	 */
+	public function nocache() {
+		_deprecated_function( 'Woocommerce::nocache', '2.0.6' );
+	}
+
+	/**
+	 * mfunc_wrapper function.
+	 *
+	 * Wraps a function in mfunc to keep it dynamic.
+	 *
+	 * If running WP Super Cache this checks for late_init (because functions calling this require WP to be loaded)
+	 *
+	 * @deprecated 2.0.0 No longer needed - cart fragments are cache friendly.
+	 * @access public
+	 * @param mixed $function
+	 * @return void
+	 */
+	public function mfunc_wrapper( $mfunction, $function, $args ) {
+		global $wp_super_cache_late_init;
+
+		_deprecated_function( 'Woocommerce::mfunc_wrapper', '2.0.0' );
+
+		if ( is_null( $wp_super_cache_late_init ) || $wp_super_cache_late_init == 1 ) {
+			echo '<!--mfunc ' . $mfunction . ' -->';
+			$function( $args );
+			echo '<!--/mfunc-->';
+		} else {
+			$function( $args );
+		}
+	}
+
 }
 
 /**

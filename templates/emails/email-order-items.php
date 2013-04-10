@@ -20,7 +20,7 @@ foreach ($items as $item) :
 
 	?>
 	<tr>
-		<td style="text-align:left; vertical-align:middle; border: 1px solid #eee;"><?php
+		<td style="text-align:left; vertical-align:middle; border: 1px solid #eee; word-wrap:break-word;"><?php
 
 			// Show title/image etc
 			echo 	apply_filters( 'woocommerce_order_product_image', $image, $_product, $show_image);
@@ -41,12 +41,14 @@ foreach ($items as $item) :
 				foreach ( $download_file_urls as $file_url => $download_file_url ) {
 					echo '<br/><small>';
 
+					$filename = woocommerce_get_filename_from_url( $file_url );
+
 					if ( count( $download_file_urls ) > 1 ) {
 						echo sprintf( __('Download %d:', 'woocommerce' ), $i + 1 );
 					} elseif ( $i == 0 )
 						echo __( 'Download:', 'woocommerce' );
 
-					echo ' <a href="' . $download_file_url . '" target="_blank">' . basename( $file_url ) . '</a></small>';
+					echo ' <a href="' . $download_file_url . '" target="_blank">' . $filename . '</a></small>';
 
 					$i++;
 				}

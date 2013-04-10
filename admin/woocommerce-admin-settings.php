@@ -41,7 +41,7 @@ if ( ! function_exists( 'woocommerce_settings' ) ) {
 	    // Save settings
 	    if ( ! empty( $_POST ) ) {
 
-	    	if ( ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'woocommerce-settings' ) )
+	    	if ( empty( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'woocommerce-settings' ) )
 	    		die( __( 'Action failed. Please refresh the page and retry.', 'woocommerce' ) );
 
 	    	if ( ! $current_section ) {
@@ -135,6 +135,8 @@ if ( ! function_exists( 'woocommerce_settings' ) ) {
 
 			// Clear any unwanted data
 			$woocommerce->clear_product_transients();
+
+			delete_transient( 'woocommerce_cache_excluded_uris' );
 
 			// Redirect back to the settings page
 			$redirect = add_query_arg( 'saved', 'true' );

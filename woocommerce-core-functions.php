@@ -86,14 +86,20 @@ function woocommerce_get_product_ids_on_sale() {
 }
 
 /**
- * woocommerce_sanitize_taxonomy_name function.
+ * Sanitize taxonomy names. Slug format (no spaces, lowercase).
+ *
+ * Doesn't use sanitize_title as this destroys utf chars.
  *
  * @access public
  * @param mixed $taxonomy
  * @return void
  */
 function woocommerce_sanitize_taxonomy_name( $taxonomy ) {
-	return str_replace( array( ' ', '_' ), '-', strtolower( $taxonomy ) );
+	$taxonomy = strtolower( stripslashes( strip_tags( $taxonomy ) ) );
+	$taxonomy = preg_replace( '/&.+?;/', '', $taxonomy ); // Kill entities
+	$taxonomy = str_replace( array( '.', '\'', '"' ), '', $taxonomy ); // Kill quotes and full stops.
+	$taxonomy = str_replace( array( ' ', '_' ), '-', $taxonomy ); // Replace spaces and underscores.
+	return $taxonomy;
 }
 
 /**
@@ -605,11 +611,11 @@ function woocommerce_get_template( $template_name, $args = array(), $template_pa
 
 	$located = woocommerce_locate_template( $template_name, $template_path, $default_path );
 
-	do_action( 'woocommerce_before_template_part', $template_name, $template_path, $located );
+	do_action( 'woocommerce_before_template_part', $template_name, $template_path, $located, $args );
 
 	include( $located );
 
-	do_action( 'woocommerce_after_template_part', $template_name, $template_path, $located );
+	do_action( 'woocommerce_after_template_part', $template_name, $template_path, $located, $args );
 }
 
 
@@ -1422,7 +1428,7 @@ function woocommerce_terms_clauses( $clauses, $taxonomies, $args ) {
 	// default to ASC
 	if ( ! isset($args['menu_order']) || ! in_array( strtoupper($args['menu_order']), array('ASC', 'DESC')) ) $args['menu_order'] = 'ASC';
 
-	$order = "ORDER BY CAST(tm.meta_value AS SIGNED) " . $args['menu_order'];
+	$order = "ORDER BY tm.meta_value+0 " . $args['menu_order'];
 
 	if ( $clauses['orderby'] ):
 		$clauses['orderby'] = str_replace('ORDER BY', $order . ',', $clauses['orderby'] );
