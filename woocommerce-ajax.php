@@ -442,12 +442,12 @@ function woocommerce_save_attributes() {
 
 				if ( isset( $attribute_values[ $i ] ) ) {
 
-			 		// Format values
+			 		// Format values (slug format)
 			 		if ( is_array( $attribute_values[ $i ] ) ) {
-				 		$values = array_map( 'woocommerce_clean', array_map( 'stripslashes', $attribute_values[ $i ] ) );
+				 		$values = array_map( 'sanitize_title', array_map( 'stripslashes', $attribute_values[ $i ] ) );
 				 	} else {
 				 		// Text based, separate by pipe
-				 		$values = array_map( 'woocommerce_clean', array_map( 'stripslashes', explode( '|', $attribute_values[ $i ] ) ) );
+				 		$values = array_map( 'sanitize_title', array_map( 'stripslashes', explode( '|', $attribute_values[ $i ] ) ) );
 				 	}
 
 				 	// Remove empty items in the array
@@ -628,10 +628,10 @@ function woocommerce_link_all_variations() {
 				$options[] = $term->slug;
 			}
 		} else {
-			$options = explode('|', $attribute['value']);
+			$options = explode( '|', $attribute['value'] );
 		}
 
-		$options = array_map('trim', $options);
+		$options = array_map( 'sanitize_title', array_map( 'trim', $options ) );
 
 		$variations[ $attribute_field_name ] = $options;
 	}
@@ -724,7 +724,8 @@ function woocommerce_link_all_variations() {
 	foreach ( $possible_variations as $variation ) {
 
 		// Check if variation already exists
-		if ( in_array( $variation, $available_variations ) ) continue;
+		if ( in_array( $variation, $available_variations ) )
+			continue;
 
 		$variation_id = wp_insert_post( $variation_post_data );
 
@@ -738,8 +739,8 @@ function woocommerce_link_all_variations() {
 
 		do_action( 'product_variation_linked', $variation_id );
 
-		if ( $added > WC_MAX_LINKED_VARIATIONS ) break;
-
+		if ( $added > WC_MAX_LINKED_VARIATIONS )
+			break;
 	}
 
 	$woocommerce->clear_product_transients( $post_id );

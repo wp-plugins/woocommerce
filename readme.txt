@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, affiliate
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.5
 Tested up to: 3.5
-Stable tag: 2.0.6
+Stable tag: 2.0.7
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -164,6 +164,15 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 6. A product archive (grid).
 
 == Changelog ==
+
+= 2.0.7 - 12/04/2013 =
+* Feature - Option for GA _setDomainName.
+* Tweak - Removed rounding when option to round at subtotal is set.
+* Fix - Allow extra flat rate options even if main rate is 0.
+* Fix - Fix email subject lines if options not set.
+* Fix - Prevent over-sanitization of attribute terms when editing products.
+* Fix - Santize terms when linking all variations.
+* Fix - Sanitize coupon code names before checking/applying.
 
 = 2.0.6 - 10/04/2013 =
 * Tweak/Fix - Merge taxes by CODE so totals are displayed clearer. Also added additonal function for getting merged tax totals, and to keep compatibility with themes.
