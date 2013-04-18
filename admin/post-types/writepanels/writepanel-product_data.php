@@ -348,11 +348,12 @@ function woocommerce_product_data_box() {
 				    		$attribute_taxonomy_name = $woocommerce->attribute_taxonomy_name( $tax->attribute_name );
 
 				    		// Ensure it exists
-				    		if ( ! taxonomy_exists( $attribute_taxonomy_name ) ) continue;
+				    		if ( ! taxonomy_exists( $attribute_taxonomy_name ) )
+				    			continue;
 
 				    		// Get product data values for current taxonomy - this contains ordering and visibility data
-				    		if ( isset( $attributes[ $attribute_taxonomy_name ] ) )
-				    			$attribute = $attributes[ $attribute_taxonomy_name ];
+				    		if ( isset( $attributes[ sanitize_title( $attribute_taxonomy_name ) ] ) )
+				    			$attribute = $attributes[ sanitize_title( $attribute_taxonomy_name ) ];
 
 				    		$position = empty( $attribute['position'] ) ? 0 : absint( $attribute['position'] );
 
@@ -749,12 +750,13 @@ function woocommerce_process_product_meta( $post_id, $post ) {
 
 				if ( isset( $attribute_values[ $i ] ) ) {
 
-			 		// Format values (posted values are slugs)
+			 		// Select based attributes - Format values (posted values are slugs)
 			 		if ( is_array( $attribute_values[ $i ] ) ) {
 				 		$values = array_map( 'sanitize_title', $attribute_values[ $i ] );
+
+				 	// Text based attributes - Posted values are term names - don't change to slugs
 				 	} else {
-				 		// Text based, separate by pipe
-				 		$values = array_map( 'sanitize_title', explode( '|', $attribute_values[ $i ] ) );
+				 		$values = array_map( 'stripslashes', array_map( 'strip_tags', explode( '|', $attribute_values[ $i ] ) ) );
 				 	}
 
 				 	// Remove empty items in the array

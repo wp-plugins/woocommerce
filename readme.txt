@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, affiliate
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.5
 Tested up to: 3.5
-Stable tag: 2.0.7
+Stable tag: 2.0.8
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -134,13 +134,13 @@ WordPress.org is home to some cool free extensions too ([search WordPress.org fo
 
 For help setting up and configuring WooCommerce please refer to our [user guide](http://docs.woothemes.com/document/woocommerce/)
 
-For extending or theming WooCommerce, see our [developer documentation](http://docs.woothemes.com/product/woocommerce-plugin/developer-reference/).
+For extending or theming WooCommerce, see our [codex](http://docs.woothemes.com/documentation/plugins/woocommerce/woocommerce-codex/).
 
 If you get stuck and you're not a WooThemes customer, you can ask for help on the [Community Forums](http://wordpress.org/support/plugin/woocommerce).
 
 = Will WooCommerce work with my theme? =
 
-Yes; WooCommerce will work with any theme, but may require some styling to make it match nicely. Please see our [developer documentation](http://docs.woothemes.com/product/woocommerce-plugin/developer-reference/) for help.
+Yes; WooCommerce will work with any theme, but may require some styling to make it match nicely. Please see our [codex](http://docs.woothemes.com/documentation/plugins/woocommerce/woocommerce-codex/) for help.
 
 = Where can I request new features, eCommerce themes and extensions? =
 
@@ -164,6 +164,25 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 6. A product archive (grid).
 
 == Changelog ==
+
+= 2.0.8 - 17/04/2013 =
+* Feature - Related products shortcode.
+* Tweak - Order item meta - skip serialized fields.
+* Tweak - Support for the city field in shipping calc (filterable).
+* Tweak - use base_country for tax calculations in manually created orders.
+* Tweak - Download permissions meta box show cleaner filenames.
+* Fix - Updated shareyourcart SDK.
+* Fix - moved woocommerce_get_filename_from_url to core-functions as it is required in admin too.
+* Fix - checkmark after adding to cart multiple times.
+* Fix - Saving text attributes. Posted 'text' terms are not slugs. Only striptags/slashes - don't change to slugs.
+* Fix - Insert URL button when working with multiple variations.
+* Fix - Undefined found_shipping_classes in flat rate shipping.
+* Fix - Fix saving options for attribute taxonomies containing special chars.
+* Fix - Prevent empty meta queries.
+* Localization - Norwegian updates by Tore Hjartland
+* Localization - Spanish updates by Laguna Sanchez
+* Localization - Romanian updates by Aurel Roman
+* Localization - Finnish updates by arhipaiva
 
 = 2.0.7 - 12/04/2013 =
 * Feature - Option for GA _setDomainName.

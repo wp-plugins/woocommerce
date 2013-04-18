@@ -442,12 +442,13 @@ function woocommerce_save_attributes() {
 
 				if ( isset( $attribute_values[ $i ] ) ) {
 
-			 		// Format values (slug format)
+			 		// Select based attributes - Format values (posted values are slugs)
 			 		if ( is_array( $attribute_values[ $i ] ) ) {
-				 		$values = array_map( 'sanitize_title', array_map( 'stripslashes', $attribute_values[ $i ] ) );
+				 		$values = array_map( 'sanitize_title', $attribute_values[ $i ] );
+
+				 	// Text based attributes - Posted values are term names - don't change to slugs
 				 	} else {
-				 		// Text based, separate by pipe
-				 		$values = array_map( 'sanitize_title', array_map( 'stripslashes', explode( '|', $attribute_values[ $i ] ) ) );
+				 		$values = array_map( 'stripslashes', array_map( 'strip_tags', explode( '|', $attribute_values[ $i ] ) ) );
 				 	}
 
 				 	// Remove empty items in the array
@@ -980,6 +981,8 @@ function woocommerce_ajax_add_order_item() {
 	 	woocommerce_add_order_item_meta( $item_id, '_line_total', $item['line_total'] );
 	 	woocommerce_add_order_item_meta( $item_id, '_line_tax', $item['line_tax'] );
  	}
+
+	do_action( 'woocommerce_ajax_add_order_item_meta', $item_id, $item );
 
 	include( 'admin/post-types/writepanels/order-item-html.php' );
 
