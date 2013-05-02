@@ -2,6 +2,7 @@
 #adminmenu {
 	#menu-posts-product div.wp-menu-image, #menu-posts-shop_order div.wp-menu-image, #menu-posts-shop_coupon div.wp-menu-image, #toplevel_page_woocommerce div.wp-menu-image {
 		background-image: url(../images/icons/menu_icons.png);
+		background-size: auto;
 	}
 
 	#menu-posts-product {
@@ -50,6 +51,13 @@
 	}
 }
 
+/* Editor button */
+span.mce_woocommerce_shortcodes_button {
+	background-image: url(../images/icons/wc_icon.png) !important;
+	background-repeat: no-repeat !important;
+	background-position: center !important;
+}
+
 @media
 (-webkit-min-device-pixel-ratio: 2),
 (min-resolution: 192dpi) {
@@ -59,11 +67,8 @@
 			background-size: 200px 64px;
 		}
 	}
-}
-
-/* Editor button */
-span.mce_woocommerce_shortcodes_button {
-	background-image: url(../images/icons/wc_icon.png) !important;
-	background-repeat: no-repeat !important;
-	background-position: center !important;
+	span.mce_woocommerce_shortcodes_button {
+		background-image: url(../images/icons/wc_icon@2x.png) !important;
+		background-size: 18px 18px !important;
+	}
 }

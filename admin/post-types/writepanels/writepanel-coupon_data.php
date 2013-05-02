@@ -142,7 +142,7 @@ function woocommerce_coupon_data_meta_box( $post ) {
 			echo '</div><div class="options_group">';
 
 			// Customers
-			woocommerce_wp_text_input( array( 'id' => 'customer_email', 'label' => __( 'Customer emails', 'woocommerce' ), 'placeholder' => __( 'Any customer', 'woocommerce' ), 'description' => __( 'Comma separate email addresses to restrict this coupon to specific billing and user emails.', 'woocommerce' ), 'value' => implode(', ', (array) get_post_meta( $post->ID, 'customer_email', true ) ), 'type' => 'email', 'custom_attributes' => array(
+			woocommerce_wp_text_input( array( 'id' => 'customer_email', 'label' => __( 'Email restrictions', 'woocommerce' ), 'placeholder' => __( 'No restrictions', 'woocommerce' ), 'description' => __( 'List of emails to check against the customer\'s billing email when an order is placed.', 'woocommerce' ), 'value' => implode(', ', (array) get_post_meta( $post->ID, 'customer_email', true ) ), 'type' => 'email', 'custom_attributes' => array(
 					'multiple' 	=> 'multiple'
 				) ) );
 
@@ -237,7 +237,8 @@ function woocommerce_process_shop_coupon_meta( $post_id, $post ) {
 	update_post_meta( $post_id, 'minimum_amount', $minimum_amount );
 	update_post_meta( $post_id, 'customer_email', $customer_email );
 
-	do_action( 'woocommerce_coupon_options' );
+	/* Deprecated - same hook name as in the meta */ do_action( 'woocommerce_coupon_options' );
+	do_action( 'woocommerce_coupon_options_save' );
 }
 
 add_action( 'woocommerce_process_shop_coupon_meta', 'woocommerce_process_shop_coupon_meta', 1, 2 );

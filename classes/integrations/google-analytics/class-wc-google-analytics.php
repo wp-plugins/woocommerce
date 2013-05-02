@@ -46,7 +46,7 @@ class WC_Google_Analytics extends WC_Integration {
 
 		// Event tracking code
 		add_action( 'woocommerce_after_add_to_cart_button', array( $this, 'add_to_cart' ) );
-		add_action( 'woocommerce_after_shop_loop', array( $this, 'loop_add_to_cart' ) );
+		add_action( 'wp_footer', array( $this, 'loop_add_to_cart' ) );
     }
 
 
@@ -197,14 +197,14 @@ class WC_Google_Analytics extends WC_Integration {
 			);
 
 			_gaq.push(['_addTrans',
-				'" . esc_js( $order_id ) . "',           		// order ID - required
+				'" . esc_js( $order->get_order_number() ) . "', // order ID - required
 				'" . esc_js( get_bloginfo( 'name' ) ) . "',  	// affiliation or store name
-				'" . esc_js( $order->get_total() ) . "',   	// total - required
-				'" . esc_js( $order->get_total_tax() ) . "',  // tax
-				'" . esc_js( $order->get_shipping() ) . "',	// shipping
-				'" . esc_js( $order->billing_city ) . "',     // city
-				'" . esc_js( $order->billing_state ) . "',    // state or province
-				'" . esc_js( $order->billing_country ) . "'   // country
+				'" . esc_js( $order->get_total() ) . "',   	    // total - required
+				'" . esc_js( $order->get_total_tax() ) . "',    // tax
+				'" . esc_js( $order->get_shipping() ) . "',	    // shipping
+				'" . esc_js( $order->billing_city ) . "',       // city
+				'" . esc_js( $order->billing_state ) . "',      // state or province
+				'" . esc_js( $order->billing_country ) . "'     // country
 			]);
 		";
 

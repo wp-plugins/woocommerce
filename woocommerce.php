@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce
  * Plugin URI: http://www.woothemes.com/woocommerce/
  * Description: An e-commerce toolkit that helps you sell anything. Beautifully.
- * Version: 2.0.8
+ * Version: 2.0.9
  * Author: WooThemes
  * Author URI: http://woothemes.com
  * Requires at least: 3.5
@@ -37,7 +37,7 @@ class Woocommerce {
 	/**
 	 * @var string
 	 */
-	public $version = '2.0.8';
+	public $version = '2.0.9';
 
 	/**
 	 * @var string
@@ -1215,7 +1215,6 @@ class Woocommerce {
 			'checkout_url'                     => add_query_arg( 'action', 'woocommerce-checkout', $this->ajax_url() ),
 			'is_checkout'                      => is_page( woocommerce_get_page_id( 'checkout' ) ) ? 1 : 0,
 			'update_shipping_method_nonce'     => wp_create_nonce( "update-shipping-method" ),
-			'add_to_cart_nonce'                => wp_create_nonce( "add-to-cart" ),
 			'cart_url'                         => get_permalink( woocommerce_get_page_id( 'cart' ) ),
 			'cart_redirect_after_add'          => get_option( 'woocommerce_cart_redirect_after_add' )
 		);
@@ -1249,7 +1248,7 @@ class Woocommerce {
 		global $wp_scripts;
 
 		// Enforce minimum version of jQuery
-		if ( isset( $wp_scripts->registered['jquery']->ver ) && $wp_scripts->registered['jquery']->ver < '1.7' ) {
+		if ( ! empty( $wp_scripts->registered['jquery']->ver ) && ! empty( $wp_scripts->registered['jquery']->src ) && $wp_scripts->registered['jquery']->ver < '1.7' ) {
 			wp_deregister_script( 'jquery' );
 			wp_register_script( 'jquery', '/wp-includes/js/jquery/jquery.js', array(), '1.7' );
 			wp_enqueue_script( 'jquery' );

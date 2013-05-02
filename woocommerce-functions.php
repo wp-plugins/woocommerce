@@ -657,12 +657,13 @@ function woocommerce_process_login() {
 
 		$woocommerce->verify_nonce( 'login' );
 
-		if ( empty( $_POST['username'] ) ) $woocommerce->add_error( __( 'Username is required.', 'woocommerce' ) );
-		if ( empty( $_POST['password'] ) ) $woocommerce->add_error( __( 'Password is required.', 'woocommerce' ) );
-
-		if ( $woocommerce->error_count() == 0 ) {
-
+		try {
 			$creds = array();
+
+			if ( empty( $_POST['username'] ) )
+				throw new Exception( '<strong>' . __( 'Error', 'woocommerce' ) . ':</strong> ' . __( 'Username is required.', 'woocommerce' ) );
+			if ( empty( $_POST['password'] ) )
+				throw new Exception( '<strong>' . __( 'Error', 'woocommerce' ) . ':</strong> ' . __( 'Password is required.', 'woocommerce' ) );
 
 			if ( is_email( $_POST['username'] ) ) {
 				$user = get_user_by( 'email', $_POST['username'] );
@@ -670,7 +671,7 @@ function woocommerce_process_login() {
 				if ( isset( $user->user_login ) )
 					$creds['user_login'] 	= $user->user_login;
 				else
-					$creds['user_login'] 	= '';
+					throw new Exception( '<strong>' . __( 'Error', 'woocommerce' ) . ':</strong> ' . __( 'A user could not be found with this email address.', 'woocommerce' ) );
 			} else {
 				$creds['user_login'] 	= $_POST['username'];
 			}
@@ -681,7 +682,7 @@ function woocommerce_process_login() {
 			$user                   = wp_signon( $creds, $secure_cookie );
 
 			if ( is_wp_error( $user ) ) {
-				$woocommerce->add_error( $user->get_error_message() );
+				throw new Exception( $user->get_error_message() );
 			} else {
 
 				if ( ! empty( $_POST['redirect'] ) ) {
@@ -694,8 +695,9 @@ function woocommerce_process_login() {
 
 				wp_redirect( apply_filters( 'woocommerce_login_redirect', $redirect, $user ) );
 				exit;
-
 			}
+		} catch (Exception $e) {
+			$woocommerce->add_error( $e->getMessage() );
 		}
 	}
 }
@@ -932,7 +934,7 @@ function woocommerce_download_product() {
 		$product_id           = (int) urldecode($_GET['download_file']);
 		$order_key            = urldecode( $_GET['order'] );
 		$email                = sanitize_email( str_replace( ' ', '+', urldecode( $_GET['email'] ) ) );
-		$download_id          = isset( $_GET['key'] ) ? urldecode( $_GET['key'] ) : '';  // backwards compatibility for existing download URLs
+		$download_id          = isset( $_GET['key'] ) ? preg_replace( '/\s+/', ' ', urldecode( $_GET['key'] ) ) : '';
 		$_product             = get_product( $product_id );
 		$file_download_method = apply_filters( 'woocommerce_file_download_method', get_option( 'woocommerce_file_download_method' ), $product_id );
 
@@ -950,6 +952,7 @@ function woocommerce_download_product() {
 			$order_key,
 			$product_id
 		);
+
 		if ( $download_id ) {
 			// backwards compatibility for existing download URLs
 			$query .= " AND download_id = %s";
@@ -1299,17 +1302,15 @@ function woocommerce_products_rss_feed() {
  * @param mixed $comment_id
  * @return void
  */
-function woocommerce_add_comment_rating($comment_id) {
+function woocommerce_add_comment_rating( $comment_id ) {
 	if ( isset( $_POST['rating'] ) ) {
-		global $post;
 
 		if ( ! $_POST['rating'] || $_POST['rating'] > 5 || $_POST['rating'] < 0 )
 			return;
 
 		add_comment_meta( $comment_id, 'rating', (int) esc_attr( $_POST['rating'] ), true );
 
-		delete_transient( 'wc_average_rating_' . esc_attr($post->ID) );
-		delete_transient( 'wc_rating_count_' . esc_attr($post->ID) );
+		woocommerce_clear_comment_rating_transients( $comment_id );
 	}
 }
 
@@ -1321,7 +1322,7 @@ function woocommerce_add_comment_rating($comment_id) {
  * @param array $comment_data
  * @return array
  */
-function woocommerce_check_comment_rating($comment_data) {
+function woocommerce_check_comment_rating( $comment_data ) {
 	global $woocommerce;
 
 	// If posting a comment (not trackback etc) and not logged in
@@ -1414,10 +1415,10 @@ function woocommerce_layered_nav_init( ) {
 
 		    		$_chosen_attributes[ $taxonomy ]['terms'] = explode( ',', $_GET[ $name ] );
 
-		    		if ( ! empty( $_GET[ $query_type_name ] ) && $_GET[ $query_type_name ] == 'or' )
-		    			$_chosen_attributes[ $taxonomy ]['query_type'] = 'or';
+		    		if ( empty( $_GET[ $query_type_name ] ) || ! in_array( strtolower( $_GET[ $query_type_name ] ), array( 'and', 'or' ) ) )
+		    			$_chosen_attributes[ $taxonomy ]['query_type'] = apply_filters( 'woocommerce_layered_nav_default_query_type', 'and' );
 		    		else
-		    			$_chosen_attributes[ $taxonomy ]['query_type'] = 'and';
+		    			$_chosen_attributes[ $taxonomy ]['query_type'] = strtolower( $_GET[ $query_type_name ] );
 
 				}
 			}

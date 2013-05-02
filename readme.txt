@@ -3,8 +3,8 @@ Contributors: woothemes, mikejolley, jameskoster, CoenJacobs
 Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, affiliate, store, sales, sell, shop, shopping, cart, checkout, configurable, variable, widgets, reports, download, downloadable, digital, inventory, stock, reports, shipping, tax
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.5
-Tested up to: 3.5
-Stable tag: 2.0.8
+Tested up to: 3.6 beta 2
+Stable tag: 2.0.9
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -164,6 +164,26 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 6. A product archive (grid).
 
 == Changelog ==
+
+= 2.0.9 - 02/05/2013 =
+* Feature - Added is_product_taxonomy() conditonal.
+* Tweak - Notices during checkout for admin users if the checkout is mis-configured.
+* Tweak - Named charts on report page to make modifications easier.
+* Tweak - woocommerce_before_delete_order_item hook.
+* Fix - Disable autocomplete for checkout fields which refresh totals - no events get fired on autocomplete.
+* Fix - Clear rating transients when editing comments.
+* Fix - Screen ids when plugin name localised.
+* Fix - Brazillian state code BH -> BA. Data update required to update old values in orders.
+* Fix - Fix incorrect CSS class being output in product image gallery.
+* Fix - Mijireh page slurp.
+* Fix - woocommerce_downloadable_product_name filter fixes.
+* Fix - Pass order number to google analytics, not id
+* Fix - check_jquery in WP 3.6 beta
+* Fix - GA click tracking moved code to footer.
+* Localization - Netherlands, Hungarian, Taiwan, Italian, CZ, Spanish, Catalan updates.
+* Localization - Slovak translation by Dusan Belescak.
+* Localization - Added RUB currency.
+* Other minor fixes and localisation updates.
 
 = 2.0.8 - 17/04/2013 =
 * Feature - Related products shortcode.
