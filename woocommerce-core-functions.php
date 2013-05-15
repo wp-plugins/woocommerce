@@ -764,7 +764,7 @@ function get_woocommerce_currency_symbol( $currency = '' ) {
 			$currency_symbol = '&yen;';
 			break;
 		case 'RUB' :
-			$currency_symbol = '&#1088;&#1091;&#1073;';
+			$currency_symbol = '&#1088;&#1091;&#1073;.';
 			break;
 		case 'KRW' : $currency_symbol = '&#8361;'; break;
 		case 'TRY' : $currency_symbol = '&#84;&#76;'; break;
@@ -1492,6 +1492,10 @@ function woocommerce_get_product_terms( $object_id, $taxonomy, $fields = 'all' )
 
 	$terms 			= array();
 	$object_terms 	= get_the_terms( $object_id, $taxonomy );
+
+	if ( ! is_array( $object_terms ) )
+		return array();
+	
 	$all_terms 		= array_flip( get_terms( $taxonomy, array( 'menu_order' => 'ASC', 'fields' => 'ids' ) ) );
 
 	switch ( $fields ) {

@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, affiliate
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.5
 Tested up to: 3.6 beta 2
-Stable tag: 2.0.9
+Stable tag: 2.0.10
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -164,6 +164,20 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 6. A product archive (grid).
 
 == Changelog ==
+
+= 2.0.10 - 15/05/2013 =
+* Tweak - Searching for SKU in admin panel can also be done via lowercase 'sku:' instead of just 'SKU:'
+* Fix - Cast term_id as int in product data write panel that will resolve issues with numerical attributes
+* Fix - Correct label for RUB symbol - added a dot after it
+* Fix - Javascript escapes to stop breaking scripts when used with translations
+* Fix - PayPal button should use classes 'button' and 'alt', not 'button-alt'
+* Fix - Have the remove_taxes() method set subtotal to subtotal_ex_tax
+* Fix - Allow layered nav to work with non pa_ prepended taxonomies
+* Fix - Better backwards compatibility with _woocommerce_exclude_image
+* Fix - is_on_sale() method now returns true for products with a sale product of 0
+* Fix - For when get_the_terms() returns false inside woocommerce_get_product_terms()
+* Fix - PayPal has a 9 item limit
+* Fix - Replace deprecated wp_convert_bytes_to_hr() with size_format()
 
 = 2.0.9 - 02/05/2013 =
 * Feature - Added is_product_taxonomy() conditonal.
