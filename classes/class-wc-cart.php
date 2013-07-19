@@ -320,7 +320,7 @@ class WC_Cart {
 			// Check item stock
 			$result = $this->check_cart_item_stock();
 
-			if (is_wp_error($result))
+			if ( is_wp_error( $result ) )
 				$woocommerce->add_error( $result->get_error_message() );
 		}
 
@@ -943,6 +943,7 @@ class WC_Cart {
 			}
 
 			$this->calculate_totals();
+			$this->set_session();
 		}
 
 		/**
@@ -1275,7 +1276,7 @@ class WC_Cart {
 
 							case "percent" :
 
-								$percent_discount = round( ( round( $this->cart_contents_total + $this->tax_total, $this->dp ) / 100 ) * $coupon->amount, $this->dp );
+								$percent_discount = round( ( round( $this->cart_contents_total + $this->tax_total + $this->fee_total, $this->dp ) / 100 ) * $coupon->amount, $this->dp );
 
 								if ( $coupon->amount > $percent_discount )
 									$coupon->amount = $percent_discount;

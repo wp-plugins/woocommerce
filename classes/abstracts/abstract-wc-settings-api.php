@@ -691,7 +691,7 @@ abstract class WC_Settings_API {
     	$text = $this->get_option( $key );
 
     	if ( isset( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) ) {
-    		$text = esc_attr( trim( stripslashes( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) ) );
+    		$text = wp_kses_post( trim( stripslashes( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) ) );
     	}
 
     	return $text;
@@ -712,7 +712,7 @@ abstract class WC_Settings_API {
     	$text = $this->get_option( $key );
 
     	if ( isset( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) ) {
-    		$text = esc_attr( woocommerce_clean( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) );
+    		$text = woocommerce_clean( stripslashes( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) );
     	}
 
     	return $text;
@@ -733,7 +733,14 @@ abstract class WC_Settings_API {
     	$text = $this->get_option( $key );
 
     	if ( isset( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) ) {
-    		$text = esc_attr( trim( stripslashes( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) ) );
+    		$text = wp_kses( trim( stripslashes( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) ),
+    			array_merge(
+    				array(
+    					'iframe' => array( 'src' => true, 'style' => true, 'id' => true, 'class' => true )
+    				),
+    				wp_kses_allowed_html( 'post' )
+    			)
+    		);
     	}
 
     	return $text;
@@ -754,7 +761,7 @@ abstract class WC_Settings_API {
     	$value = $this->get_option( $key );
 
     	if ( isset( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) ) {
-    		$value = esc_attr( woocommerce_clean( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) );
+    		$value = woocommerce_clean( stripslashes( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) );
     	}
 
     	return $value;
@@ -774,7 +781,7 @@ abstract class WC_Settings_API {
     	$value = $this->get_option( $key );
 
     	if ( isset( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) ) {
-    		$value = array_map('esc_attr', array_map('woocommerce_clean', (array) $_POST[ $this->plugin_id . $this->id . '_' . $key ] ));
+    		$value = array_map( 'woocommerce_clean', array_map( 'stripslashes', (array) $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) );
     	} else {
 	    	$value = '';
     	}
