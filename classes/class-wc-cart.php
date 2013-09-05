@@ -339,14 +339,13 @@ class WC_Cart {
 					$coupon = new WC_Coupon( $code );
 
 					if ( is_wp_error( $coupon->is_valid() ) ) {
-
 						$coupon->add_coupon_message( WC_Coupon::E_WC_COUPON_INVALID_REMOVED );
 
 						// Remove the coupon
 						unset( $this->applied_coupons[ $key ] );
 
-						$woocommerce->session->coupon_codes   = $this->applied_coupons;
-						$woocommerce->session->refresh_totals     = true;
+						$woocommerce->session->set( 'coupon_codes', $this->applied_coupons );
+						$woocommerce->session->set( 'refresh_totals', true );
 					}
 				}
 			}
@@ -422,8 +421,8 @@ class WC_Cart {
 							// Remove the coupon
 							unset( $this->applied_coupons[ $key ] );
 
-							$woocommerce->session->coupon_codes   = $this->applied_coupons;
-							$woocommerce->session->refresh_totals     = true;
+							$woocommerce->session->set( 'coupon_codes', $this->applied_coupons );
+							$woocommerce->session->set( 'refresh_totals', true );
 						}
 					}
 				}
@@ -901,7 +900,7 @@ class WC_Cart {
 
 				$new_quantity = $quantity + $this->cart_contents[$cart_item_key]['quantity'];
 
-				$this->set_quantity( $cart_item_key, $new_quantity );
+				$this->set_quantity( $cart_item_key, $new_quantity, false );
 
 			} else {
 
@@ -929,10 +928,11 @@ class WC_Cart {
 		/**
 		 * Set the quantity for an item in the cart.
 		 *
-		 * @param   string	cart_item_key	contains the id of the cart item
-		 * @param   string	quantity	contains the quantity of the item
+		 * @param string	cart_item_key	contains the id of the cart item
+		 * @param string	quantity		contains the quantity of the item
+		 * @param boolean 	$refresh_totals	whether or not to calculate totals after setting the new qty
 		 */
-		public function set_quantity( $cart_item_key, $quantity = 1 ) {
+		public function set_quantity( $cart_item_key, $quantity = 1, $refresh_totals = true ) {
 
 			if ( $quantity == 0 || $quantity < 0 ) {
 				do_action( 'woocommerce_before_cart_item_quantity_zero', $cart_item_key );
@@ -942,8 +942,8 @@ class WC_Cart {
 				do_action( 'woocommerce_after_cart_item_quantity_update', $cart_item_key, $quantity );
 			}
 
-			$this->calculate_totals();
-			$this->set_session();
+			if ( $refresh_totals )
+				$this->calculate_totals();
 		}
 
 		/**
@@ -1419,26 +1419,25 @@ class WC_Cart {
 
 								// Get tax rate for the store base, ensuring we use the unmodified tax_class for the product
 								$base_tax_rates 		= $this->tax->get_shop_base_rate( $_product->tax_class );
-
-								// Work out new price based on region
 								$row_base_price 		= $base_price * $values['quantity'];
-								$base_taxes				= $this->tax->calc_tax( $row_base_price, $base_tax_rates, true, true ); // Unrounded
-								$taxes					= $this->tax->calc_tax( $row_base_price - array_sum($base_taxes), $tax_rates, false );
 
-								// Tax amount
-								$tax_amount				= array_sum( $taxes );
+								// Work out a new base price without the shop's base tax
+								$line_tax              = array_sum( $this->tax->calc_tax( $row_base_price, $base_tax_rates, true ) );
 
-								// Line subtotal + tax
-								$line_subtotal_tax 		= get_option('woocommerce_tax_round_at_subtotal') == 'no' ? $this->tax->round( $tax_amount ) : $tax_amount;
-								$line_subtotal			= $row_base_price - array_sum( $base_taxes );
+								// Now we have a new item price (excluding TAX)
+								$line_subtotal         = $this->tax->round( $row_base_price - $line_tax );
 
-								// Adjusted price
-								$adjusted_price 		= ( $row_base_price - array_sum( $base_taxes ) + array_sum( $taxes ) ) / $values['quantity'];
+								// Now add taxes for the users location
+								$line_subtotal_tax     = array_sum( $this->tax->calc_tax( $line_subtotal, $tax_rates, false ) );
+								$line_subtotal_tax     = $this->round_at_subtotal ? $line_subtotal_tax : $this->tax->round( $line_subtotal_tax );
+
+								// Adjusted price (this is the price including the new tax rate)
+								$adjusted_price        = ( $line_subtotal + $line_subtotal_tax ) / $values['quantity'];
 
 								// Apply discounts
-								$discounted_price 		= $this->get_discounted_price( $values, $adjusted_price, true );
-								$discounted_taxes		= $this->tax->calc_tax( $discounted_price * $values['quantity'], $tax_rates, true );
-								$discounted_tax_amount	= array_sum( $discounted_taxes ); // Sum taxes
+								$discounted_price      = $this->get_discounted_price( $values, $adjusted_price, true );
+								$discounted_taxes      = $this->tax->calc_tax( $discounted_price * $values['quantity'], $tax_rates, true );
+								$discounted_tax_amount = array_sum( $discounted_taxes ); // Sum taxes
 
 							/**
 							 * Regular tax calculation (customer inside base and the tax class is unmodified
@@ -1555,27 +1554,14 @@ class WC_Cart {
 				}
 			}
 
-			// Add fees
-			foreach ( $this->get_fees() as $fee ) {
-				$this->fee_total += $fee->amount;
-
-				if ( $fee->taxable ) {
-					// Get tax rates
-					$tax_rates 				= $this->tax->get_rates( $fee->tax_class );
-					$fee_taxes				= $this->tax->calc_tax( $fee->amount, $tax_rates, false );
-
-					// Store
-					$fee->tax 				= array_sum( $fee_taxes );
-
-					// Tax rows - merge the totals we just got
-					foreach ( array_keys( $this->taxes + $fee_taxes ) as $key ) {
-					    $this->taxes[ $key ] = ( isset( $fee_taxes[ $key ] ) ? $fee_taxes[ $key ] : 0 ) + ( isset( $this->taxes[ $key ] ) ? $this->taxes[ $key ] : 0 );
-					}
-				}
-			}
-
 			// Only calculate the grand total + shipping if on the cart/checkout
 			if ( is_checkout() || is_cart() || defined('WOOCOMMERCE_CHECKOUT') || defined('WOOCOMMERCE_CART') ) {
+
+				// Calculate the Shipping
+				$this->calculate_shipping();
+
+				// Trigger the fees API where developers can add fees to the cart
+				$this->calculate_fees();
 
 				// Total up/round taxes
 				if ( get_option('woocommerce_tax_round_at_subtotal') == 'no' ) {
@@ -1584,9 +1570,6 @@ class WC_Cart {
 				} else {
 					$this->tax_total          = array_sum( $this->taxes );
 				}
-
-				// Cart Shipping
-				$this->calculate_shipping();
 
 				// Total up/round taxes for shipping
 				if ( get_option('woocommerce_tax_round_at_subtotal') == 'no' ) {
@@ -1958,15 +1941,12 @@ class WC_Cart {
 		/**
 		 * add_fee function.
 		 *
-		 * @access public
 		 * @param mixed $name
 		 * @param mixed $amount
 		 * @param bool $taxable (default: false)
 		 * @param string $tax_class (default: '')
-		 * @return void
 		 */
 		public function add_fee( $name, $amount, $taxable = false, $tax_class = '' ) {
-
 			if ( empty( $this->fees ) )
 				$this->fees = array();
 
@@ -1988,7 +1968,37 @@ class WC_Cart {
 		 * @return void
 		 */
 		public function get_fees() {
-			return (array) $this->fees;
+			return array_filter( (array) $this->fees );
+		}
+
+		/**
+		 * Calculate fees
+		 */
+		public function calculate_fees() {
+
+			// Fire an action where developers can add their fees
+			do_action( 'woocommerce_cart_calculate_fees', $this );
+
+			// If fees were added, total them and calculate tax
+			if ( $fees = $this->get_fees() ) {
+				foreach ( $fees as $fee ) {
+					$this->fee_total += $fee->amount;
+
+					if ( $fee->taxable ) {
+						// Get tax rates
+						$tax_rates = $this->tax->get_rates( $fee->tax_class );
+						$fee_taxes = $this->tax->calc_tax( $fee->amount, $tax_rates, false );
+
+						// Store
+						$fee->tax  = array_sum( $fee_taxes );
+
+						// Tax rows - merge the totals we just got
+						foreach ( array_keys( $this->taxes + $fee_taxes ) as $key ) {
+						    $this->taxes[ $key ] = ( isset( $fee_taxes[ $key ] ) ? $fee_taxes[ $key ] : 0 ) + ( isset( $this->taxes[ $key ] ) ? $this->taxes[ $key ] : 0 );
+						}
+					}
+				}
+			}
 		}
 
     /*-----------------------------------------------------------------------------------*/

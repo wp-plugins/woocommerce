@@ -230,7 +230,7 @@ function woocommerce_admin_install_notices() {
  * @return void
  */
 function woocommerce_admin_init() {
-	global $pagenow, $typenow;
+	global $pagenow, $typenow, $post;
 
 	ob_start();
 
@@ -505,6 +505,11 @@ function woocommerce_admin_scripts() {
 		wp_enqueue_script( 'flot', $woocommerce->plugin_url() . '/assets/js/admin/jquery.flot'.$suffix.'.js', 'jquery', '1.0' );
 		wp_enqueue_script( 'flot-resize', $woocommerce->plugin_url() . '/assets/js/admin/jquery.flot.resize'.$suffix.'.js', array('jquery', 'flot'), '1.0' );
 
+	}
+
+	// Chosen RTL
+	if ( is_rtl() ) {
+		wp_enqueue_script( 'chosen-rtl', $woocommerce->plugin_url() . '/assets/js/chosen/chosen-rtl' . $suffix . '.js', array( 'jquery' ), $woocommerce->version, true );
 	}
 }
 

@@ -190,7 +190,7 @@ class WC_Checkout {
 			$order_id = wp_insert_post( $order_data );
 
 			if ( is_wp_error( $order_id ) )
-				throw new MyException( 'Error: Unable to create order. Please try again.' );
+				throw new Exception( 'Error: Unable to create order. Please try again.' );
 			else
 				do_action( 'woocommerce_new_order', $order_id );
 		}
@@ -639,7 +639,7 @@ class WC_Checkout {
 		                $this->customer_id = wp_insert_user( apply_filters( 'woocommerce_new_customer_data', $new_customer_data ) );
 
 		                if ( is_wp_error( $this->customer_id ) ) {
-		                	throw new MyException( '<strong>' . __( 'ERROR', 'woocommerce' ) . '</strong>: ' . __( 'Couldn&#8217;t register you&hellip; please contact us if you continue to have problems.', 'woocommerce' ) );
+		                	throw new Exception( '<strong>' . __( 'ERROR', 'woocommerce' ) . '</strong>: ' . __( 'Couldn&#8217;t register you&hellip; please contact us if you continue to have problems.', 'woocommerce' ) );
 						}
 
                         // Set the global user object
@@ -657,14 +657,21 @@ class WC_Checkout {
 	                    wp_set_auth_cookie( $this->customer_id, true, $secure_cookie );
 
 					} else {
-						throw new MyException( $reg_errors->get_error_message() );
+						throw new Exception( $reg_errors->get_error_message() );
 					}
+
+                	// As we are now logged in, checkout will need to refresh to serve a new nonce
+                	$woocommerce->session->set( 'refresh_totals', true );
+
+                	// Add customer info from other billing fields
+                	if ( $this->posted['billing_first_name'] )
+                		wp_update_user( array ( 'ID' => $this->customer_id, 'first_name' => $this->posted['billing_first_name'], 'display_name' => $this->posted['billing_first_name'] ) );
 
 				}
 
 				// Abort if errors are present
 				if ( $woocommerce->error_count() > 0 )
-					throw new MyException();
+					throw new Exception();
 
 				// Create the order
 				$order_id = $this->create_order();
@@ -716,7 +723,7 @@ class WC_Checkout {
 						echo '<!--WC_START-->' . json_encode(
 							array(
 								'result' 	=> 'success',
-								'redirect' => apply_filters( 'woocommerce_checkout_no_payment_needed_redirect', $return_url, $order)
+								'redirect'  => apply_filters( 'woocommerce_checkout_no_payment_needed_redirect', $return_url, $order )
 							)
 						) . '<!--WC_END-->';
 						exit;
@@ -732,7 +739,7 @@ class WC_Checkout {
 			} catch ( Exception $e ) {
 
 				if ( ! empty( $e ) )
-					$woocommerce->add_error( $e );
+					$woocommerce->add_error( $e->getMessage() );
 
 			}
 

@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce
  * Plugin URI: http://www.woothemes.com/woocommerce/
  * Description: An e-commerce toolkit that helps you sell anything. Beautifully.
- * Version: 2.0.13
+ * Version: 2.0.14
  * Author: WooThemes
  * Author URI: http://woothemes.com
  * Requires at least: 3.5
@@ -37,7 +37,7 @@ class Woocommerce {
 	/**
 	 * @var string
 	 */
-	public $version = '2.0.13';
+	public $version = '2.0.14';
 
 	/**
 	 * @var string
@@ -1248,7 +1248,7 @@ class Woocommerce {
 		global $wp_scripts;
 
 		// Enforce minimum version of jQuery
-		if ( ! empty( $wp_scripts->registered['jquery']->ver ) && ! empty( $wp_scripts->registered['jquery']->src ) && $wp_scripts->registered['jquery']->ver < '1.7' ) {
+		if ( ! empty( $wp_scripts->registered['jquery']->ver ) && ! empty( $wp_scripts->registered['jquery']->src ) && 0 >= version_compare( $wp_scripts->registered['jquery']->ver, '1.7' ) ) {
 			wp_deregister_script( 'jquery' );
 			wp_register_script( 'jquery', '/wp-includes/js/jquery/jquery.js', array(), '1.7' );
 			wp_enqueue_script( 'jquery' );
@@ -1396,7 +1396,11 @@ class Woocommerce {
 			$scheme = 'http';
 		}
 
-		return esc_url_raw( trailingslashit( home_url( '/wc-api/' . $request, $scheme ) ) );
+		if ( get_option('permalink_structure') ) {
+			return esc_url_raw( trailingslashit( home_url( '/wc-api/' . $request, $scheme ) ) );
+		} else {
+			return esc_url_raw( add_query_arg( 'wc-api', $request, trailingslashit( home_url( '', $scheme ) ) ) );
+		}
 	}
 
 

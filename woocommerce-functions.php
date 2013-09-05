@@ -240,13 +240,13 @@ function woocommerce_update_cart_action() {
 				$_product = $values['data'];
 
 				// Skip product if no updated quantity was posted
-				if ( ! isset( $cart_totals[$cart_item_key]['qty'] ) )
+				if ( ! isset( $cart_totals[ $cart_item_key ]['qty'] ) )
 					continue;
 
 				// Sanitize
 				$quantity = apply_filters( 'woocommerce_stock_amount_cart_item', apply_filters( 'woocommerce_stock_amount', preg_replace( "/[^0-9\.]/", "", $cart_totals[ $cart_item_key ]['qty'] ) ), $cart_item_key );
 
-				if ( "" === $quantity )
+				if ( "" === $quantity || $quantity == $values['quantity'] )
 					continue;
 
 				// Update cart validation
@@ -259,9 +259,11 @@ function woocommerce_update_cart_action() {
 				}
 
 	    		if ( $passed_validation )
-		    		$woocommerce->cart->set_quantity( $cart_item_key, $quantity );
+		    		$woocommerce->cart->set_quantity( $cart_item_key, $quantity, false );
 
 			}
+
+			$woocommerce->cart->calculate_totals();
 		}
 
 		if ( ! empty( $_POST['proceed'] ) ) {
@@ -1072,8 +1074,10 @@ function woocommerce_download_product() {
 			$remote_file = false;
 
 			// Remove Query String
-			if ( strstr( $file_path, '?' ) )
-				$file_path = current( explode( '?', $file_path ) );
+			if ( strstr( $file_path, '?' ) ) {
+				$exploded_file_path = explode( '?', $file_path );
+				$file_path = current( $exploded_file_path );
+			}
 
 			$file_path   = realpath( $file_path );
 		}
@@ -1116,8 +1120,10 @@ function woocommerce_download_product() {
 
 		$file_name = basename( $file_path );
 
-		if ( strstr( $file_name, '?' ) )
-			$file_name = current( explode( '?', $file_name ) );
+		if ( strstr( $file_name, '?' ) ) {
+			$exploded_file_name = explode( '?', $file_name );
+			$file_name = current( $exploded_file_name );
+		}
 
 		header( "Robots: none" );
 		header( "Content-Type: " . $ctype );

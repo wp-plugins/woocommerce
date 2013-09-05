@@ -131,8 +131,6 @@ class WC_Google_Analytics extends WC_Integration {
 			_gaq.push(
 				['_setAccount', '" . esc_js( $tracking_id ) . "'], " . $set_domain_name . "
 				['_setCustomVar', 1, 'logged-in', '" . $loggedin . "', 1],
-				['_setCustomVar', 2, 'user-id', '" . $user_id . "', 1],
-				['_setCustomVar', 3, 'username', '" . $username . "', 1],
 				['_trackPageview']
 			);
 
@@ -191,8 +189,6 @@ class WC_Google_Analytics extends WC_Integration {
 			_gaq.push(
 				['_setAccount', '" . esc_js( $tracking_id ) . "'], " . $set_domain_name . "
 				['_setCustomVar', 1, 'logged-in', '" . esc_js( $loggedin ) . "', 1],
-				['_setCustomVar', 2, 'user-id', '" . esc_js( $user_id ) . "', 1],
-				['_setCustomVar', 3, 'username', '" . esc_js( $username ) . "', 1],
 				['_trackPageview']
 			);
 
@@ -233,7 +229,7 @@ class WC_Google_Analytics extends WC_Integration {
 					$code .= "'" . esc_js( join( "/", $out) ) . "',";
 				}
 
-				$code .= "'" . esc_js( $order->get_item_total( $item ) ) . "',";
+				$code .= "'" . esc_js( $order->get_item_total( $item, true, true ) ) . "',";
 				$code .= "'" . esc_js( $item['qty'] ) . "'";
 				$code .= "]);";
 			}

@@ -91,7 +91,7 @@ function woocommerce_status_report() {
             </tr>
             <tr>
                 <td><?php _e( 'WP Version','woocommerce' ); ?>:</td>
-                <td><?php if ( is_multisite() ) echo 'WPMU'; else echo 'WP'; ?> <?php echo bloginfo('version'); ?></td>
+                <td><?php if ( is_multisite() ) echo 'WPMU'; else echo 'WP'; ?> <?php bloginfo('version'); ?></td>
             </tr>
             <tr>
                 <td><?php _e( 'Web Server Info','woocommerce' ); ?>:</td>
@@ -142,6 +142,17 @@ function woocommerce_status_report() {
                 		echo '<mark class="error">' . __( 'Log directory (<code>woocommerce/logs/</code>) is not writable. Logging will not be possible.', 'woocommerce' ) . '</mark>';
                 ?></td>
             </tr>
+			<tr>
+				<td><?php _e( 'Default Timezone','woocommerce' ); ?>:</td>
+				<td><?php
+					$default_timezone = date_default_timezone_get();
+					if ( 'UTC' !== $default_timezone ) {
+						echo '<mark class="error">' . sprintf( __( 'Default timezone is %s - it should be UTC', 'woocommerce' ), $default_timezone ) . '</mark>';
+					} else {
+						echo '<mark class="yes">' . sprintf( __( 'Default timezone is %s', 'woocommerce' ), $default_timezone ) . '</mark>';
+					} ?>
+				</td>
+			</tr>
             <?php
 				$posting = array();
 
