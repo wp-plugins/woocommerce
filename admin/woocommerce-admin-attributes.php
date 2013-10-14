@@ -55,7 +55,8 @@ function woocommerce_attributes() {
 		// Auto-generate the label or slug if only one of both was provided
 		if ( ! $attribute_label ) {
 			$attribute_label = ucwords( $attribute_name );
-		} elseif ( ! $attribute_name ) {
+		}
+		if ( ! $attribute_name ) {
 			$attribute_name = woocommerce_sanitize_taxonomy_name( stripslashes( $attribute_label ) );
 		}
 
@@ -73,7 +74,7 @@ function woocommerce_attributes() {
 		);
 
 		// Error checking
-		if ( ! $attribute_name || ! $attribute_name || ! $attribute_type ) {
+		if ( ! $attribute_name || ! $attribute_label || ! $attribute_type ) {
 			$error = __( 'Please, provide an attribute name, slug and type.', 'woocommerce' );
 		} elseif ( strlen( $attribute_name ) >= 28 ) {
 			$error = sprintf( __( 'Slug “%s” is too long (28 characters max). Shorten it, please.', 'woocommerce' ), sanitize_title( $attribute_name ) );

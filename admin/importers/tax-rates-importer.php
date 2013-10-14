@@ -129,6 +129,8 @@ if ( class_exists( 'WP_Importer' ) ) {
 							$country = '';
 						if ( $state == '*' )
 							$state = '';
+						if ( $class == 'standard' )
+							$class = '';
 
 						$wpdb->insert(
 							$wpdb->prefix . "woocommerce_tax_rates",
@@ -337,7 +339,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 		 * Added to http_request_timeout filter to force timeout at 60 seconds during import
 		 * @return int 60
 		 */
-		function bump_request_timeout() {
+		function bump_request_timeout( $val ) {
 			return 60;
 		}
 	}

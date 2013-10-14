@@ -342,7 +342,7 @@ function woocommerce_product_data_box() {
 
 					// Taxonomies
 					if ( $attribute_taxonomies ) {
-				    	foreach ( $attribute_taxonomies as $tax ) { $i++;
+				    	foreach ( $attribute_taxonomies as $tax ) {
 
 				    		// Get name of taxonomy we're now outputting (pa_xxx)
 				    		$attribute_taxonomy_name = $woocommerce->attribute_taxonomy_name( $tax->attribute_name );
@@ -350,6 +350,8 @@ function woocommerce_product_data_box() {
 				    		// Ensure it exists
 				    		if ( ! taxonomy_exists( $attribute_taxonomy_name ) )
 				    			continue;
+
+				    		$i++;
 
 				    		// Get product data values for current taxonomy - this contains ordering and visibility data
 				    		if ( isset( $attributes[ sanitize_title( $attribute_taxonomy_name ) ] ) )
@@ -672,8 +674,13 @@ function woocommerce_process_product_meta( $post_id, $post ) {
 	// Update post meta
 	update_post_meta( $post_id, '_regular_price', stripslashes( $_POST['_regular_price'] ) );
 	update_post_meta( $post_id, '_sale_price', stripslashes( $_POST['_sale_price'] ) );
-	update_post_meta( $post_id, '_tax_status', stripslashes( $_POST['_tax_status'] ) );
-	update_post_meta( $post_id, '_tax_class', stripslashes( $_POST['_tax_class'] ) );
+
+	if ( isset( $_POST['_tax_status'] ) )
+		update_post_meta( $post_id, '_tax_status', stripslashes( $_POST['_tax_status'] ) );
+
+	if ( isset( $_POST['_tax_class'] ) )
+		update_post_meta( $post_id, '_tax_class', stripslashes( $_POST['_tax_class'] ) );
+
 	update_post_meta( $post_id, '_visibility', stripslashes( $_POST['_visibility'] ) );
 	update_post_meta( $post_id, '_purchase_note', stripslashes( $_POST['_purchase_note'] ) );
 	update_post_meta( $post_id, '_featured', isset( $_POST['_featured'] ) ? 'yes' : 'no' );
@@ -697,7 +704,7 @@ function woocommerce_process_product_meta( $post_id, $post ) {
 
 	// Unique SKU
 	$sku				= get_post_meta($post_id, '_sku', true);
-	$new_sku 			= esc_html( trim( stripslashes( $_POST['_sku'] ) ) );
+	$new_sku 			= woocommerce_clean( stripslashes( $_POST['_sku'] ) );
 	if ( $new_sku == '' ) {
 		update_post_meta( $post_id, '_sku', '' );
 	} elseif ( $new_sku !== $sku ) {

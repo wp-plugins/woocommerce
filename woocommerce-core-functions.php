@@ -95,12 +95,12 @@ function woocommerce_get_product_ids_on_sale() {
  * @return void
  */
 function woocommerce_sanitize_taxonomy_name( $taxonomy ) {
-	$taxonomy = strtolower( stripslashes( strip_tags( $taxonomy ) ) );
-	$taxonomy = preg_replace( '/&.+?;/', '', $taxonomy ); // Kill entities
-	$taxonomy = str_replace( array( '.', '\'', '"' ), '', $taxonomy ); // Kill quotes and full stops.
-	$taxonomy = str_replace( array( ' ', '_' ), '-', $taxonomy ); // Replace spaces and underscores.
+	$filtered = strtolower( remove_accents( stripslashes( strip_tags( $taxonomy ) ) ) );
+	$filtered = preg_replace( '/&.+?;/', '', $filtered ); // Kill entities
+	$filtered = str_replace( array( '.', '\'', '"' ), '', $filtered ); // Kill quotes and full stops.
+	$filtered = str_replace( array( ' ', '_' ), '-', $filtered ); // Replace spaces and underscores.
 
-	return $taxonomy;
+	return apply_filters( 'sanitize_taxonomy_name', $filtered, $taxonomy );
 }
 
 /**
@@ -580,6 +580,21 @@ if ( ! function_exists( 'is_filtered' ) ) {
 	}
 }
 
+if ( ! function_exists( 'taxonomy_is_product_attribute' ) ) {
+
+	/**
+	 * taxonomy_is_product_attribute - Returns true when the passed taxonomy name is a product attribute.
+	 *
+	 * @uses  $wc_product_attributes global which stores taxonomy names upon registration
+	 * @access public
+	 * @return bool
+	 */
+	function taxonomy_is_product_attribute( $name ) {
+		global $wc_product_attributes;
+
+		return taxonomy_exists( $name ) && array_key_exists( $name, (array) $wc_product_attributes );
+	}
+}
 
 /**
  * Get template part (for templates like the shop-loop).
@@ -1436,17 +1451,17 @@ function woocommerce_terms_clauses( $clauses, $taxonomies, $args ) {
 
 	// wordpress should give us the taxonomies asked when calling the get_terms function. Only apply to categories and pa_ attributes
 	$found = false;
-	foreach ( (array) $taxonomies as $taxonomy ) :
-		if ( strstr($taxonomy, 'pa_') || in_array( $taxonomy, apply_filters( 'woocommerce_sortable_taxonomies', array( 'product_cat' ) ) ) ) :
+	foreach ( (array) $taxonomies as $taxonomy ) {
+		if ( taxonomy_is_product_attribute( $taxonomy ) || in_array( $taxonomy, apply_filters( 'woocommerce_sortable_taxonomies', array( 'product_cat' ) ) ) ) {
 			$found = true;
 			break;
-		endif;
-	endforeach;
+		}
+	}
 	if (!$found) return $clauses;
 
 	// Meta name
-	if ( ! empty( $taxonomies[0] ) && strstr($taxonomies[0], 'pa_') ) {
-		$meta_name =  'order_' . esc_attr($taxonomies[0]);
+	if ( ! empty( $taxonomies[0] ) && taxonomy_is_product_attribute( $taxonomies[0] ) ) {
+		$meta_name =  'order_' . esc_attr( $taxonomies[0] );
 	} else {
 		$meta_name = 'order';
 	}
@@ -1495,7 +1510,7 @@ function woocommerce_get_product_terms( $object_id, $taxonomy, $fields = 'all' )
 
 	if ( ! is_array( $object_terms ) )
 		return array();
-	
+
 	$all_terms 		= array_flip( get_terms( $taxonomy, array( 'menu_order' => 'ASC', 'fields' => 'ids' ) ) );
 
 	switch ( $fields ) {
@@ -1605,7 +1620,7 @@ function woocommerce_taxonomy_metadata_wpdbfix() {
 	$wpdb->order_itemmeta = $wpdb->prefix . $itemmeta_name;
 
 	$wpdb->tables[] = 'woocommerce_termmeta';
-	$wpdb->tables[] = 'order_itemmeta';
+	$wpdb->tables[] = 'woocommerce_order_itemmeta';
 }
 
 add_action( 'init', 'woocommerce_taxonomy_metadata_wpdbfix', 0 );
@@ -1739,11 +1754,10 @@ function woocommerce_set_term_order( $term_id, $index, $taxonomy, $recursive = f
 	$index 		= (int) $index;
 
 	// Meta name
-	if (strstr($taxonomy, 'pa_')) :
-		$meta_name =  'order_' . esc_attr($taxonomy);
-	else :
+	if ( taxonomy_is_product_attribute( $taxonomy ) )
+		$meta_name =  'order_' . esc_attr( $taxonomy );
+	else
 		$meta_name = 'order';
-	endif;
 
 	update_woocommerce_term_meta( $term_id, $meta_name, $index );
 
@@ -1858,12 +1872,14 @@ function woocommerce_processing_order_count() {
 	if ( false === ( $order_count = get_transient( 'woocommerce_processing_order_count' ) ) ) {
 		$order_statuses = get_terms( 'shop_order_status' );
 	    $order_count = false;
-	    foreach ( $order_statuses as $status ) {
-	        if( $status->slug === 'processing' ) {
-	            $order_count += $status->count;
-	            break;
-	        }
-	    }
+	    if ( $order_statuses ) {
+		    foreach ( $order_statuses as $status ) {
+		        if( $status->slug === 'processing' ) {
+		            $order_count += $status->count;
+		            break;
+		        }
+		    }
+		}
 	    $order_count = apply_filters( 'woocommerce_admin_menu_count', intval( $order_count ) );
 		set_transient( 'woocommerce_processing_order_count', $order_count );
 	}
@@ -2340,6 +2356,9 @@ add_action( 'woocommerce_product_set_stock_status', 'woocommerce_recount_after_s
  * @return void
  */
 function woocommerce_change_term_counts( $terms, $taxonomies, $args ) {
+
+	if ( ! isset( $taxonomies[0] ) || ! is_array( $taxonomies[0] ) )
+		return;
 
 	if ( ! in_array( $taxonomies[0], apply_filters( 'woocommerce_change_term_counts', array( 'product_cat', 'product_tag' ) ) ) )
 		return $terms;

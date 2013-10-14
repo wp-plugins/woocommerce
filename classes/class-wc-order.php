@@ -1070,19 +1070,15 @@ class WC_Order {
 	 * @return bool
 	 */
 	public function has_downloadable_item() {
-		$has_downloadable_item = false;
-
-		foreach($this->get_items() as $item) :
-
+		foreach ( $this->get_items() as $item ) {
 			$_product = $this->get_product_from_item( $item );
 
-			if ($_product->exists() && $_product->is_downloadable()) :
-				$has_downloadable_item = true;
-			endif;
+			if ( false !== $_product && $_product->exists() && $_product->is_downloadable() ) {
+				return true;
+			}
+		}
 
-		endforeach;
-
-		return $has_downloadable_item;
+		return false;
 	}
 
 
@@ -1214,7 +1210,7 @@ class WC_Order {
 
 			wp_set_object_terms( $this->id, array( $new_status->slug ), 'shop_order_status', false );
 
-			if ( $this->status != $new_status->slug ) {
+			if ( $this->id && $this->status != $new_status->slug ) {
 
 				// Status was changed
 				do_action( 'woocommerce_order_status_' . $new_status->slug, $this->id );
@@ -1284,6 +1280,8 @@ class WC_Order {
 	public function payment_complete() {
 		global $woocommerce;
 
+		do_action( 'woocommerce_pre_payment_complete', $this->id );
+
 		if ( ! empty( $woocommerce->session->order_awaiting_payment ) )
 			unset( $woocommerce->session->order_awaiting_payment );
 
@@ -1329,6 +1327,11 @@ class WC_Order {
 				$this->reduce_order_stock(); // Payment is complete so reduce stock levels
 
 			do_action( 'woocommerce_payment_complete', $this->id );
+
+		} else {
+
+			do_action( 'woocommerce_payment_complete_order_status_' . $this->status, $this->id );
+
 		}
 	}
 

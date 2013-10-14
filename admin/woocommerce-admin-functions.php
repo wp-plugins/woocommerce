@@ -276,15 +276,19 @@ function woocommerce_prevent_admin_access() {
  * @return void
  */
 function woocommerce_downloads_upload_dir( $pathdata ) {
-
-	// Change upload dir
+	// Change upload dir for downloadable files
 	if ( isset( $_POST['type'] ) && $_POST['type'] == 'downloadable_product' ) {
-		// Uploading a downloadable file
-		$subdir = '/woocommerce_uploads'.$pathdata['subdir'];
-	 	$pathdata['path'] = str_replace($pathdata['subdir'], $subdir, $pathdata['path']);
-	 	$pathdata['url'] = str_replace($pathdata['subdir'], $subdir, $pathdata['url']);
-		$pathdata['subdir'] = str_replace($pathdata['subdir'], $subdir, $pathdata['subdir']);
-		return $pathdata;
+		if ( empty( $pathdata['subdir'] ) ) {
+			$pathdata['path']   = $pathdata['path'] . '/woocommerce_uploads';
+			$pathdata['url']    = $pathdata['url']. '/woocommerce_uploads';
+			$pathdata['subdir'] = '/woocommerce_uploads';
+		} else {
+			$new_subdir = '/woocommerce_uploads' . $pathdata['subdir'];
+
+			$pathdata['path']   = str_replace( $pathdata['subdir'], $new_subdir, $pathdata['path'] );
+			$pathdata['url']    = str_replace( $pathdata['subdir'], $new_subdir, $pathdata['url'] );
+			$pathdata['subdir'] = str_replace( $pathdata['subdir'], $new_subdir, $pathdata['subdir'] );
+		}
 	}
 
 	return $pathdata;
@@ -384,10 +388,10 @@ function woocommerce_refresh_mce( $ver ) {
  */
 function woocommerce_create_term( $term_id, $tt_id = '', $taxonomy = '' ) {
 
-	if ( ! $taxonomy == 'product_cat' && ! strstr( $taxonomy, 'pa_' ) )
+	if ( $taxonomy != 'product_cat' && ! taxonomy_is_product_attribute( $taxonomy ) )
 		return;
 
-	$meta_name = strstr( $taxonomy, 'pa_' ) ? 'order_' . esc_attr( $taxonomy ) : 'order';
+	$meta_name = taxonomy_is_product_attribute( $taxonomy ) ? 'order_' . esc_attr( $taxonomy ) : 'order';
 
 	update_woocommerce_term_meta( $term_id, $meta_name, 0 );
 }

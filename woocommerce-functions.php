@@ -161,8 +161,12 @@ function woocommerce_nav_menu_item_classes( $menu_items, $args ) {
 		// Unset active class for blog page
 		if ( $page_for_posts == $menu_item->object_id ) {
 			$menu_items[$key]->current = false;
-			unset( $classes[ array_search('current_page_parent', $classes) ] );
-			unset( $classes[ array_search('current-menu-item', $classes) ] );
+
+			if ( in_array( 'current_page_parent', $classes ) )
+				unset( $classes[ array_search('current_page_parent', $classes) ] );
+
+			if ( in_array( 'current-menu-item', $classes ) )
+				unset( $classes[ array_search('current-menu-item', $classes) ] );
 
 		// Set active state if this is the shop page link
 		} elseif ( is_shop() && $shop_page == $menu_item->object_id ) {
@@ -439,7 +443,7 @@ function woocommerce_add_to_cart_action( $url = false ) {
     // If we added the product to the cart we can now do a redirect, otherwise just continue loading the page to show errors
     if ( $was_added_to_cart ) {
 
-		$url = apply_filters( 'add_to_cart_redirect', $url );
+		$url = apply_filters( 'add_to_cart_redirect', $url, $product_id );
 
 		// If has custom URL redirect there
 		if ( $url ) {
@@ -858,7 +862,7 @@ function woocommerce_order_again() {
 		$cart_item_data = apply_filters( 'woocommerce_order_again_cart_item_data', array(), $item, $order );
 
 		foreach ( $item['item_meta'] as $meta_name => $meta_value ) {
-			if ( 'pa_' === substr( $meta_name, 0, 3 ) )
+			if ( taxonomy_is_product_attribute( $meta_name ) )
 				$variations[ $meta_name ] = $meta_value[0];
 		}
 
@@ -914,7 +918,7 @@ function woocommerce_cancel_order() {
 
 		endif;
 
-		wp_safe_redirect($woocommerce->cart->get_cart_url());
+		wp_safe_redirect( get_permalink( woocommerce_get_page_id( 'myaccount' ) ) );
 		exit;
 
 	endif;
@@ -1730,3 +1734,31 @@ function woocommerce_save_address() {
 }
 
 add_action( 'template_redirect', 'woocommerce_save_address' );
+
+/**
+ * Wrapper for wp_get_post_terms which supports ordering by parent
+ * @return array of terms
+ */
+function wc_get_product_terms( $product_id, $taxonomy, $args = array() ) {
+	if ( $args['orderby'] == 'parent' ) {
+		unset( $args['orderby'] );
+		$orderby_parent = true;
+	}
+
+	$terms = wp_get_post_terms( $product_id, $taxonomy, $args );
+
+	if ( ! empty( $orderby_parent ) )
+		usort( $terms, '_wc_get_product_terms_parent_usort_callback' );
+
+	return $terms;
+}
+
+/**
+ * Sort by parent
+ * @return array
+ */
+function _wc_get_product_terms_parent_usort_callback( $a, $b ) {
+	if( $a->parent === $b->parent )
+		return 0;
+	return ( $a->parent < $b->parent ) ? 1 : -1;
+}

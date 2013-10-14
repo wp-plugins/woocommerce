@@ -743,6 +743,7 @@ class WC_Cart {
 					$tax_totals[ $code ]->amount = 0;
 				}
 
+				$tax_totals[ $code ]->tax_rate_id       = $key;
 				$tax_totals[ $code ]->is_compound       = $this->tax->is_compound( $key );
 				$tax_totals[ $code ]->label             = $this->tax->get_rate_label( $key );
 				$tax_totals[ $code ]->amount           += $tax;
@@ -766,9 +767,10 @@ class WC_Cart {
 	     */
 	    public function find_product_in_cart( $cart_id = false ) {
 	        if ( $cart_id !== false )
-	        	foreach ( $this->cart_contents as $cart_item_key => $cart_item )
-	        		if ( $cart_item_key == $cart_id )
-	        			return $cart_item_key;
+	        	if( is_array( $this->cart_contents ) )
+		        	foreach ( $this->cart_contents as $cart_item_key => $cart_item )
+		        		if ( $cart_item_key == $cart_id )
+		        			return $cart_item_key;
 	    }
 
 		/**
@@ -1411,11 +1413,9 @@ class WC_Cart {
 							$tax_rates			 	= $this->tax->get_rates( $_product->get_tax_class() );
 
 							/**
-							 * ADJUST TAX - Calculations when customer is OUTSIDE the shop base country/state and prices INCLUDE tax
-							 * 	OR
-							 * ADJUST TAX - Calculations when a tax class is modified
+							 * ADJUST TAX - Calculations when base tax is not equal to the item tax
 							 */
-							if ( ( $woocommerce->customer->is_customer_outside_base() && ( defined('WOOCOMMERCE_CHECKOUT') || $woocommerce->customer->has_calculated_shipping() ) ) || ( $_product->get_tax_class() !== $_product->tax_class ) ) {
+							if ( $item_tax_rates !== $base_tax_rates ) {
 
 								// Get tax rate for the store base, ensuring we use the unmodified tax_class for the product
 								$base_tax_rates 		= $this->tax->get_shop_base_rate( $_product->tax_class );
