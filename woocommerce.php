@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce
  * Plugin URI: http://www.woothemes.com/woocommerce/
  * Description: An e-commerce toolkit that helps you sell anything. Beautifully.
- * Version: 2.0.15
+ * Version: 2.0.16
  * Author: WooThemes
  * Author URI: http://woothemes.com
  * Requires at least: 3.5
@@ -37,7 +37,7 @@ class Woocommerce {
 	/**
 	 * @var string
 	 */
-	public $version = '2.0.15';
+	public $version = '2.0.16';
 
 	/**
 	 * @var string
@@ -924,8 +924,9 @@ class Woocommerce {
 	        ) )
 	    );
 
-	    $attribute_taxonomies = $this->get_attribute_taxonomies();
-		if ( $attribute_taxonomies ) {
+	    global $wc_product_attributes;
+
+		if ( $attribute_taxonomies = $this->get_attribute_taxonomies() ) {
 			foreach ($attribute_taxonomies as $tax) {
 
 		    	$name = $this->attribute_taxonomy_name( $tax->attribute_name );
@@ -933,6 +934,8 @@ class Woocommerce {
 		    	if ($name) {
 
 		    		$label = ( isset( $tax->attribute_label ) && $tax->attribute_label ) ? $tax->attribute_label : $tax->attribute_name;
+
+		    		$wc_product_attributes[ $name ] = $tax;
 
 					$show_in_nav_menus = apply_filters( 'woocommerce_attribute_show_in_nav_menus', false, $name );
 
