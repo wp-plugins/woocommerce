@@ -1,4 +1,8 @@
-jQuery(document).ready(function($) {
+jQuery(function($) {
+
+	// wc_add_to_cart_params is required to continue, ensure the object exists
+	if (typeof wc_add_to_cart_params === "undefined")
+		return false;
 
 	// Ajax add to cart
 	$(document).on( 'click', '.add_to_cart_button', function() {
@@ -6,9 +10,10 @@ jQuery(document).ready(function($) {
 		// AJAX add to cart request
 		var $thisbutton = $(this);
 
-		if ($thisbutton.is('.product_type_simple, .product_type_downloadable, .product_type_virtual')) {
+		if ( $thisbutton.is('.product_type_simple') ) {
 
-			if (!$thisbutton.attr('data-product_id')) return true;
+			if (!$thisbutton.attr('data-product_id'))
+				return true;
 
 			$thisbutton.removeClass('added');
 			$thisbutton.addClass('loading');
@@ -23,7 +28,7 @@ jQuery(document).ready(function($) {
 			$('body').trigger( 'adding_to_cart', [ $thisbutton, data ] );
 
 			// Ajax action
-			$.post( woocommerce_params.ajax_url, data, function( response ) {
+			$.post( wc_add_to_cart_params.ajax_url, data, function( response ) {
 
 				if ( ! response )
 					return;
@@ -38,9 +43,9 @@ jQuery(document).ready(function($) {
 				}
 
 				// Redirect to cart option
-				if ( woocommerce_params.cart_redirect_after_add == 'yes' ) {
+				if ( wc_add_to_cart_params.cart_redirect_after_add == 'yes' ) {
 
-					window.location = woocommerce_params.cart_url;
+					window.location = wc_add_to_cart_params.cart_url;
 					return;
 
 				} else {
@@ -58,14 +63,14 @@ jQuery(document).ready(function($) {
 					}
 
 					// Block widgets and fragments
-					$('.shop_table.cart, .updating, .cart_totals').fadeTo('400', '0.6').block({message: null, overlayCSS: {background: 'transparent url(' + woocommerce_params.ajax_loader_url + ') no-repeat center', backgroundSize: '16px 16px', opacity: 0.6 } } );
+					$('.shop_table.cart, .updating, .cart_totals').fadeTo('400', '0.6').block({message: null, overlayCSS: {background: 'transparent url(' + wc_add_to_cart_params.ajax_loader_url + ') no-repeat center', backgroundSize: '16px 16px', opacity: 0.6 } } );
 
 					// Changes button classes
 					$thisbutton.addClass('added');
 
 					// View cart text
-					if ( $thisbutton.parent().find('.added_to_cart').size() == 0 )
-						$thisbutton.after( ' <a href="' + woocommerce_params.cart_url + '" class="added_to_cart" title="' + woocommerce_params.i18n_view_cart + '">' + woocommerce_params.i18n_view_cart + '</a>' );
+					if ( ! wc_add_to_cart_params.is_cart && $thisbutton.parent().find('.added_to_cart').size() == 0 )
+						$thisbutton.after( ' <a href="' + wc_add_to_cart_params.cart_url + '" class="added_to_cart wc-forward" title="' + wc_add_to_cart_params.i18n_view_cart + '">' + wc_add_to_cart_params.i18n_view_cart + '</a>' );
 
 					// Replace fragments
 					if ( fragments ) {
@@ -98,10 +103,9 @@ jQuery(document).ready(function($) {
 
 			return false;
 
-		} else {
-			return true;
 		}
 
+		return true;
 	});
 
 });

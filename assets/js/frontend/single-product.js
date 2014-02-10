@@ -1,4 +1,8 @@
-jQuery(document).ready(function($) {
+jQuery(function($) {
+
+	// wc_single_product_params is required to continue, ensure the object exists
+	if (typeof wc_single_product_params === "undefined")
+		return false;
 
 	// Tabs
 	$('.woocommerce-tabs .panel').hide();
@@ -17,12 +21,25 @@ jQuery(document).ready(function($) {
 	});
 
 	$('.woocommerce-tabs').each(function() {
-		var hash = window.location.hash;
+		var hash 	= window.location.hash;
+		var url		= window.location.href;
+
 		if (hash.toLowerCase().indexOf("comment-") >= 0) {
 			$('ul.tabs li.reviews_tab a', $(this)).click();
 		} else {
 			$('ul.tabs li:first a', $(this)).click();
 		}
+
+		if ( url.indexOf("comment-page-") > 0 || url.indexOf("cpage=") > 0 ) {
+			$( 'ul.tabs li.reviews_tab a', $( this ) ).click();
+		} else {
+			$( 'ul.tabs li:first a', $( this ) ).click();
+		}
+	});
+
+	$('a.woocommerce-review-link').click(function() {
+		$('.reviews_tab a').click();
+		return true;
 	});
 
 	// Star ratings for comments
@@ -43,8 +60,8 @@ jQuery(document).ready(function($) {
 			var $rating = $(this).closest('#respond').find('#rating');
 			var rating  = $rating.val();
 
-			if ( $rating.size() > 0 && ! rating && woocommerce_params.review_rating_required == 'yes' ) {
-				alert(woocommerce_params.i18n_required_rating_text);
+			if ( $rating.size() > 0 && ! rating && wc_single_product_params.review_rating_required == 'yes' ) {
+				alert(wc_single_product_params.i18n_required_rating_text);
 				return false;
 			}
 		});

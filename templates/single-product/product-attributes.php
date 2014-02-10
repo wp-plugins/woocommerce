@@ -26,7 +26,7 @@ if ( empty( $attributes ) && ( ! $product->enable_dimensions_display() || ( ! $p
 
 			<tr class="<?php if ( ( $alt = $alt * -1 ) == 1 ) echo 'alt'; ?>">
 				<th><?php _e( 'Weight', 'woocommerce' ) ?></th>
-				<td class="product_weight"><?php echo $product->get_weight() . ' ' . esc_attr( get_option('woocommerce_weight_unit') ); ?></td>
+				<td class="product_weight"><?php echo $product->get_weight() . ' ' . esc_attr( get_option( 'woocommerce_weight_unit' ) ); ?></td>
 			</tr>
 
 		<?php endif; ?>
@@ -49,17 +49,17 @@ if ( empty( $attributes ) && ( ! $product->enable_dimensions_display() || ( ! $p
 		?>
 
 		<tr class="<?php if ( ( $alt = $alt * -1 ) == 1 ) echo 'alt'; ?>">
-			<th><?php echo $woocommerce->attribute_label( $attribute['name'] ); ?></th>
+			<th><?php echo wc_attribute_label( $attribute['name'] ); ?></th>
 			<td><?php
 				if ( $attribute['is_taxonomy'] ) {
 
-					$values = woocommerce_get_product_terms( $product->id, $attribute['name'], 'names' );
+					$values = wc_get_product_terms( $product->id, $attribute['name'], array( 'fields' => 'names' ) );
 					echo apply_filters( 'woocommerce_attribute', wpautop( wptexturize( implode( ', ', $values ) ) ), $attribute, $values );
 
 				} else {
 
 					// Convert pipes to commas and display values
-					$values = array_map( 'trim', explode( '|', $attribute['value'] ) );
+					$values = array_map( 'trim', explode( WC_DELIMITER, $attribute['value'] ) );
 					echo apply_filters( 'woocommerce_attribute', wpautop( wptexturize( implode( ', ', $values ) ) ), $attribute, $values );
 
 				}

@@ -157,7 +157,7 @@
 			            	if ( ! focus )
 			            		$variation_form.trigger( 'reset_image' );
 
-			            	alert( woocommerce_params.i18n_no_matching_variations_text );
+			            	alert( wc_add_to_cart_variation_params.i18n_no_matching_variations_text );
 
 			            }
 
@@ -213,9 +213,9 @@
 							.attr( 'title', o_title );
 			        }
 			        if ( o_alt != undefined ) {
-			        	 $product_img
-				        	.attr( 'alt', o_alt );
-			        }
+						$product_img
+							.attr( 'alt', o_alt );
+					}
 				} )
 
 				// Disable option fields that are unavaiable for current set of attributes
@@ -261,7 +261,7 @@
 					                    	attr_val = attr_val.replace(/'/g, "\\'");
 					                    	attr_val = attr_val.replace(/"/g, "\\\"");
 
-					                    	// Compare the meercat
+					                    	// Compare the meerkat
 					                    	current_attr_select.find('option[value="' + attr_val + '"]').addClass('active');
 
 					                    } else {
@@ -298,7 +298,7 @@
 
 					var o_src 			= $product_img.attr('data-o_src');
 					var o_title 		= $product_img.attr('data-o_title');
-					var o_alt 		    = $product_img.attr('data-o_alt');
+					var o_alt         = $product_img.attr('data-o_alt');
 			        var o_href 			= $product_link.attr('data-o_href');
 
 			        var variation_image = variation.image_src;
@@ -326,7 +326,7 @@
 
 			        if ( o_alt == undefined ) {
 			        	o_alt = ( ! $product_img.attr('alt') ) ? '' : $product_img.attr('alt');
-			            $product_img.attr('data-o_alt', o_alt );
+			        	$product_img.attr('data-o_alt', o_alt );
 			        }
 
 			        if ( variation_image && variation_image.length > 1 ) {
@@ -386,6 +386,11 @@
 				        $variation_form.find('.variations_button').hide();
 			        }
 
+			        if ( ! variation.variation_is_visible ) {
+			        	$variation_form.find('.variations_button').hide();
+			        	$variation_form.find('.single_variation').html( '<p>' + wc_add_to_cart_variation_params.i18n_unavailable_text + '</p>' );
+			        }
+
 			        if ( variation.min_qty )
 			        	$single_variation_wrap.find('input[name=quantity]').attr( 'min', variation.min_qty ).val( variation.min_qty );
 			        else
@@ -404,12 +409,17 @@
 			        $single_variation_wrap.slideDown('200').trigger( 'show_variation', [ variation ] );
 
 				});
-		
+
 		$form.trigger('wc_variation_form');
 		return $form;
     };
 
     $(function() {
+
+		// wc_add_to_cart_variation_params is required to continue, ensure the object exists
+		if (typeof wc_add_to_cart_variation_params === "undefined")
+			return false;
+
     	$('.variations_form').wc_variation_form();
    		$('.variations_form .variations select').change();
     });
