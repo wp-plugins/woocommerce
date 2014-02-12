@@ -37,6 +37,8 @@ class WC_Install {
 	public function check_version() {
 		if ( ! defined( 'IFRAME_REQUEST' ) && ( get_option( 'woocommerce_version' ) != WC()->version || get_option( 'woocommerce_db_version' ) != WC()->version ) ) {
 			$this->install();
+
+			do_action( 'woocommerce_updated' );
 		}
 	}
 
@@ -64,9 +66,6 @@ class WC_Install {
 			delete_option( '_wc_needs_pages' );
 			delete_transient( '_wc_activation_redirect' );
 
-			// Flush rules after install
-			flush_rewrite_rules();
-
 			// What's new redirect
 			wp_redirect( admin_url( 'index.php?page=wc-about' ) );
 			exit;
@@ -91,14 +90,18 @@ class WC_Install {
 	 * Install WC
 	 */
 	public function install() {
-
 		$this->create_options();
 		$this->create_tables();
 		$this->create_roles();
 
 		// Register post types
 		include_once( 'class-wc-post-types.php' );
+		WC_Post_types::register_post_types();
 		WC_Post_types::register_taxonomies();
+
+		// Also register endpoints - this needs to be done prior to rewrite rule flush
+		WC()->query->init_query_vars();
+		WC()->query->add_endpoints();
 
 		$this->create_terms();
 		$this->create_cron_jobs();
@@ -126,7 +129,7 @@ class WC_Install {
 			update_option( '_wc_needs_pages', 1 );
 		}
 
-		// Flush rewrite rules
+		// Flush rules after install
 		flush_rewrite_rules();
 
 		// Redirect to welcome screen

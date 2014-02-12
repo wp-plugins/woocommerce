@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce
  * Plugin URI: http://www.woothemes.com/woocommerce/
  * Description: An e-commerce toolkit that helps you sell anything. Beautifully.
- * Version: 2.1.0
+ * Version: 2.1.1
  * Author: WooThemes
  * Author URI: http://woothemes.com
  * Requires at least: 3.8
@@ -33,7 +33,7 @@ final class WooCommerce {
 	/**
 	 * @var string
 	 */
-	public $version = '2.1.0';
+	public $version = '2.1.1';
 
 	/**
 	 * @var WooCommerce The single instance of the class
@@ -696,6 +696,9 @@ final class WooCommerce {
 	 */
 	public function verify_nonce( $action, $method = '_POST', $error_message = false ) {
 		_deprecated_function( 'Woocommerce->verify_nonce', '2.1', 'wp_verify_nonce' );
+		if ( ! isset( $method[ '_wpnonce' ] ) ) {
+			return false;
+		}
 		return wp_verify_nonce( $method[ '_wpnonce' ], 'woocommerce-' . $action );
 	}
 

@@ -580,10 +580,7 @@ class WC_Cart {
 		 */
 		public function get_cart_url() {
 			$cart_page_id = wc_get_page_id( 'cart' );
-			if ( $cart_page_id )
-				return apply_filters( 'woocommerce_get_cart_url', get_permalink( $cart_page_id ) );
-
-			return '';
+			return apply_filters( 'woocommerce_get_cart_url', $cart_page_id ? get_permalink( $cart_page_id ) : '' );
 		}
 
 		/**
@@ -611,8 +608,7 @@ class WC_Cart {
 		 */
 		public function get_remove_url( $cart_item_key ) {
 			$cart_page_id = wc_get_page_id('cart');
-			if ( $cart_page_id )
-				return apply_filters( 'woocommerce_get_remove_url', wp_nonce_url( add_query_arg( 'remove_item', $cart_item_key, get_permalink( $cart_page_id ) ), 'woocommerce-cart' ) );
+			return apply_filters( 'woocommerce_get_remove_url', $cart_page_id ? wp_nonce_url( add_query_arg( 'remove_item', $cart_item_key, get_permalink( $cart_page_id ) ), 'woocommerce-cart' ) : '' );
 		}
 
 		/**
@@ -757,18 +753,27 @@ class WC_Cart {
 		 */
 		public function add_to_cart( $product_id, $quantity = 1, $variation_id = '', $variation = '', $cart_item_data = array() ) {
 
-			if ( $quantity <= 0 ) return false;
+			if ( $quantity <= 0 ) {
+				return false;
+			}
 
 			// Load cart item data - may be added by other plugins
 			$cart_item_data = (array) apply_filters( 'woocommerce_add_cart_item_data', $cart_item_data, $product_id, $variation_id );
-
+			
 			// Generate a ID based on product ID, variation ID, variation data, and other cart item data
-			$cart_id = $this->generate_cart_id( $product_id, $variation_id, $variation, $cart_item_data );
-
+			$cart_id        = $this->generate_cart_id( $product_id, $variation_id, $variation, $cart_item_data );
+			
 			// See if this product and its options is already in the cart
-			$cart_item_key = $this->find_product_in_cart( $cart_id );
+			$cart_item_key  = $this->find_product_in_cart( $cart_id );
 
-			$product_data = get_product( $variation_id ? $variation_id : $product_id );
+			// Ensure we don't add a variation to the cart directly by variation ID
+			if ( 'product_variation' == get_post_type( $product_id ) ) {
+				$variation_id = $product_id;
+				$product_id   = wp_get_post_parent_id( $variation_id );
+			}
+			
+			// Get the product
+			$product_data   = get_product( $variation_id ? $variation_id : $product_id );
 
 			if ( ! $product_data )
 				return false;

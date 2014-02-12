@@ -130,6 +130,30 @@ if ( ! function_exists( 'is_checkout_pay_page' ) ) {
 	}
 }
 
+if ( ! function_exists( 'is_wc_endpoint_url' ) ) {
+
+	/**
+	 * is_wc_endpoint_url - Check if an endpoint is showing
+	 *
+	 * @access public
+	 * @param  string $endpoint
+	 * @return bool
+	 */
+	function is_wc_endpoint_url( $endpoint ) {
+		global $wp;
+
+		$wc_endpoints = WC()->query->get_query_vars();
+
+		if ( ! isset( $wc_endpoints[ $endpoint ] ) ) {
+			return false;
+		} else {
+			$endpoint_var = $wc_endpoints[ $endpoint ];
+		}
+
+		return isset( $wp->query_vars[ $endpoint_var ] ) ? true : false;
+	}
+}
+
 if ( ! function_exists( 'is_account_page' ) ) {
 
 	/**
@@ -223,7 +247,7 @@ if ( ! function_exists( 'taxonomy_is_product_attribute' ) ) {
 	 * Returns true when the passed taxonomy name is a product attribute.
 	 *
 	 * @uses  $wc_product_attributes global which stores taxonomy names upon registration
-	 * @param $name of the attribute
+	 * @param string $name of the attribute
 	 * @return bool
 	 */
 	function taxonomy_is_product_attribute( $name ) {

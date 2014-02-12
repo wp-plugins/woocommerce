@@ -17,6 +17,10 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
  */
 class WC_Admin_Report {
 
+	public $chart_interval;
+	public $group_by_query;
+	public $barwidth;
+	public $chart_groupby;
 	public $start_date;
 	public $end_date;
 
@@ -32,7 +36,7 @@ class WC_Admin_Report {
 	 * )
 	 *
 	 * @param  array $args
-	 * @return array of results
+	 * @return array|string depending on query_type
 	 */
 	public function get_order_report_data( $args = array() ) {
 		global $wpdb;
@@ -268,7 +272,8 @@ class WC_Admin_Report {
 	 */
 	public function prepare_chart_data( $data, $date_key, $data_key, $interval, $start_date, $group_by ) {
 		$prepared_data = array();
-
+		$time          =  '';
+		
 		// Ensure all days (or months) have values first in this range
 		for ( $i = 0; $i <= $interval; $i ++ ) {
 			switch ( $group_by ) {

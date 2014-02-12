@@ -95,6 +95,11 @@ function wc_get_template( $template_name, $args = array(), $template_path = '', 
 
 	$located = wc_locate_template( $template_name, $template_path, $default_path );
 
+	if ( ! file_exists( $located ) ) {
+		_doing_it_wrong( __FUNCTION__, sprintf( '<code>%s</code> does not exist.', $located ) );
+		return;
+	}
+
 	do_action( 'woocommerce_before_template_part', $template_name, $template_path, $located, $args );
 
 	include( $located );
@@ -170,6 +175,7 @@ function get_woocommerce_currencies() {
 				'DKK' => __( 'Danish Krone', 'woocommerce' ),
 				'EUR' => __( 'Euros', 'woocommerce' ),
 				'HKD' => __( 'Hong Kong Dollar', 'woocommerce' ),
+				'HRK' => __( 'Croatia kuna', 'woocommerce' ),
 				'HUF' => __( 'Hungarian Forint', 'woocommerce' ),
 				'ISK' => __( 'Icelandic krona', 'woocommerce' ),
 				'IDR' => __( 'Indonesia Rupiah', 'woocommerce' ),
