@@ -32,6 +32,11 @@ class WC_Shortcode_My_Account {
 	public static function output( $atts ) {
 		global $woocommerce, $wp;
 
+		// Check cart class is loaded or abort
+		if ( is_null( WC()->cart ) ) {
+			return;
+		}
+
 		if ( ! is_user_logged_in() ) {
 
 			$message = apply_filters( 'woocommerce_my_account_message', '' );
@@ -102,38 +107,16 @@ class WC_Shortcode_My_Account {
 		$user_id      	= get_current_user_id();
 		$order 			= new WC_Order( $order_id );
 
-		if ( !current_user_can( 'view_order', $order_id ) ) {
+		if ( ! current_user_can( 'view_order', $order_id ) ) {
 			echo '<div class="woocommerce-error">' . __( 'Invalid order.', 'woocommerce' ) . ' <a href="' . get_permalink( wc_get_page_id( 'myaccount' ) ).'" class="wc-forward">'. __( 'My Account', 'woocommerce' ) .'</a>' . '</div>';
 			return;
 		}
 
-		$status = get_term_by( 'slug', $order->status, 'shop_order_status' );
-
-		echo '<p class="order-info">' . sprintf( __( 'Order <mark class="order-number">%s</mark> was placed on <mark class="order-date">%s</mark> and is currently <mark class="order-status">%s</mark>.', 'woocommerce' ), $order->get_order_number(), date_i18n( get_option( 'date_format' ), strtotime( $order->order_date ) ), __( $status->name, 'woocommerce' ) ) . '</p>';
-
-		if ( $notes = $order->get_customer_order_notes() ) :
-			?>
-			<h2><?php _e( 'Order Updates', 'woocommerce' ); ?></h2>
-			<ol class="commentlist notes">
-				<?php foreach ( $notes as $note ) : ?>
-				<li class="comment note">
-					<div class="comment_container">
-						<div class="comment-text">
-							<p class="meta"><?php echo date_i18n(__( 'l jS \o\f F Y, h:ia', 'woocommerce' ), strtotime($note->comment_date)); ?></p>
-							<div class="description">
-								<?php echo wpautop( wptexturize( $note->comment_content ) ); ?>
-							</div>
-			  				<div class="clear"></div>
-			  			</div>
-						<div class="clear"></div>
-					</div>
-				</li>
-				<?php endforeach; ?>
-			</ol>
-			<?php
-		endif;
-
-		do_action( 'woocommerce_view_order', $order_id );
+		wc_get_template( 'myaccount/view-order.php', array(
+	        'status'    => get_term_by( 'slug', $order->status, 'shop_order_status' ),
+	        'order'     => new WC_Order( $order_id ),
+	        'order_id'  => $order_id
+	    ) );
 	}
 
 	/**
@@ -205,7 +188,7 @@ class WC_Shortcode_My_Account {
 		$args = array( 'form' => 'lost_password' );
 
 		// process reset key / login from email confirmation link
-		if( isset( $_GET['key'] ) && isset( $_GET['login'] ) ) {
+		if ( isset( $_GET['key'] ) && isset( $_GET['login'] ) ) {
 
 			$user = self::check_password_reset_key( $_GET['key'], $_GET['login'] );
 
@@ -215,6 +198,8 @@ class WC_Shortcode_My_Account {
 				$args['key'] = esc_attr( $_GET['key'] );
 				$args['login'] = esc_attr( $_GET['login'] );
 			}
+		} elseif ( isset( $_GET['reset'] ) ) {
+			wc_add_notice( __( 'Your password has been reset.', 'woocommerce' ) . ' <a href="' . get_permalink( wc_get_page_id( 'myaccount' ) ) . '">' . __( 'Log in', 'woocommerce' ) . '</a>' );
 		}
 
 		wc_get_template( 'myaccount/form-lost-password.php', $args );
@@ -234,7 +219,7 @@ class WC_Shortcode_My_Account {
 
 			wc_add_notice( __( 'Enter a username or e-mail address.', 'woocommerce' ), 'error' );
 
-		} elseif ( strpos( $_POST['user_login'], '@' ) ) {
+		} elseif ( strpos( $_POST['user_login'], '@' ) && apply_filters( 'woocommerce_get_username_from_email', true ) ) {
 
 			$user_data = get_user_by( 'email', trim( $_POST['user_login'] ) );
 
@@ -245,7 +230,7 @@ class WC_Shortcode_My_Account {
 
 			$login = trim( $_POST['user_login'] );
 
-			$user_data = get_user_by('login', $login );
+			$user_data = get_user_by( 'login', $login );
 		}
 
 		do_action('lostpassword_post');
@@ -268,7 +253,7 @@ class WC_Shortcode_My_Account {
 
 		if ( ! $allow ) {
 
-			wc_add_notice( __( 'Password reset is not allowed for this user' ), 'error' );
+			wc_add_notice( __( 'Password reset is not allowed for this user', 'woocommerce' ), 'error' );
 
 			return false;
 
@@ -296,7 +281,7 @@ class WC_Shortcode_My_Account {
 		$mailer = WC()->mailer();
 		do_action( 'woocommerce_reset_password_notification', $user_login, $key );
 
-		wc_add_notice( __( 'Check your e-mail for the confirmation link.' ) );
+		wc_add_notice( __( 'Check your e-mail for the confirmation link.', 'woocommerce' ) );
 		return true;
 	}
 

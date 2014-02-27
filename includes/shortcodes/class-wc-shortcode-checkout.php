@@ -33,6 +33,11 @@ class WC_Shortcode_Checkout {
 	public static function output( $atts ) {
 		global $woocommerce, $wp;
 
+		// Check cart class is loaded or abort
+		if ( is_null( WC()->cart ) ) {
+			return;
+		}
+
 		// Backwards compat with old pay and thanks link arguments
 		if ( isset( $_GET['order'] ) && isset( $_GET['key'] ) ) {
 			_deprecated_argument( __CLASS__ . '->' . __FUNCTION__, '2.1', '"order" is no longer used to pass an order ID. Use the order-pay or order-received endpoint instead.' );
@@ -83,7 +88,7 @@ class WC_Shortcode_Checkout {
 			$valid_order_statuses = apply_filters( 'woocommerce_valid_order_statuses_for_payment', array( 'pending', 'failed' ), $order );
 
 			if ( ! current_user_can( 'pay_for_order', $order_id ) ) {
-				echo '<div class="woocommerce-error">' . __( 'Invalid order.', 'woocommerce' ) . ' <a href="' . get_permalink( wc_get_page_id( 'myaccount' ) ) . '" class="wc-forward">' . __( 'My Account', 'woocommerce' ) . '</a>' . '</div>';
+				echo '<div class="woocommerce-error">' . __( 'Invalid order. If you have an account please log in and try again.', 'woocommerce' ) . ' <a href="' . get_permalink( wc_get_page_id( 'myaccount' ) ) . '" class="wc-forward">' . __( 'My Account', 'woocommerce' ) . '</a>' . '</div>';
 				return;
 			}
 

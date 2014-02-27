@@ -503,7 +503,9 @@ class WC_Form_Handler {
 			$order_can_cancel = in_array( $order->status, apply_filters( 'woocommerce_valid_order_statuses_for_cancel', array( 'pending', 'failed' ) ) );
 			$redirect         = $_GET['redirect'];
 
-			if ( $user_can_cancel && $order_can_cancel && $order->id == $order_id && $order->order_key == $order_key && wp_verify_nonce( $_GET['_wpnonce'], 'woocommerce-cancel_order' ) ) {
+			if ( $order->status == 'cancelled' ) {
+				// Already cancelled - take no action
+			} elseif ( $user_can_cancel && $order_can_cancel && $order->id == $order_id && $order->order_key == $order_key && wp_verify_nonce( $_GET['_wpnonce'], 'woocommerce-cancel_order' ) ) {
 
 				// Cancel the order + restore stock
 				$order->cancel_order( __('Order cancelled by customer.', 'woocommerce' ) );
@@ -726,7 +728,7 @@ class WC_Form_Handler {
 					throw new Exception( '<strong>' . __( 'Error', 'woocommerce' ) . ':</strong> ' . __( 'Password is required.', 'woocommerce' ) );
 				}
 
-				if ( is_email( $_POST['username'] ) ) {
+				if ( is_email( $_POST['username'] ) && apply_filters( 'woocommerce_get_username_from_email', true ) ) {
 					$user = get_user_by( 'email', $_POST['username'] );
 
 					if ( isset( $user->user_login ) ) {
@@ -824,9 +826,7 @@ class WC_Form_Handler {
 
 					do_action( 'woocommerce_customer_reset_password', $user );
 
-					wc_add_notice( __( 'Your password has been reset.', 'woocommerce' ) . ' <a href="' . get_permalink( wc_get_page_id( 'myaccount' ) ) . '">' . __( 'Log in', 'woocommerce' ) . '</a>' );
-
-					wp_redirect( remove_query_arg( array( 'key', 'login' ) ) );
+					wp_redirect( add_query_arg( 'reset', 'true', remove_query_arg( array( 'key', 'login' ) ) ) );
 					exit;
 				}
 			}

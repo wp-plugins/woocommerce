@@ -180,7 +180,7 @@ class WC_Tax {
 				if ( $rate['compound'] == 'no' )
 					continue;
 
-				$the_price_inc_tax = $price + ( $pre_compound_total * 100 );
+				$the_price_inc_tax = $price + ( $pre_compound_total );
 
 				$tax_amount = $the_price_inc_tax * ( $rate['rate'] / 100 );
 
@@ -556,6 +556,10 @@ class WC_Tax {
 		global $wpdb;
 
 		$rate = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}woocommerce_tax_rates WHERE tax_rate_id = %s", $key ) );
+
+		if ( ! $rate ) {
+			return '';
+		}
 
 		$code = array();
 

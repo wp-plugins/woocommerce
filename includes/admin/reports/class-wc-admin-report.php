@@ -1,4 +1,6 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
 /**
  * Admin Report
  *
@@ -8,12 +10,6 @@
  * @category 	Admin
  * @package 	WooCommerce/Admin/Reports
  * @version     2.1.0
- */
-
-if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
-
-/**
- * WC_Admin_Report Class
  */
 class WC_Admin_Report {
 
@@ -117,7 +113,7 @@ class WC_Admin_Report {
 				if ( ! is_array( $value ) )
 					continue;
 
-				$key = is_array( $value['meta_key'] ) ? $value['meta_key'][0] : $value['meta_key'];
+				$key = is_array( $value['meta_key'] ) ? $value['meta_key'][0] . '_array' : $value['meta_key'];
 
 				if ( isset( $value['type'] ) && $value['type'] == 'order_item_meta' ) {
 
@@ -169,7 +165,7 @@ class WC_Admin_Report {
 				if ( ! is_array( $value ) )
 					continue;
 
-				$key = is_array( $value['meta_key'] ) ? $value['meta_key'][0] : $value['meta_key'];
+				$key = is_array( $value['meta_key'] ) ? $value['meta_key'][0] . '_array' : $value['meta_key'];
 
 				if ( strtolower( $value['operator'] ) == 'in' ) {
 					if ( is_array( $value['meta_value'] ) )

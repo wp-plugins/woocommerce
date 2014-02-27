@@ -1,5 +1,7 @@
 jQuery(function($) {
 
+	$.blockUI.defaults.overlayCSS.cursor = 'default'; 
+	
 	// wc_checkout_params is required to continue, ensure the object exists
 	if (typeof wc_checkout_params === "undefined")
 		return false;
@@ -70,7 +72,7 @@ jQuery(function($) {
 			data: 		data,
 			success: 	function( response ) {
 				if ( response ) {
-					var order_output = $(response);
+					var order_output = $($.parseHTML(response));
 					$('#order_review').html(order_output.html());
 					$('body').trigger('updated_checkout');
 				}
