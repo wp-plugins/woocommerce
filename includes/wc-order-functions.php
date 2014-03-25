@@ -297,7 +297,7 @@ function wc_cancel_unpaid_orders() {
 	}
 
 	wp_clear_scheduled_hook( 'woocommerce_cancel_unpaid_orders' );
-	wp_schedule_single_event( time() + ( absint( $held_duration ) * 60 ), 'wc_cancel_unpaid_orders' );
+	wp_schedule_single_event( time() + ( absint( $held_duration ) * 60 ), 'woocommerce_cancel_unpaid_orders' );
 }
 add_action( 'woocommerce_cancel_unpaid_orders', 'wc_cancel_unpaid_orders' );
 
@@ -319,7 +319,7 @@ function wc_processing_order_count() {
 					}
 			}
 			$order_count = apply_filters( 'woocommerce_admin_menu_count', intval( $order_count ) );
-		set_transient( 'woocommerce_processing_order_count', $order_count );
+		set_transient( 'woocommerce_processing_order_count', $order_count, YEAR_IN_SECONDS );
 	}
 
 	return $order_count;
@@ -340,12 +340,19 @@ function wc_delete_shop_order_transients( $post_id = 0 ) {
 		'woocommerce_processing_order_count'
 	);
 
+	// Clear report transients
+	$reports = WC_Admin_Reports::get_reports();
+
+	foreach ( $reports as $report_group ) {
+		foreach ( $report_group['reports'] as $report_key => $report ) {
+			$transients_to_clear[] = 'wc_report_' . $report_key;
+		}
+	}
+
+	// Clear transients where we have names
 	foreach( $transients_to_clear as $transient ) {
 		delete_transient( $transient );
 	}
-
-	// Clear transients for which we don't have the name
-	$wpdb->query( "DELETE FROM `$wpdb->options` WHERE `option_name` LIKE ('_transient_wc_report_%') OR `option_name` LIKE ('_transient_timeout_wc_report_%')" );
 
 	do_action( 'woocommerce_delete_shop_order_transients', $post_id );
 }

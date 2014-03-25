@@ -79,6 +79,11 @@ function wc_product_dimensions_enabled() {
 function wc_delete_product_transients( $post_id = 0 ) {
 	global $wpdb;
 
+	if ( wp_using_ext_object_cache() ) {
+		wp_cache_flush(); // There isn't a reliable method of looking up the names, so flush the cache.
+		return;
+	} 
+
 	$post_id = absint( $post_id );
 
 	// Clear core transients
@@ -90,10 +95,6 @@ function wc_delete_product_transients( $post_id = 0 ) {
 		'wc_term_counts'
 	);
 
-	foreach( $transients_to_clear as $transient ) {
-		delete_transient( $transient );
-	}
-
 	// Clear transients for which we don't have the name
 	$wpdb->query( "DELETE FROM `$wpdb->options` WHERE `option_name` LIKE ('_transient_wc_uf_pid_%') OR `option_name` LIKE ('_transient_timeout_wc_uf_pid_%')" );
 	$wpdb->query( "DELETE FROM `$wpdb->options` WHERE `option_name` LIKE ('_transient_wc_ln_count_%') OR `option_name` LIKE ('_transient_timeout_wc_ln_count_%')" );
@@ -101,30 +102,26 @@ function wc_delete_product_transients( $post_id = 0 ) {
 	$wpdb->query( "DELETE FROM `$wpdb->options` WHERE `option_name` LIKE ('_transient_wc_products_will_display_%') OR `option_name` LIKE ('_transient_timeout_wc_products_will_display_%')" );
 
 	// Clear product specific transients
-	$post_transients_to_clear = array(
+	$post_transient_names = array(
 		'wc_product_children_ids_',
 		'wc_product_total_stock_',
 		'wc_average_rating_',
-		'wc_rating_count_',
-		'woocommerce_product_type_', // No longer used
-		'wc_product_type_', // No longer used
+		'wc_rating_count_'
 	);
 
 	if ( $post_id > 0 ) {
-
-		foreach( $post_transients_to_clear as $transient ) {
-			delete_transient( $transient . $post_id );
-			$wpdb->query( $wpdb->prepare( "DELETE FROM `$wpdb->options` WHERE `option_name` = %s OR `option_name` = %s", '_transient_' . $transient . $post_id, '_transient_timeout_' . $transient . $post_id ) );
+		foreach( $post_transient_names as $transient ) {
+			$transients_to_clear[] = $transient . $post_id;
 		}
-
-		clean_post_cache( $post_id );
-
 	} else {
-
-		foreach( $post_transients_to_clear as $transient ) {
+		foreach( $post_transient_names as $transient ) {
 			$wpdb->query( $wpdb->prepare( "DELETE FROM `$wpdb->options` WHERE `option_name` LIKE %s OR `option_name` LIKE %s", '_transient_' . $transient . '%', '_transient_timeout_' . $transient . '%' ) );
 		}
+	}
 
+	// Delete transients
+	foreach( $transients_to_clear as $transient ) {
+		delete_transient( $transient );
 	}
 
 	do_action( 'woocommerce_delete_product_transients', $post_id );
@@ -163,7 +160,7 @@ function wc_get_product_ids_on_sale() {
 
 	$product_ids_on_sale = array_unique( array_map( 'absint', array_merge( wp_list_pluck( $on_sale_posts, 'ID' ), array_diff( wp_list_pluck( $on_sale_posts, 'post_parent' ), array( 0 ) ) ) ) );
 
-	set_transient( 'wc_products_onsale', $product_ids_on_sale );
+	set_transient( 'wc_products_onsale', $product_ids_on_sale, YEAR_IN_SECONDS );
 
 	return $product_ids_on_sale;
 }
@@ -206,7 +203,7 @@ function wc_get_featured_product_ids() {
 	$parent_ids           = array_values( $featured );
 	$featured_product_ids = array_unique( array_merge( $product_ids, $parent_ids ) );
 
-	set_transient( 'wc_featured_products', $featured_product_ids );
+	set_transient( 'wc_featured_products', $featured_product_ids, YEAR_IN_SECONDS );
 
 	return $featured_product_ids;
 }
@@ -306,19 +303,20 @@ function wc_placeholder_img( $size = 'shop_thumbnail' ) {
  * @return string
  */
 function wc_get_formatted_variation( $variation = '', $flat = false ) {
+	$return = '';
+
 	if ( is_array( $variation ) ) {
 
-		if ( ! $flat )
+		if ( ! $flat ) {
 			$return = '<dl class="variation">';
-		else
-			$return = '';
+		}
 
 		$variation_list = array();
 
 		foreach ( $variation as $name => $value ) {
-
-			if ( ! $value )
+			if ( ! $value ) {
 				continue;
+			}
 
 			// If this is a term slug, get the term's nice name
             if ( taxonomy_exists( esc_attr( str_replace( 'attribute_', '', $name ) ) ) ) {
@@ -327,24 +325,24 @@ function wc_get_formatted_variation( $variation = '', $flat = false ) {
             		$value = $term->name;
             }
 
-			if ( $flat )
-				$variation_list[] = wc_attribute_label(str_replace('attribute_', '', $name)).': '.$value;
-			else
-				$variation_list[] = '<dt>'.wc_attribute_label(str_replace('attribute_', '', $name)).':</dt><dd>'.$value.'</dd>';
+			if ( $flat ) {
+				$variation_list[] = wc_attribute_label( str_replace( 'attribute_', '', $name ) ) . ': ' . urldecode( $value );
+			} else {
+				$variation_list[] = '<dt>' . wc_attribute_label( str_replace( 'attribute_', '', $name ) ) . ':</dt><dd>' . urldecode( $value ) . '</dd>';
+			}
 		}
 
-		if ( $flat )
+		if ( $flat ) {
 			$return .= implode( ', ', $variation_list );
-		else
+		} else {
 			$return .= implode( '', $variation_list );
+		}
 
-		if ( ! $flat )
+		if ( ! $flat ) {
 			$return .= '</dl>';
-
-		return $return;
+		}
 	}
-	
-	return '';
+	return $return;
 }
 
 /**

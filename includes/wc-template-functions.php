@@ -88,6 +88,23 @@ function wc_setup_product_data( $post ) {
 }
 add_action( 'the_post', 'wc_setup_product_data' );
 
+if ( ! function_exists( 'woocommerce_reset_loop' ) ) {
+
+	/**
+	 * Reset the loop's index and columns when we're done outputting a product loop.
+	 *
+	 * @access public
+	 * @subpackage	Loop
+	 * @return void
+	 */
+	function woocommerce_reset_loop() {
+		global $woocommerce_loop;
+		// Reset loop/columns globals when starting a new loop
+		$woocommerce_loop['loop'] = $woocommerce_loop['columns'] = '';
+	}
+}
+add_filter( 'loop_end', 'woocommerce_reset_loop' );
+
 /**
  * Products RSS Feed.
  *
@@ -127,8 +144,16 @@ function wc_products_rss_feed() {
  * @access public
  * @return void
  */
-function wc_generator_tag() {
-	echo "\n\n" . '<!-- WooCommerce Version -->' . "\n" . '<meta name="generator" content="WooCommerce ' . esc_attr( WC_VERSION ) . '" />' . "\n\n";
+function wc_generator_tag( $gen, $type ) {
+	switch ( $type ) {
+		case 'html':
+			$gen .= "\n" . '<meta name="generator" content="WooCommerce ' . esc_attr( WC_VERSION ) . '">';
+			break;
+		case 'xhtml':
+			$gen .= "\n" . '<meta name="generator" content="WooCommerce ' . esc_attr( WC_VERSION ) . '" />';
+			break;
+	}
+	return $gen;
 }
 
 /**
@@ -538,22 +563,6 @@ if ( ! function_exists( 'woocommerce_show_product_loop_sale_flash' ) ) {
 	 */
 	function woocommerce_show_product_loop_sale_flash() {
 		wc_get_template( 'loop/sale-flash.php' );
-	}
-}
-
-if ( ! function_exists( 'woocommerce_reset_loop' ) ) {
-
-	/**
-	 * Reset the loop's index and columns when we're done outputting a product loop.
-	 *
-	 * @access public
-	 * @subpackage	Loop
-	 * @return void
-	 */
-	function woocommerce_reset_loop() {
-		global $woocommerce_loop;
-		// Reset loop/columns globals when starting a new loop
-		$woocommerce_loop['loop'] = $woocommerce_loop['columns'] = '';
 	}
 }
 
@@ -1354,7 +1363,7 @@ if ( ! function_exists( 'woocommerce_products_will_display' ) ) {
 			}
 		}
 
-		set_transient( 'wc_products_will_display_' . $parent_id, $products_will_display );
+		set_transient( 'wc_products_will_display_' . $parent_id, $products_will_display, YEAR_IN_SECONDS );
 
 		return $products_will_display;
 	}

@@ -511,8 +511,8 @@ class WC_Cart {
 		            } else {
 						$value              = apply_filters( 'woocommerce_variation_option_name', $value );
 						$product_attributes = $cart_item['data']->get_attributes();
-						if ( isset( $product_attributes[ str_replace( 'attribute_', '', urldecode( $name ) ) ] ) ) {
-							$label = wc_attribute_label( $product_attributes[ str_replace( 'attribute_', '', urldecode( $name ) ) ]['name'] );
+						if ( isset( $product_attributes[ str_replace( 'attribute_', '', $name ) ] ) ) {
+							$label = wc_attribute_label( $product_attributes[ str_replace( 'attribute_', '', $name ) ]['name'] );
 						} else {
 							$label = $name;
 						}
@@ -1213,8 +1213,9 @@ class WC_Cart {
 				}
 
 				// VAT exemption done at this point - so all totals are correct before exemption
-				if ( WC()->customer->is_vat_exempt() )
+				if ( WC()->customer->is_vat_exempt() ) {
 					$this->remove_taxes();
+				}
 
 				// Cart Discounts (after tax)
 				$this->apply_cart_discounts_after_tax();
@@ -1231,8 +1232,9 @@ class WC_Cart {
 				$this->tax_total = $this->tax->get_tax_total( $this->taxes );
 
 				// VAT exemption done at this point - so all totals are correct before exemption
-				if ( WC()->customer->is_vat_exempt() )
+				if ( WC()->customer->is_vat_exempt() ) {
 					$this->remove_taxes();
+				}
 
 				// Cart Discounts (after tax)
 				$this->apply_cart_discounts_after_tax();
@@ -1249,10 +1251,11 @@ class WC_Cart {
 		 */
 		public function remove_taxes() {
 			$this->shipping_tax_total = $this->tax_total = 0;
-			$this->subtotal = $this->subtotal_ex_tax;
+			$this->subtotal           = $this->subtotal_ex_tax;
 
-			foreach ( $this->cart_contents as $cart_item_key => $item )
+			foreach ( $this->cart_contents as $cart_item_key => $item ) {
 				$this->cart_contents[ $cart_item_key ]['line_subtotal_tax'] = $this->cart_contents[ $cart_item_key ]['line_tax'] = 0;
+			}
 
 			// If true, zero rate is applied so '0' tax is displayed on the frontend rather than nothing.
 			if ( apply_filters( 'woocommerce_cart_remove_taxes_apply_zero_rate', true ) ) {
@@ -2043,6 +2046,7 @@ class WC_Cart {
 
 		/**
 		 * Get tax row amounts with or without compound taxes includes.
+		 *
 		 * @param  boolean $compound True if getting compound taxes
 		 * @param  boolean $display  True if getting total to display
 		 * @return float price
@@ -2057,10 +2061,10 @@ class WC_Cart {
 				if ( ! $compound && $this->tax->is_compound( $key ) ) continue;
 				$total += $tax;
 			}
-			if ( $display )
-				return wc_round_tax_total( $total );
-			else
-				return $total;
+			if ( $display ) {
+				$total = wc_round_tax_total( $total );
+			}
+			return apply_filters( 'woocommerce_cart_taxes_total', $total, $compound, $display, $this );
 		}
 
 		/**

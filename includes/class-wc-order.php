@@ -282,17 +282,38 @@ class WC_Order {
 
 		$items = array();
 
-		foreach ( $line_items as $item ) {
+		// Reserved meta keys
+		$reserved_item_meta_keys = array(
+			'name',
+			'type',
+			'item_meta',
+			'qty',
+			'tax_class',
+			'product_id',
+			'variation_id',
+			'line_subtotal',
+			'line_total',
+			'line_tax',
+			'line_subtotal_tax'
+		);
 
+		// Loop items
+		foreach ( $line_items as $item ) {
 			// Place line item into array to return
-			$items[ $item->order_item_id ]['name'] = $item->order_item_name;
-			$items[ $item->order_item_id ]['type'] = $item->order_item_type;
+			$items[ $item->order_item_id ]['name']      = $item->order_item_name;
+			$items[ $item->order_item_id ]['type']      = $item->order_item_type;
 			$items[ $item->order_item_id ]['item_meta'] = $this->get_item_meta( $item->order_item_id );
 
-			// Put meta into item array
+			// Expand meta data into the array
 			foreach ( $items[ $item->order_item_id ]['item_meta'] as $name => $value ) {
-				$key = substr( $name, 0, 1 ) == '_' ? substr( $name, 1 ) : $name;
-				$items[ $item->order_item_id ][ $key ] = $value[0];
+				if ( in_array( $name, $reserved_item_meta_keys ) ) {
+					continue;
+				}
+				if ( '_' === substr( $name, 0, 1 ) ) {
+					$items[ $item->order_item_id ][ substr( $name, 1 ) ] = $value[0];
+				} elseif ( ! in_array( $name, $reserved_item_meta_keys ) ) {
+					$items[ $item->order_item_id ][ $name ] = $value[0];
+				}
 			}
 		}
 
@@ -1105,7 +1126,13 @@ class WC_Order {
 	 */
 	public function get_cancel_order_url( $redirect = '' ) {
 		$cancel_endpoint = get_permalink( wc_get_page_id( 'cart' ) );
-		$cancel_endpoint = trailingslashit( $cancel_endpoint ? $cancel_endpoint : home_url() );
+		if ( ! $cancel_endpoint ) {
+			$cancel_endpoint = home_url();
+		}
+
+		if ( false === strpos( $cancel_endpoint, '?' ) ) {
+			$cancel_endpoint = trailingslashit( $cancel_endpoint );
+		}
 
 		return apply_filters('woocommerce_get_cancel_order_url', wp_nonce_url( add_query_arg( array( 'cancel_order' => 'true', 'order' => $this->order_key, 'order_id' => $this->id, 'redirect' => $redirect ), $cancel_endpoint ), 'woocommerce-cancel_order' ) );
 	}

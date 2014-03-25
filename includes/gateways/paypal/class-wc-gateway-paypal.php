@@ -32,7 +32,7 @@ class WC_Gateway_Paypal extends WC_Payment_Gateway {
 		$this->liveurl           = 'https://www.paypal.com/cgi-bin/webscr';
 		$this->testurl           = 'https://www.sandbox.paypal.com/cgi-bin/webscr';
 		$this->method_title      = __( 'PayPal', 'woocommerce' );
-		$this->notify_url        = str_replace( 'https:', 'http:', add_query_arg( 'wc-api', 'WC_Gateway_Paypal', home_url( '/' ) ) );
+		$this->notify_url        = WC()->api_request_url( 'WC_Gateway_Paypal' );
 
 		// Load the settings.
 		$this->init_form_fields();
@@ -313,7 +313,7 @@ class WC_Gateway_Paypal extends WC_Payment_Gateway {
 				'address1'      => $order->billing_address_1,
 				'address2'      => $order->billing_address_2,
 				'city'          => $order->billing_city,
-				'state'         => $order->billing_state,
+				'state'         => $this->get_paypal_state( $order->billing_country, $order->billing_state ),
 				'zip'           => $order->billing_postcode,
 				'country'       => $order->billing_country,
 				'email'         => $order->billing_email
@@ -334,7 +334,7 @@ class WC_Gateway_Paypal extends WC_Payment_Gateway {
 			$paypal_args['address1']		= $order->shipping_address_1;
 			$paypal_args['address2']		= $order->shipping_address_2;
 			$paypal_args['city']			= $order->shipping_city;
-			$paypal_args['state']			= $order->shipping_state;
+			$paypal_args['state']			= $this->get_paypal_state( $order->shipping_country, $order->shipping_state );
 			$paypal_args['country']			= $order->shipping_country;
 			$paypal_args['zip']				= $order->shipping_postcode;
 		} else {
@@ -694,7 +694,7 @@ class WC_Gateway_Paypal extends WC_Payment_Gateway {
 					// Validate currency
 					if ( $order->get_order_currency() != $posted['mc_currency'] ) {
 						if ( 'yes' == $this->debug ) {
-							$this->log->add( 'paypal', 'Payment error: Currencies do not match (code ' . $posted['mc_currency'] . ')' );
+							$this->log->add( 'paypal', 'Payment error: Currencies do not match (sent "' . $order->get_order_currency() . '" | returned "' . $posted['mc_currency'] . '")' );
 						}
 
 						// Put this order on-hold for manual checking
@@ -935,5 +935,25 @@ class WC_Gateway_Paypal extends WC_Payment_Gateway {
 		}
 
 		return $order;
+	}
+
+	/**
+	 * Get the state to send to paypal
+	 * @param  string $cc
+	 * @param  string $state
+	 * @return string
+	 */
+	public function get_paypal_state( $cc, $state ) {
+		if ( 'US' === $cc ) {
+			return $state;
+		}
+
+		$states = WC()->countries->get_states( $cc );
+		
+		if ( isset( $states[ $state ] ) ) {
+			return $states[ $state ];
+		}
+
+		return $state;
 	}
 }
