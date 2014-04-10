@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: WooCommerce\n"
 "Report-Msgid-Bugs-To: https://github.com/woothemes/woocommerce/issues\n"
 "POT-Creation-Date: 2014-03-24 12:16:54+00:00\n"
-"PO-Revision-Date: 2014-03-25 08:51+0000\n"
+"PO-Revision-Date: 2014-03-26 13:01+0000\n"
 "Last-Translator: sennbrink <konsult@sennbrink.se>\n"
 "Language-Team: Swedish (Sweden) (http://www.transifex.com/projects/p/woocommerce/language/sv_SE/)\n"
 "MIME-Version: 1.0\n"
@@ -1441,7 +1441,7 @@ msgstr "I kassan kan användarnamn och lösenord vara valfritt samt kan generera
 
 #: includes/admin/class-wc-admin-welcome.php:349
 msgid "Additional price display options"
-msgstr "Ytterligare var för hur pris visas"
+msgstr "Ytterligare val för hur pris visas"
 
 #: includes/admin/class-wc-admin-welcome.php:350
 msgid ""
@@ -2432,7 +2432,7 @@ msgstr "Fil %d"
 
 #: includes/admin/post-types/meta-boxes/class-wc-meta-box-order-downloads.php:64
 msgid "Search for a downloadable product&hellip;"
-msgstr "Sök efter nedladdningsbar produkt&hellip;"
+msgstr "Sök nedladdningsbar produkt&hellip;"
 
 #: includes/admin/post-types/meta-boxes/class-wc-meta-box-order-downloads.php:65
 msgid "Grant Access"
@@ -5202,7 +5202,7 @@ msgstr "WC-taxonomier"
 
 #: includes/admin/views/html-admin-page-status-report.php:361
 msgid "Order Statuses"
-msgstr "Orderstatusar"
+msgstr "Orderstatus"
 
 #: includes/admin/views/html-admin-page-status-report.php:371
 msgid "Product Types"
