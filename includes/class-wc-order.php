@@ -70,6 +70,12 @@ class WC_Order {
 		$this->customer_note       = $result->post_excerpt;
 		$this->post_status         = $result->post_status;
 
+		// Billing email cam default to user if set
+		if ( empty( $this->billing_email ) && ! empty( $this->customer_user ) ) {
+			$user                = get_user_by( 'id', $this->customer_user );
+			$this->billing_email = $user->user_email;
+		}
+
 		// Get status
 		$terms        = wp_get_object_terms( $this->id, 'shop_order_status', array( 'fields' => 'slugs' ) );
 		$this->status = isset( $terms[0] ) ? $terms[0] : apply_filters( 'woocommerce_default_order_status', 'pending' );
@@ -86,7 +92,6 @@ class WC_Order {
 		if ( ! $this->id ) {
 			return false;
 		}
-
 		return metadata_exists( 'post', $this->id, '_' . $key );
 	}
 
@@ -1063,7 +1068,7 @@ class WC_Order {
 
 			$_product = $this->get_product_from_item( $item );
 
-			if ( $_product && $_product->exists() && $_product->is_downloadable() ) {
+			if ( $_product && $_product->exists() && $_product->is_downloadable() && $_product->has_file() ) {
 				$has_downloadable_item = true;
 			}
 
@@ -1151,7 +1156,7 @@ class WC_Order {
 	/**
 	 * Gets any downloadable product file urls.
 	 *
-	 * @deprecated as of 2.1 get_item_downloads is prefered as downloads are more than just file urls
+	 * @deprecated as of 2.1 get_item_downloads is preferred as downloads are more than just file urls
 	 * @param int $product_id product identifier
 	 * @param int $variation_id variation identifier, or null
 	 * @param array $item the item

@@ -795,7 +795,7 @@ class WC_Cart {
 
 			// Check product is_purchasable
 			if ( ! $product_data->is_purchasable() ) {
-				wc_add_notice( sprintf( __( 'Sorry, &quot;%s&quot; cannot be purchased.', 'woocommerce' ), $product_data->get_title() ), 'error' );
+				wc_add_notice( __( 'Sorry, this product cannot be purchased.', 'woocommerce' ), 'error' );
 				return false;
 			}
 
@@ -1487,7 +1487,7 @@ class WC_Cart {
 
 						// Usage limits per user - check against billing and user email and user ID
 						if ( $coupon->usage_limit_per_user > 0 ) {
-							$used_by = get_post_meta( $this->id, '_used_by' );
+							$used_by = (array) get_post_meta( $this->id, '_used_by' );
 
 							if ( is_user_logged_in() ) {
 								$current_user   = wp_get_current_user();
@@ -1495,11 +1495,11 @@ class WC_Cart {
 							}
 							$check_emails[] = $posted['billing_email'];
 							$check_emails   = array_map( 'sanitize_email', array_map( 'strtolower', $check_emails ) );
-
 							$usage_count    = sizeof( array_keys( $used_by, get_current_user_id() ) );
 
-							foreach ( $check_emails as $check_email )
+							foreach ( $check_emails as $check_email ) {
 								$usage_count    = $usage_count + sizeof( array_keys( $used_by, $check_email ) );
+							}
 
 							if ( $usage_count >= $coupon->usage_limit_per_user ) {
 								$coupon->add_coupon_message( WC_Coupon::E_WC_COUPON_USAGE_LIMIT_REACHED );
@@ -1814,7 +1814,7 @@ class WC_Cart {
 		}
 
  	/*-----------------------------------------------------------------------------------*/
-	/* Fees API to add additonal costs to orders */
+	/* Fees API to add additional costs to orders */
 	/*-----------------------------------------------------------------------------------*/
 
 		/**

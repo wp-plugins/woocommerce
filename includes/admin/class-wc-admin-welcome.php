@@ -42,21 +42,27 @@ class WC_Admin_Welcome {
 	 * @return void
 	 */
 	public function admin_menus() {
+		if ( empty( $_GET['page'] ) ) {
+			return;
+		}
 
+		$welcome_page_name  = __( 'About WooCommerce', 'woocommerce' );
 		$welcome_page_title = __( 'Welcome to WooCommerce', 'woocommerce' );
 
-		// About
-		$about = add_dashboard_page( $welcome_page_title, $welcome_page_title, 'manage_options', 'wc-about', array( $this, 'about_screen' ) );
-
-		// Credits
-		$credits = add_dashboard_page( $welcome_page_title, $welcome_page_title, 'manage_options', 'wc-credits', array( $this, 'credits_screen' ) );
-
-		// Credits
-		$translators = add_dashboard_page( $welcome_page_title, $welcome_page_title, 'manage_options', 'wc-translators', array( $this, 'translators_screen' ) );
-
-		add_action( 'admin_print_styles-'. $about, array( $this, 'admin_css' ) );
-		add_action( 'admin_print_styles-'. $credits, array( $this, 'admin_css' ) );
-		add_action( 'admin_print_styles-'. $translators, array( $this, 'admin_css' ) );
+		switch ( $_GET['page'] ) {
+			case 'wc-about' :
+				$page = add_dashboard_page( $welcome_page_title, $welcome_page_name, 'manage_options', 'wc-about', array( $this, 'about_screen' ) );
+				add_action( 'admin_print_styles-'. $page, array( $this, 'admin_css' ) );
+			break;
+			case 'wc-credits' :
+				$page = add_dashboard_page( $welcome_page_title, $welcome_page_name, 'manage_options', 'wc-credits', array( $this, 'credits_screen' ) );
+				add_action( 'admin_print_styles-'. $page, array( $this, 'admin_css' ) );
+			break;
+			case 'wc-translators' :
+				$page = add_dashboard_page( $welcome_page_title, $welcome_page_name, 'manage_options', 'wc-translators', array( $this, 'translators_screen' ) );
+				add_action( 'admin_print_styles-'. $page, array( $this, 'admin_css' ) );
+			break;
+		}
 	}
 
 	/**
@@ -244,7 +250,7 @@ class WC_Admin_Welcome {
 				<div class="wc-feature feature-rest feature-section col three-col">
 					<div>
 						<h4><?php _e( 'Access your data from 3rd party applications', 'woocommerce' ); ?></h4>
-						<p><?php _e( 'Built on top of the WooCommerce API, and targetted directly at developers, the new REST API allows you to get data for <strong>Orders</strong>, <strong>Coupons</strong>, <strong>Customers</strong>, <strong>Products</strong> and <strong>Reports</strong> in both <code>XML</code> and <code>JSON</code> formats.', 'woocommerce' ); ?></p>
+						<p><?php _e( 'Built on top of the WooCommerce API, and targeted directly at developers, the new REST API allows you to get data for <strong>Orders</strong>, <strong>Coupons</strong>, <strong>Customers</strong>, <strong>Products</strong> and <strong>Reports</strong> in both <code>XML</code> and <code>JSON</code> formats.', 'woocommerce' ); ?></p>
 					</div>
 					<div class="icon"></div>
 					<div class="last-feature">
