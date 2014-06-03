@@ -56,13 +56,24 @@ function wc_get_product_terms( $product_id, $taxonomy, $args = array() ) {
 				break;
 		}
 	} elseif ( ! empty( $args['orderby'] ) && $args['orderby'] === 'menu_order' ) {
-		// wp_get_post_terms doens't let us use custom sort order
-		$args['include']    = wp_get_post_terms( $product_id, $taxonomy, array( 'fields' => 'ids' ) );
-		$args['menu_order'] = isset( $args['order'] ) ? $args['order'] : 'ASC';
-
-		unset( $args['orderby'] );
+		// wp_get_post_terms doesn't let us use custom sort order
+		$args['include'] = wp_get_post_terms( $product_id, $taxonomy, array( 'fields' => 'ids' ) );
 		
-		$terms              = get_terms( $taxonomy, $args );
+		if ( empty( $args['include'] ) ) {
+			$terms = array();
+		} else {
+			// This isn't needed for get_terms
+			unset( $args['orderby'] );
+
+			// Set args for get_terms
+			$args['menu_order'] = isset( $args['order'] ) ? $args['order'] : 'ASC';
+			$args['hide_empty'] = isset( $args['hide_empty'] ) ? $args['hide_empty'] : 0;
+			$args['fields']     = isset( $args['fields'] ) ? $args['fields'] : 'names';
+
+			// Ensure slugs is valid for get_terms - slugs isn't supported
+			$args['fields']     = $args['fields'] === 'slugs' ? 'id=>slug' : $args['fields'];
+			$terms              = get_terms( $taxonomy, $args );
+		}
 	} else {
 		$terms = wp_get_post_terms( $product_id, $taxonomy, $args );
 	}
@@ -77,7 +88,7 @@ function wc_get_product_terms( $product_id, $taxonomy, $args = array() ) {
  * @return int
  */
 function _wc_get_product_terms_parent_usort_callback( $a, $b ) {
-	if( $a->parent === $b->parent ) {
+	if ( $a->parent === $b->parent ) {
 		return 0;
 	}
 	return ( $a->parent < $b->parent ) ? 1 : -1;
