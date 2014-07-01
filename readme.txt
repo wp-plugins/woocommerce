@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, affiliate
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.8
 Tested up to: 3.9
-Stable tag: 2.1.11
+Stable tag: 2.1.12
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -125,6 +125,14 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 6. A product archive (grid).
 
 == Changelog ==
+
+= 2.1.12 - 01/07/2014 =
+* Fix - Total tax should be +, not -.
+* Fix - Address format in plain text emails to use line breaks, not commas.
+* Fix - order item count fix and tr class filters.
+* Fix - Missing translations during checkout.
+* Fix - Correctly clear transients, including sale transient.
+* Tweak - woocommerce_get_order_item_totals_excl_free_fees hook.
 
 = 2.1.11 - 09/06/2014 =
 * Fix - Plain text email display of customer address.
