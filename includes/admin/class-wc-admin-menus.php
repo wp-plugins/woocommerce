@@ -40,12 +40,12 @@ class WC_Admin_Menus {
 	 * Add menu items
 	 */
 	public function admin_menu() {
-		global $menu, $woocommerce;
+		global $menu;
 
 	    if ( current_user_can( 'manage_woocommerce' ) )
 	    	$menu[] = array( '', 'read', 'separator-woocommerce', '', 'wp-menu-separator woocommerce' );
 
-	    $main_page = add_menu_page( __( 'WooCommerce', 'woocommerce' ), __( 'WooCommerce', 'woocommerce' ), 'manage_woocommerce', 'woocommerce' , array( $this, 'settings_page' ), null, '55.5' );
+	    $main_page = add_menu_page( __( 'WooCommerce', 'woocommerce' ), __( 'WooCommerce', 'woocommerce' ), 'manage_woocommerce', 'woocommerce' , null, null, '55.5' );
 
 	    add_submenu_page( 'edit.php?post_type=product', __( 'Attributes', 'woocommerce' ), __( 'Attributes', 'woocommerce' ), 'manage_product_terms', 'product_attributes', array( $this, 'attributes_page' ) );
 	}
@@ -180,8 +180,9 @@ class WC_Admin_Menus {
 	 * @return bool
 	 */
 	public function custom_menu_order() {
-		if ( ! current_user_can( 'manage_woocommerce' ) )
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			return false;
+		}
 		return true;
 	}
 
@@ -189,7 +190,6 @@ class WC_Admin_Menus {
 	 * Init the reports page
 	 */
 	public function reports_page() {
-		include_once( 'class-wc-admin-reports.php' );
 		WC_Admin_Reports::output();
 	}
 
@@ -197,7 +197,6 @@ class WC_Admin_Menus {
 	 * Init the settings page
 	 */
 	public function settings_page() {
-		include_once( 'class-wc-admin-settings.php' );
 		WC_Admin_Settings::output();
 	}
 
@@ -205,24 +204,21 @@ class WC_Admin_Menus {
 	 * Init the attributes page
 	 */
 	public function attributes_page() {
-		$page = include( 'class-wc-admin-attributes.php' );
-		$page->output();
+		WC_Admin_Attributes::output();
 	}
 
 	/**
 	 * Init the status page
 	 */
 	public function status_page() {
-		$page = include( 'class-wc-admin-status.php' );
-		$page->output();
+		WC_Admin_Status::output();
 	}
 
 	/**
 	 * Init the addons page
 	 */
 	public function addons_page() {
-		$page = include( 'class-wc-admin-addons.php' );
-		$page->output();
+		WC_Admin_Addons::output();
 	}
 }
 

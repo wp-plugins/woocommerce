@@ -132,15 +132,8 @@ class WC_API_Server {
 			$this->method = strtoupper( $_GET['_method'] );
 		}
 
-		// determine type of request/response and load handler, JSON by default
-		if ( $this->is_json_request() )
-			$handler_class = 'WC_API_JSON_Handler';
-
-		elseif ( $this->is_xml_request() )
-			$handler_class = 'WC_API_XML_Handler';
-
-		else
-			$handler_class = apply_filters( 'woocommerce_api_default_response_handler', 'WC_API_JSON_Handler', $this->path, $this );
+		// load response handler
+		$handler_class = apply_filters( 'woocommerce_api_default_response_handler', 'WC_API_JSON_Handler', $this->path, $this );
 
 		$this->handler = new $handler_class();
 	}
@@ -370,12 +363,27 @@ class WC_API_Server {
 	}
 
 	/**
+	 * urldecode deep.
+	 *
+	 * @since  2.2
+	 * @param  string/array $value Data to decode with urldecode.
+	 * @return string/array        Decoded data.
+	 */
+	protected function urldecode_deep( $value ) {
+		if ( is_array( $value ) ) {
+			return array_map( array( $this, 'urldecode_deep' ), $value );
+		} else {
+			return urldecode( $value );
+		}
+	}
+
+	/**
 	 * Sort parameters by order specified in method declaration
 	 *
 	 * Takes a callback and a list of available params, then filters and sorts
 	 * by the parameters the method actually needs, using the Reflection API
 	 *
-	 * @since 2.1
+	 * @since 2.2
 	 * @param callable|array $callback the endpoint callback
 	 * @param array $provided the provided request parameters
 	 * @return array
@@ -392,8 +400,12 @@ class WC_API_Server {
 		foreach ( $wanted as $param ) {
 			if ( isset( $provided[ $param->getName() ] ) ) {
 				// We have this parameters in the list to choose from
+				if ( 'data' == $param->getName() ) {
+					$ordered_parameters[] = $provided[ $param->getName() ];
+					continue;
+				}
 
-				$ordered_parameters[] = is_array( $provided[ $param->getName() ] ) ? array_map( 'urldecode', $provided[ $param->getName() ] ) : urldecode( $provided[ $param->getName() ] );
+				$ordered_parameters[] = $this->urldecode_deep( $provided[ $param->getName() ] );
 			}
 			elseif ( $param->isDefaultValueAvailable() ) {
 				// We don't have this parameter, but it's optional
@@ -425,16 +437,16 @@ class WC_API_Server {
 			'wc_version'  => WC()->version,
 			'routes'      => array(),
 			'meta'        => array(
-				'timezone'			 => wc_timezone_string(),
-				'currency'       	 => get_woocommerce_currency(),
+				'timezone'           => wc_timezone_string(),
+				'currency'           => get_woocommerce_currency(),
 				'currency_format'    => get_woocommerce_currency_symbol(),
-				'tax_included'   	 => ( 'yes' === get_option( 'woocommerce_prices_include_tax' ) ),
-				'weight_unit'    	 => get_option( 'woocommerce_weight_unit' ),
-				'dimension_unit' 	 => get_option( 'woocommerce_dimension_unit' ),
-				'ssl_enabled'    	 => ( 'yes' === get_option( 'woocommerce_force_ssl_checkout' ) ),
+				'tax_included'       => ( 'yes' === get_option( 'woocommerce_prices_include_tax' ) ),
+				'weight_unit'        => get_option( 'woocommerce_weight_unit' ),
+				'dimension_unit'     => get_option( 'woocommerce_dimension_unit' ),
+				'ssl_enabled'        => ( 'yes' === get_option( 'woocommerce_force_ssl_checkout' ) ),
 				'permalinks_enabled' => ( '' !== get_option( 'permalink_structure' ) ),
-				'links'          	 => array(
-					'help' => 'http://woothemes.github.io/woocommerce/rest-api/',
+				'links'              => array(
+					'help' => 'http://docs.woocommercev2.apiary.io/',
 				),
 			),
 		) );
@@ -708,43 +720,4 @@ class WC_API_Server {
 		return $headers;
 	}
 
-	/**
-	 * Check if the current request accepts a JSON response by checking the endpoint suffix (.json) or
-	 * the HTTP ACCEPT header
-	 *
-	 * @since 2.1
-	 * @return bool
-	 */
-	private function is_json_request() {
-
-		// check path
-		if ( false !== stripos( $this->path, '.json' ) )
-			return true;
-
-		// check ACCEPT header, only 'application/json' is acceptable, see RFC 4627
-		if ( isset( $this->headers['ACCEPT'] ) && 'application/json' == $this->headers['ACCEPT'] )
-			return true;
-
-		return false;
-	}
-
-	/**
-	 * Check if the current request accepts an XML response by checking the endpoint suffix (.xml) or
-	 * the HTTP ACCEPT header
-	 *
-	 * @since 2.1
-	 * @return bool
-	 */
-	private function is_xml_request() {
-
-		// check path
-		if ( false !== stripos( $this->path, '.xml' ) )
-			return true;
-
-		// check headers, 'application/xml' or 'text/xml' are acceptable, see RFC 2376
-		if ( isset( $this->headers['ACCEPT'] ) && ( 'application/xml' == $this->headers['ACCEPT'] || 'text/xml' == $this->headers['ACCEPT'] ) )
-			return true;
-
-		return false;
-	}
 }

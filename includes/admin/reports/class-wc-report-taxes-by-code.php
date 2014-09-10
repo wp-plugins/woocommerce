@@ -2,9 +2,9 @@
 /**
  * WC_Report_Taxes_By_Code
  *
- * @author 		WooThemes
- * @category 	Admin
- * @package 	WooCommerce/Admin/Reports
+ * @author      WooThemes
+ * @category    Admin
+ * @package     WooCommerce/Admin/Reports
  * @version     2.1.0
  */
 class WC_Report_Taxes_By_Code extends WC_Admin_Report {
@@ -14,6 +14,7 @@ class WC_Report_Taxes_By_Code extends WC_Admin_Report {
 	 * @return array
 	 */
 	public function get_chart_legend() {
+
 		$legend   = array();
 
 		return array();
@@ -23,6 +24,7 @@ class WC_Report_Taxes_By_Code extends WC_Admin_Report {
 	 * Output an export link
 	 */
 	public function get_export_button() {
+
 		$current_range = ! empty( $_GET['range'] ) ? $_GET['range'] : 'last_month';
 		?>
 		<a
@@ -40,7 +42,6 @@ class WC_Report_Taxes_By_Code extends WC_Admin_Report {
 	 * Output the report
 	 */
 	public function output_report() {
-		global $woocommerce, $wpdb, $wp_locale;
 
 		$ranges = array(
 			'year'         => __( 'Year', 'woocommerce' ),
@@ -50,8 +51,9 @@ class WC_Report_Taxes_By_Code extends WC_Admin_Report {
 
 		$current_range = ! empty( $_GET['range'] ) ? $_GET['range'] : 'last_month';
 
-		if ( ! in_array( $current_range, array( 'custom', 'year', 'last_month', 'month', '7day' ) ) )
+		if ( ! in_array( $current_range, array( 'custom', 'year', 'last_month', 'month', '7day' ) ) ) {
 			$current_range = 'last_month';
+		}
 
 		$this->calculate_current_range( $current_range );
 
@@ -62,6 +64,7 @@ class WC_Report_Taxes_By_Code extends WC_Admin_Report {
 
 	/**
 	 * Get the main chart
+	 *
 	 * @return string
 	 */
 	public function get_main_chart() {
@@ -91,6 +94,11 @@ class WC_Report_Taxes_By_Code extends WC_Admin_Report {
 					'order_item_type' => 'tax',
 					'function'        => '',
 					'name'            => 'rate_id'
+				),
+				'order_id' => array(
+					'type'     => 'order_item',
+					'function' => '',
+					'name'     => 'order_id'
 				)
 			),
 			'where' => array(
@@ -122,19 +130,12 @@ class WC_Report_Taxes_By_Code extends WC_Admin_Report {
 				</tr>
 			</thead>
 			<?php if ( $tax_rows ) : ?>
-				<tfoot>
-					<tr>
-						<th scope="row" colspan="3"><?php _e( 'Total', 'woocommerce' ); ?></th>
-						<th class="total_row"><?php echo wc_price( wc_round_tax_total( array_sum( wp_list_pluck( (array) $tax_rows, 'tax_amount' ) ) ) ); ?></th>
-						<th class="total_row"><?php echo wc_price( wc_round_tax_total( array_sum( wp_list_pluck( (array) $tax_rows, 'shipping_tax_amount' ) ) ) ); ?></th>
-						<th class="total_row"><strong><?php echo wc_price( wc_round_tax_total( array_sum( wp_list_pluck( (array) $tax_rows, 'tax_amount' ) ) + array_sum( wp_list_pluck( (array) $tax_rows, 'shipping_tax_amount' ) ) ) ); ?></strong></th>
-					</tr>
-				</tfoot>
 				<tbody>
 					<?php
 					$grouped_tax_tows = array();
 
 					foreach ( $tax_rows as $tax_row ) {
+
 						if ( ! isset( $grouped_tax_tows[ $tax_row->rate_id ] ) ) {
 							$grouped_tax_tows[ $tax_row->rate_id ] = (object) array(
 								'tax_rate'            => $tax_row->tax_rate,
@@ -143,8 +144,11 @@ class WC_Report_Taxes_By_Code extends WC_Admin_Report {
 								'shipping_tax_amount' => 0
 							);
 						}
-						
-						$grouped_tax_tows[ $tax_row->rate_id ]->total_orders ++; 
+
+						if ( 'shop_order' === get_post_type( $tax_row->order_id ) ) {
+							$grouped_tax_tows[ $tax_row->rate_id ]->total_orders ++;
+						}
+
 						$grouped_tax_tows[ $tax_row->rate_id ]->tax_amount += wc_round_tax_total( $tax_row->tax_amount );
 						$grouped_tax_tows[ $tax_row->rate_id ]->shipping_tax_amount += wc_round_tax_total( $tax_row->shipping_tax_amount );
 					}
@@ -164,6 +168,14 @@ class WC_Report_Taxes_By_Code extends WC_Admin_Report {
 					}
 					?>
 				</tbody>
+				<tfoot>
+					<tr>
+						<th scope="row" colspan="3"><?php _e( 'Total', 'woocommerce' ); ?></th>
+						<th class="total_row"><?php echo wc_price( wc_round_tax_total( array_sum( wp_list_pluck( (array) $tax_rows, 'tax_amount' ) ) ) ); ?></th>
+						<th class="total_row"><?php echo wc_price( wc_round_tax_total( array_sum( wp_list_pluck( (array) $tax_rows, 'shipping_tax_amount' ) ) ) ); ?></th>
+						<th class="total_row"><strong><?php echo wc_price( wc_round_tax_total( array_sum( wp_list_pluck( (array) $tax_rows, 'tax_amount' ) ) + array_sum( wp_list_pluck( (array) $tax_rows, 'shipping_tax_amount' ) ) ) ); ?></strong></th>
+					</tr>
+				</tfoot>
 			<?php else : ?>
 				<tbody>
 					<tr>
