@@ -9,7 +9,7 @@
  * @package 	WooCommerce/Uninstaller
  * @version     2.1.0
  */
-if( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) 
+if( ! defined( 'WP_UNINSTALL_PLUGIN' ) )
 	exit();
 
 global $wpdb, $wp_roles;
@@ -38,8 +38,6 @@ if ( $mijireh_page = get_page_by_path( 'mijireh-secure-checkout' ) )
 $wpdb->query( "DROP TABLE IF EXISTS " . $wpdb->prefix . "woocommerce_attribute_taxonomies" );
 $wpdb->query( "DROP TABLE IF EXISTS " . $wpdb->prefix . "woocommerce_downloadable_product_permissions" );
 $wpdb->query( "DROP TABLE IF EXISTS " . $wpdb->prefix . "woocommerce_termmeta" );
-$wpdb->query( "DROP TABLE IF EXISTS " . $wpdb->base_prefix . "shareyourcart_tokens" );
-$wpdb->query( "DROP TABLE IF EXISTS " . $wpdb->base_prefix . "shareyourcart_coupons" );
 $wpdb->query( "DROP TABLE IF EXISTS " . $wpdb->prefix . "woocommerce_tax_rates" );
 $wpdb->query( "DROP TABLE IF EXISTS " . $wpdb->prefix . "woocommerce_tax_rate_locations" );
 
@@ -48,7 +46,7 @@ $wpdb->query("DELETE FROM $wpdb->options WHERE option_name LIKE 'woocommerce_%';
 
 if ( ! empty( $status_options['uninstall_data'] ) ) {
 	// Delete posts + data
-	$wpdb->query( "DELETE FROM {$wpdb->posts} WHERE post_type IN ( 'product', 'product_variation', 'shop_coupon', 'shop_order' );" );
+	$wpdb->query( "DELETE FROM {$wpdb->posts} WHERE post_type IN ( 'product', 'product_variation', 'shop_coupon', 'shop_order', 'shop_order_refund' );" );
 	$wpdb->query( "DELETE FROM {$wpdb->postmeta} meta LEFT JOIN {$wpdb->posts} posts ON posts.ID = meta.post_id WHERE wp.ID IS NULL;" );
 	$wpdb->query( "DROP TABLE IF EXISTS " . $wpdb->prefix . "woocommerce_order_items" );
 	$wpdb->query( "DROP TABLE IF EXISTS " . $wpdb->prefix . "woocommerce_order_itemmeta" );

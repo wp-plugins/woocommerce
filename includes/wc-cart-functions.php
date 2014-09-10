@@ -34,19 +34,17 @@ add_filter( 'woocommerce_add_to_cart_validation', 'wc_protected_product_add_to_c
  * @return void
  */
 function wc_empty_cart() {
-	if ( ! isset( WC()->cart ) || WC()->cart == '' )
+	if ( ! isset( WC()->cart ) || WC()->cart == '' ) {
 		WC()->cart = new WC_Cart();
-
+	}
 	WC()->cart->empty_cart( false );
 }
-add_action( 'wp_logout', 'wc_empty_cart' );
-
 
 /**
  * Load the cart upon login
  *
  * @param mixed $user_login
- * @param mixed $user
+ * @param integer $user
  * @return void
  */
 function wc_load_persistent_cart( $user_login, $user = 0 ) {
@@ -121,7 +119,7 @@ function wc_clear_cart_after_payment() {
 			$order_key = '';
 
 		if ( $order_id > 0 ) {
-			$order = new WC_Order( $order_id );
+			$order = wc_get_order( $order_id );
 
 			if ( $order->order_key == $order_key ) {
 				WC()->cart->empty_cart();
@@ -132,12 +130,13 @@ function wc_clear_cart_after_payment() {
 
 	if ( WC()->session->order_awaiting_payment > 0 ) {
 
-		$order = new WC_Order( WC()->session->order_awaiting_payment );
+		$order = wc_get_order( WC()->session->order_awaiting_payment );
 
 		if ( $order->id > 0 ) {
 			// If the order has not failed, or is not pending, the order must have gone through
-			if ( $order->status != 'failed' && $order->status != 'pending' )
+			if ( ! $order->has_status( array( 'failed', 'pending' ) ) ) {
 				WC()->cart->empty_cart();
+			}
 		}
 	}
 }

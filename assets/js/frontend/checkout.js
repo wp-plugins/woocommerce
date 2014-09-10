@@ -1,7 +1,7 @@
 jQuery( function( $ ) {
 
-	$.blockUI.defaults.overlayCSS.cursor = 'default'; 
-	
+	$.blockUI.defaults.overlayCSS.cursor = 'default';
+
 	// wc_checkout_params is required to continue, ensure the object exists
 	if ( typeof wc_checkout_params === 'undefined' )
 		return false;
@@ -34,7 +34,7 @@ jQuery( function( $ ) {
 			s_address,
 			s_address_2;
 
-		if ( $( '#ship-to-different-address input' ).is( ':checked' ) || $( '#ship-to-different-address input' ).size() === 0 ) {
+		if ( $( '#ship-to-different-address input' ).is( ':checked' ) ) {
 			s_country		= $( '#shipping_country' ).val();
 			s_state			= $( '#shipping_state' ).val();
 			s_postcode		= $( 'input#shipping_postcode' ).val();
@@ -93,11 +93,7 @@ jQuery( function( $ ) {
 		update_checkout();
 	});
 
-	$( 'p.password, form.login, .checkout_coupon, div.shipping_address' ).hide();
-
-	$( 'input.show_password' ).change( function() {
-		$( 'p.password' ).slideToggle();
-	});
+	$( '.checkout_coupon, div.shipping_address' ).hide();
 
 	$( 'a.showlogin' ).click( function() {
 		$( 'form.login' ).slideToggle();
@@ -191,7 +187,7 @@ jQuery( function( $ ) {
 
 	/* Update totals/taxes/shipping */
 	// Inputs/selects which update totals instantly
-	.on( 'input change', 'select.shipping_method, input[name^=shipping_method], #ship-to-different-address input, .update_totals_on_change select', function() {
+	.on( 'input change', 'select.shipping_method, input[name^=shipping_method], #ship-to-different-address input, .update_totals_on_change select, .update_totals_on_change input[type=radio]', function() {
 		clearTimeout( updateTimer );
 		dirtyInput = false;
 		$( 'body' ).trigger( 'update_checkout' );

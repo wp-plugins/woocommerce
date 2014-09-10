@@ -4,14 +4,12 @@
  *
  * @author 		WooThemes
  * @package 	WooCommerce/Templates
- * @version     2.1.0
+ * @version     2.2.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-global $woocommerce;
-
-$order = new WC_Order( $order_id );
+$order = wc_get_order( $order_id );
 ?>
 <h2><?php _e( 'Order Details', 'woocommerce' ); ?></h2>
 <table class="shop_table order_details">
@@ -21,18 +19,6 @@ $order = new WC_Order( $order_id );
 			<th class="product-total"><?php _e( 'Total', 'woocommerce' ); ?></th>
 		</tr>
 	</thead>
-	<tfoot>
-	<?php
-		if ( $totals = $order->get_order_item_totals() ) foreach ( $totals as $total ) :
-			?>
-			<tr>
-				<th scope="row"><?php echo $total['label']; ?></th>
-				<td><?php echo $total['value']; ?></td>
-			</tr>
-			<?php
-		endforeach;
-	?>
-	</tfoot>
 	<tbody>
 		<?php
 		if ( sizeof( $order->get_items() ) > 0 ) {
@@ -76,10 +62,10 @@ $order = new WC_Order( $order_id );
 				</tr>
 				<?php
 
-				if ( in_array( $order->status, array( 'processing', 'completed' ) ) && ( $purchase_note = get_post_meta( $_product->id, '_purchase_note', true ) ) ) {
+				if ( $order->has_status( array( 'completed', 'processing' ) ) && ( $purchase_note = get_post_meta( $_product->id, '_purchase_note', true ) ) ) {
 					?>
 					<tr class="product-purchase-note">
-						<td colspan="3"><?php echo apply_filters( 'the_content', $purchase_note ); ?></td>
+						<td colspan="3"><?php echo wpautop( do_shortcode( $purchase_note ) ); ?></td>
 					</tr>
 					<?php
 				}
@@ -89,6 +75,18 @@ $order = new WC_Order( $order_id );
 		do_action( 'woocommerce_order_items_table', $order );
 		?>
 	</tbody>
+	<tfoot>
+	<?php
+		if ( $totals = $order->get_order_item_totals() ) foreach ( $totals as $total ) :
+			?>
+			<tr>
+				<th scope="row"><?php echo $total['label']; ?></th>
+				<td><?php echo $total['value']; ?></td>
+			</tr>
+			<?php
+		endforeach;
+	?>
+	</tfoot>
 </table>
 
 <?php do_action( 'woocommerce_order_details_after_order_table', $order ); ?>
@@ -106,7 +104,7 @@ $order = new WC_Order( $order_id );
 ?>
 </dl>
 
-<?php if ( get_option( 'woocommerce_ship_to_billing_address_only' ) === 'no' && get_option( 'woocommerce_calc_shipping' ) !== 'no' ) : ?>
+<?php if ( ! wc_ship_to_billing_address_only() && $order->needs_shipping_address() && get_option( 'woocommerce_calc_shipping' ) !== 'no' ) : ?>
 
 <div class="col2-set addresses">
 
@@ -117,13 +115,13 @@ $order = new WC_Order( $order_id );
 		<header class="title">
 			<h3><?php _e( 'Billing Address', 'woocommerce' ); ?></h3>
 		</header>
-		<address><p>
+		<address>
 			<?php
 				if ( ! $order->get_formatted_billing_address() ) _e( 'N/A', 'woocommerce' ); else echo $order->get_formatted_billing_address();
 			?>
-		</p></address>
+		</address>
 
-<?php if ( get_option( 'woocommerce_ship_to_billing_address_only' ) === 'no' && get_option( 'woocommerce_calc_shipping' ) !== 'no' ) : ?>
+<?php if ( ! wc_ship_to_billing_address_only() && $order->needs_shipping_address() && get_option( 'woocommerce_calc_shipping' ) !== 'no' ) : ?>
 
 	</div><!-- /.col-1 -->
 
@@ -132,11 +130,11 @@ $order = new WC_Order( $order_id );
 		<header class="title">
 			<h3><?php _e( 'Shipping Address', 'woocommerce' ); ?></h3>
 		</header>
-		<address><p>
+		<address>
 			<?php
 				if ( ! $order->get_formatted_shipping_address() ) _e( 'N/A', 'woocommerce' ); else echo $order->get_formatted_shipping_address();
 			?>
-		</p></address>
+		</address>
 
 	</div><!-- /.col-2 -->
 
