@@ -10,7 +10,9 @@
  * @version     2.1.0
  */
 
-if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly
+}
 
 /**
  * WC_Admin_Meta_Boxes
@@ -188,6 +190,9 @@ class WC_Admin_Meta_Boxes {
 		if ( ! current_user_can( 'edit_post', $post_id ) ) {
 			return;
 		}
+
+		// If we get here, saving will take place. Unhook self to prevent race conditions or double-saving.
+		remove_action( 'save_post', array( $this, 'save_meta_boxes' ), 1, 2 );
 
 		// Check the post type
 		if ( in_array( $post->post_type, wc_get_order_types( 'order-meta-boxes' ) ) ) {

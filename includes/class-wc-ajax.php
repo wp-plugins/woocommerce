@@ -935,7 +935,7 @@ class WC_AJAX {
 			$type_to_load . '_phone'      => get_user_meta( $user_id, $type_to_load . '_phone', true ),
 		);
 
-		$customer_data = apply_filters( 'woocommerce_found_customer_details', $customer_data );
+		$customer_data = apply_filters( 'woocommerce_found_customer_details', $customer_data, $user_id, $type_to_load );
 
 		wp_send_json( $customer_data );
 
@@ -971,7 +971,7 @@ class WC_AJAX {
 
 		$item['product_id']        = $_product->id;
 		$item['variation_id']      = isset( $_product->variation_id ) ? $_product->variation_id : '';
-		$item['variation_data']    = isset( $_product->variation_data ) ? $_product->variation_data : '';
+		$item['variation_data']    = $item['variation_id'] ? $_product->get_variation_attributes() : '';
 		$item['name']              = $_product->get_title();
 		$item['tax_class']         = $_product->get_tax_class();
 		$item['qty']               = 1;
@@ -1921,6 +1921,7 @@ class WC_AJAX {
 		$refund_id = absint( $_POST['refund_id'] );
 
 		if ( $refund_id && 'shop_order_refund' === get_post_type( $refund_id ) ) {
+			wc_delete_shop_order_transients( wp_get_post_parent_id( $refund_id ) );
 			wp_delete_post( $refund_id );
 		}
 

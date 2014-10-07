@@ -8,7 +8,9 @@
  * @version     2.1.0
  */
 
-if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly
+}
 
 if ( ! class_exists( 'WC_Settings_Products' ) ) :
 
@@ -189,7 +191,7 @@ class WC_Settings_Products extends WC_Settings_Page {
 			// Get shop page
 			$shop_page_id = wc_get_page_id('shop');
 
-			$base_slug = ($shop_page_id > 0 && get_page( $shop_page_id )) ? get_page_uri( $shop_page_id ) : 'shop';
+			$base_slug = ($shop_page_id > 0 && get_post( $shop_page_id )) ? get_page_uri( $shop_page_id ) : 'shop';
 
 			$woocommerce_prepend_shop_page_to_products_warning = '';
 
@@ -371,8 +373,8 @@ class WC_Settings_Products extends WC_Settings_Page {
 					'css'      => '',
 					'type'     => 'image_width',
 					'default'  => array(
-						'width'  => '150',
-						'height' => '150',
+						'width'  => '300',
+						'height' => '300',
 						'crop'   => 1
 					),
 					'desc_tip' =>  true,
@@ -385,8 +387,8 @@ class WC_Settings_Products extends WC_Settings_Page {
 					'css'      => '',
 					'type'     => 'image_width',
 					'default'  => array(
-						'width'  => '300',
-						'height' => '300',
+						'width'  => '600',
+						'height' => '600',
 						'crop'   => 1
 					),
 					'desc_tip' =>  true,
@@ -399,8 +401,8 @@ class WC_Settings_Products extends WC_Settings_Page {
 					'css'      => '',
 					'type'     => 'image_width',
 					'default'  => array(
-						'width'  => '90',
-						'height' => '90',
+						'width'  => '180',
+						'height' => '180',
 						'crop'   => 1
 					),
 					'desc_tip' =>  true,

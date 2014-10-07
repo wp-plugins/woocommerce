@@ -1,7 +1,9 @@
 <?php
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
+
 ?>
 <tr class="item <?php echo apply_filters( 'woocommerce_admin_html_order_item_class', ( ! empty( $class ) ? $class : '' ), $item ); ?>" data-order_item_id="<?php echo $item_id; ?>">
 	<td class="check-column"><input type="checkbox" /></td>
@@ -44,6 +46,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 		<input type="hidden" class="order_item_id" name="order_item_id[]" value="<?php echo esc_attr( $item_id ); ?>" />
 		<input type="hidden" name="order_item_tax_class[<?php echo absint( $item_id ); ?>]" value="<?php echo isset( $item['tax_class'] ) ? esc_attr( $item['tax_class'] ) : ''; ?>" />
+
+		<?php do_action( 'woocommerce_before_order_itemmeta', $item_id, $item, $_product ) ?>
 
 		<div class="view">
 			<?php
@@ -144,6 +148,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</tfoot>
 			</table>
 		</div>
+
+		<?php do_action( 'woocommerce_after_order_itemmeta', $item_id, $item, $_product ) ?>
+
 	</td>
 
 	<?php do_action( 'woocommerce_admin_order_item_values', $_product, $item, absint( $item_id ) ); ?>
@@ -172,14 +179,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<?php
 				if ( isset( $item['line_total'] ) ) {
 					if ( isset( $item['line_subtotal'] ) && $item['line_subtotal'] != $item['line_total'] ) {
-						echo '<del>' . wc_price( $item['line_subtotal'] ) . '</del> ';
+						echo '<del>' . wc_price( $item['line_subtotal'], array( 'currency' => $order->get_order_currency() ) ) . '</del> ';
 					}
 
-					echo wc_price( $item['line_total'] );
+					echo wc_price( $item['line_total'], array( 'currency' => $order->get_order_currency() ) );
 				}
 
 				if ( $refunded = $order->get_total_refunded_for_item( $item_id ) ) {
-					echo '<small class="refunded">-' . wc_price( $refunded ) . '</small>';
+					echo '<small class="refunded">-' . wc_price( $refunded, array( 'currency' => $order->get_order_currency() ) ) . '</small>';
 				}
 			?>
 		</div>
@@ -198,7 +205,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</td>
 
 	<?php
-		if ( isset( $legacy_order ) && ! $legacy_order && 'yes' == get_option( 'woocommerce_calc_taxes' ) ) :
+		if ( empty( $legacy_order ) && 'yes' == get_option( 'woocommerce_calc_taxes' ) ) :
 			$line_tax_data = isset( $item['line_tax_data'] ) ? $item['line_tax_data'] : '';
 			$tax_data      = maybe_unserialize( $line_tax_data );
 
@@ -213,16 +220,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 							<?php
 								if ( '' != $tax_item_total ) {
 									if ( isset( $tax_item_subtotal ) && $tax_item_subtotal != $tax_item_total ) {
-										echo '<del>' . wc_price( wc_round_tax_total( $tax_item_subtotal ) ) . '</del> ';
+										echo '<del>' . wc_price( wc_round_tax_total( $tax_item_subtotal ), array( 'currency' => $order->get_order_currency() ) ) . '</del> ';
 									}
 
-									echo wc_price( wc_round_tax_total( $tax_item_total ) );
+									echo wc_price( wc_round_tax_total( $tax_item_total ), array( 'currency' => $order->get_order_currency() ) );
 								} else {
 									echo '&ndash;';
 								}
 
 								if ( $refunded = $order->get_tax_refunded_for_item( $item_id, $tax_item_id ) ) {
-									echo '<small class="refunded">-' . wc_price( $refunded ) . '</small>';
+									echo '<small class="refunded">-' . wc_price( $refunded, array( 'currency' => $order->get_order_currency() ) ) . '</small>';
 								}
 							?>
 						</div>

@@ -130,6 +130,27 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 
 == Changelog ==
 
+= 2.3.0 =
+* Refactor - Removed deprecated methods from WC_Frontend_Scripts and rewrote script registration and localization to run once.
+* Fix - When 'hide out of stock products' is disabled, out of stock variations / attributes are now visible.
+* Tweak - Double the default product image dimensions.
+* Tweak - Added refunds to Sales by Date report.
+* Tweak - Updated prevent_caching() method to work if a cart/checkout page isn't set.
+* Tweak - When user tries to download a file and isn't logged in, send them to the account page with a notice.
+* Tweak - Logic in wc_paying_customer to only increase for 'simple' orders.
+* Tweak - Added tool to refresh stats to customer list.
+* Tweak - Recent order table on my account is responsive.
+* Dev - Made template debug mode set WC_TEMPLATE_DEBUG_MODE constant and remove all overrides for all template loading functions.
+
+= 2.2.5 =
+* Fix - Filters in admin screen for coupons and orders.
+* Fix - When bulk editing, don't allow sale price to be negative.
+* Fix - When manually adding items to an order, show tax columns.
+* Fix - When manually adding items to an order, include variation data.
+* Fix - Prevent errors when constructing WC_Order without an ID.
+* Tweak - Tweak load_plugin_textdomain to be relative - this falls back to WP_LANG_DIR automatically. Can prevent "open_basedir restriction in effect".
+* Tweak - Added acceptance marks to PayPal Standard where applicable to replace generic PayPal icon.
+
 = 2.2.4 - 18/09/2014 =
 * Fix - Prevent errors when adding 'zero-rated' tax on checkout.
 * Fix - Fixed a varation product width inheritance bug.
