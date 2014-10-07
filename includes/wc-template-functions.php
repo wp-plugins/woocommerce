@@ -10,7 +10,9 @@
  * @version     2.1.0
  */
 
-if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly
+}
 
 /**
  * Handle redirects before content is output - hooked into template_redirect so is_page works.
@@ -1201,6 +1203,26 @@ if ( ! function_exists( 'woocommerce_cross_sell_display' ) ) {
 	}
 }
 
+if ( ! function_exists( 'woocommerce_button_proceed_to_checkout' ) ) {
+
+	/**
+	 * Output the proceed to checkout button.
+	 *
+	 * @access public
+	 * @subpackage	Cart
+	 * @return void
+	 */
+	function woocommerce_button_proceed_to_checkout() {
+		$checkout_url = WC()->cart->get_checkout_url();
+
+		?>
+		<a href="<?php echo $checkout_url; ?>" class="checkout-button button alt wc-forward"><?php _e( 'Proceed to Checkout', 'woocommerce' ); ?></a>
+		<?php
+	}
+}
+
+
+
 /** Mini-Cart *************************************************************/
 
 if ( ! function_exists( 'woocommerce_mini_cart' ) ) {
@@ -1454,15 +1476,15 @@ if ( ! function_exists( 'woocommerce_product_subcategories' ) ) {
 
 		// NOTE: using child_of instead of parent - this is not ideal but due to a WP bug ( http://core.trac.wordpress.org/ticket/15626 ) pad_counts won't work
 		$args = apply_filters( 'woocommerce_product_subcategories_args', array(
-			'parent'		=> $parent_id,
-			'menu_order'	=> 'ASC',
-			'hide_empty'	=> 1,
-			'hierarchical'	=> 1,
-			'taxonomy'		=> 'product_cat',
-			'pad_counts'	=> 1
+			'parent'       => $parent_id,
+			'menu_order'   => 'ASC',
+			'hide_empty'   => 0,
+			'hierarchical' => 1,
+			'taxonomy'     => 'product_cat',
+			'pad_counts'   => 1
 		) );
 
-		$product_categories     = get_categories( $args );
+		$product_categories     = wp_list_filter( get_categories( $args ), array( 'count' => 0 ), 'NOT' );
 		$product_category_found = false;
 
 		if ( $product_categories ) {
@@ -1689,21 +1711,8 @@ if ( ! function_exists( 'woocommerce_form_field' ) ) {
 
 			/* Get Country */
 			$country_key = $key == 'billing_state'? 'billing_country' : 'shipping_country';
-
-			if ( isset( $_POST[ $country_key ] ) ) {
-				$current_cc = wc_clean( $_POST[ $country_key ] );
-			} elseif ( is_user_logged_in() ) {
-				$current_cc = get_user_meta( get_current_user_id() , $country_key, true );
-				if ( ! $current_cc) {
-					$current_cc = apply_filters('default_checkout_country', (WC()->customer->get_country()) ? WC()->customer->get_country() : WC()->countries->get_base_country());
-				}
-			} elseif ( $country_key == 'billing_country' ) {
-				$current_cc = apply_filters('default_checkout_country', (WC()->customer->get_country()) ? WC()->customer->get_country() : WC()->countries->get_base_country());
-			} else {
-				$current_cc = apply_filters('default_checkout_country', (WC()->customer->get_shipping_country()) ? WC()->customer->get_shipping_country() : WC()->countries->get_base_country());
-			}
-
-			$states = WC()->countries->get_states( $current_cc );
+			$current_cc  = WC()->checkout->get_value( $country_key );
+			$states      = WC()->countries->get_states( $current_cc );
 
 			if ( is_array( $states ) && empty( $states ) ) {
 
@@ -1760,7 +1769,7 @@ if ( ! function_exists( 'woocommerce_form_field' ) ) {
 			if ( $args['label'] )
 				$field .= '<label for="' . esc_attr( $args['id'] ) . '" class="' . esc_attr( implode( ' ', $args['label_class'] ) ) .'">' . $args['label']. $required  . '</label>';
 
-			$field .= '<textarea name="' . esc_attr( $key ) . '" class="input-text ' . esc_attr( implode( ' ', $args['input_class'] ) ) .'" id="' . esc_attr( $args['id'] ) . '" placeholder="' . esc_attr( $args['placeholder'] ) . '"' . ( empty( $args['custom_attributes']['rows'] ) ? ' rows="2"' : '' ) . ( empty( $args['custom_attributes']['cols'] ) ? ' cols="5"' : '' ) . implode( ' ', $custom_attributes ) . '>'. esc_textarea( $value  ) .'</textarea>';
+			$field .= '<textarea name="' . esc_attr( $key ) . '" class="input-text ' . esc_attr( implode( ' ', $args['input_class'] ) ) .'" id="' . esc_attr( $args['id'] ) . '" placeholder="' . esc_attr( $args['placeholder'] ) . '" ' . $args['maxlength'] . ' ' . ( empty( $args['custom_attributes']['rows'] ) ? ' rows="2"' : '' ) . ( empty( $args['custom_attributes']['cols'] ) ? ' cols="5"' : '' ) . implode( ' ', $custom_attributes ) . '>'. esc_textarea( $value  ) .'</textarea>';
 
 			if ( $args['description'] )
 				$field .= '<span class="description">' . esc_attr( $args['description'] ) . '</span>';

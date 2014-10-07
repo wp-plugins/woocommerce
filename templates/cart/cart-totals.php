@@ -4,10 +4,13 @@
  *
  * @author 		WooThemes
  * @package 	WooCommerce/Templates
- * @version     2.1.0
+ * @version     2.3.0
  */
 
-if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly
+}
+
 ?>
 <div class="cart_totals <?php if ( WC()->customer->has_calculated_shipping() ) echo 'calculated_shipping'; ?>">
 
@@ -79,6 +82,12 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 		<?php do_action( 'woocommerce_cart_totals_after_order_total' ); ?>
 
 	</table>
+
+	<div class="wc-proceed-to-checkout">
+
+		<?php do_action( 'woocommerce_proceed_to_checkout' ); ?>
+
+	</div>
 
 	<?php if ( WC()->cart->get_cart_tax() ) : ?>
 		<p><small><?php
