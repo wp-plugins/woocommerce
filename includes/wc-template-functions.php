@@ -1203,26 +1203,6 @@ if ( ! function_exists( 'woocommerce_cross_sell_display' ) ) {
 	}
 }
 
-if ( ! function_exists( 'woocommerce_button_proceed_to_checkout' ) ) {
-
-	/**
-	 * Output the proceed to checkout button.
-	 *
-	 * @access public
-	 * @subpackage	Cart
-	 * @return void
-	 */
-	function woocommerce_button_proceed_to_checkout() {
-		$checkout_url = WC()->cart->get_checkout_url();
-
-		?>
-		<a href="<?php echo $checkout_url; ?>" class="checkout-button button alt wc-forward"><?php _e( 'Proceed to Checkout', 'woocommerce' ); ?></a>
-		<?php
-	}
-}
-
-
-
 /** Mini-Cart *************************************************************/
 
 if ( ! function_exists( 'woocommerce_mini_cart' ) ) {
@@ -1769,7 +1749,7 @@ if ( ! function_exists( 'woocommerce_form_field' ) ) {
 			if ( $args['label'] )
 				$field .= '<label for="' . esc_attr( $args['id'] ) . '" class="' . esc_attr( implode( ' ', $args['label_class'] ) ) .'">' . $args['label']. $required  . '</label>';
 
-			$field .= '<textarea name="' . esc_attr( $key ) . '" class="input-text ' . esc_attr( implode( ' ', $args['input_class'] ) ) .'" id="' . esc_attr( $args['id'] ) . '" placeholder="' . esc_attr( $args['placeholder'] ) . '" ' . $args['maxlength'] . ' ' . ( empty( $args['custom_attributes']['rows'] ) ? ' rows="2"' : '' ) . ( empty( $args['custom_attributes']['cols'] ) ? ' cols="5"' : '' ) . implode( ' ', $custom_attributes ) . '>'. esc_textarea( $value  ) .'</textarea>';
+			$field .= '<textarea name="' . esc_attr( $key ) . '" class="input-text ' . esc_attr( implode( ' ', $args['input_class'] ) ) .'" id="' . esc_attr( $args['id'] ) . '" placeholder="' . esc_attr( $args['placeholder'] ) . '"' . ( empty( $args['custom_attributes']['rows'] ) ? ' rows="2"' : '' ) . ( empty( $args['custom_attributes']['cols'] ) ? ' cols="5"' : '' ) . implode( ' ', $custom_attributes ) . '>'. esc_textarea( $value  ) .'</textarea>';
 
 			if ( $args['description'] )
 				$field .= '<span class="description">' . esc_attr( $args['description'] ) . '</span>';

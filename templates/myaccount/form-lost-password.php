@@ -8,9 +8,8 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+    exit;
 }
-
 ?>
 
 <?php wc_print_notices(); ?>

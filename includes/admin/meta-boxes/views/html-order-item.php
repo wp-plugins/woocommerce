@@ -179,14 +179,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<?php
 				if ( isset( $item['line_total'] ) ) {
 					if ( isset( $item['line_subtotal'] ) && $item['line_subtotal'] != $item['line_total'] ) {
-						echo '<del>' . wc_price( $item['line_subtotal'], array( 'currency' => $order->get_order_currency() ) ) . '</del> ';
+						echo '<del>' . wc_price( $item['line_subtotal'] ) . '</del> ';
 					}
 
-					echo wc_price( $item['line_total'], array( 'currency' => $order->get_order_currency() ) );
+					echo wc_price( $item['line_total'] );
 				}
 
 				if ( $refunded = $order->get_total_refunded_for_item( $item_id ) ) {
-					echo '<small class="refunded">-' . wc_price( $refunded, array( 'currency' => $order->get_order_currency() ) ) . '</small>';
+					echo '<small class="refunded">-' . wc_price( $refunded ) . '</small>';
 				}
 			?>
 		</div>
@@ -220,16 +220,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 							<?php
 								if ( '' != $tax_item_total ) {
 									if ( isset( $tax_item_subtotal ) && $tax_item_subtotal != $tax_item_total ) {
-										echo '<del>' . wc_price( wc_round_tax_total( $tax_item_subtotal ), array( 'currency' => $order->get_order_currency() ) ) . '</del> ';
+										echo '<del>' . wc_price( wc_round_tax_total( $tax_item_subtotal ) ) . '</del> ';
 									}
 
-									echo wc_price( wc_round_tax_total( $tax_item_total ), array( 'currency' => $order->get_order_currency() ) );
+									echo wc_price( wc_round_tax_total( $tax_item_total ) );
 								} else {
 									echo '&ndash;';
 								}
 
 								if ( $refunded = $order->get_tax_refunded_for_item( $item_id, $tax_item_id ) ) {
-									echo '<small class="refunded">-' . wc_price( $refunded, array( 'currency' => $order->get_order_currency() ) ) . '</small>';
+									echo '<small class="refunded">-' . wc_price( $refunded ) . '</small>';
 								}
 							?>
 						</div>

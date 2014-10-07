@@ -137,7 +137,7 @@ function wc_get_template_part( $slug, $name = '' ) {
 	$template = '';
 
 	// Look in yourtheme/slug-name.php and yourtheme/woocommerce/slug-name.php
-	if ( $name && ! WC_TEMPLATE_DEBUG_MODE ) {
+	if ( $name ) {
 		$template = locate_template( array( "{$slug}-{$name}.php", WC()->template_path() . "{$slug}-{$name}.php" ) );
 	}
 
@@ -147,14 +147,12 @@ function wc_get_template_part( $slug, $name = '' ) {
 	}
 
 	// If template file doesn't exist, look in yourtheme/slug.php and yourtheme/woocommerce/slug.php
-	if ( ! $template && ! WC_TEMPLATE_DEBUG_MODE ) {
+	if ( ! $template ) {
 		$template = locate_template( array( "{$slug}.php", WC()->template_path() . "{$slug}.php" ) );
 	}
 
 	// Allow 3rd party plugin filter template file from their plugin
-	if ( ( ! $template && WC_TEMPLATE_DEBUG_MODE ) || $template ) {
-		$template = apply_filters( 'wc_get_template_part', $template, $slug, $name );
-	}
+	$template = apply_filters( 'wc_get_template_part', $template, $slug, $name );
 
 	if ( $template ) {
 		load_template( $template, false );
@@ -226,12 +224,12 @@ function wc_locate_template( $template_name, $template_path = '', $default_path 
 	);
 
 	// Get default template
-	if ( ! $template || WC_TEMPLATE_DEBUG_MODE ) {
+	if ( ! $template ) {
 		$template = $default_path . $template_name;
 	}
 
 	// Return what we found
-	return apply_filters( 'woocommerce_locate_template', $template, $template_name, $template_path );
+	return apply_filters('woocommerce_locate_template', $template, $template_name, $template_path);
 }
 
 /**

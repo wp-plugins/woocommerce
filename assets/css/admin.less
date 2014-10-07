@@ -1,6 +1,6 @@
 /* =Mixins
 -------------------------------------------------------------- */
-@import "mixins";
+@import "mixins.less";
 
 
 /* =Custom Font
@@ -160,13 +160,13 @@ table.wc_status_table {
 			background: transparent none;
 		}
 		mark.yes {
-			color: $green;
+			color: @green;
 		}
 		mark.no {
 			color: #999;
 		}
 		mark.error {
-			color: $red;
+			color: @red;
 		}
 		ul {
 			margin: 0;
@@ -279,6 +279,104 @@ ul.wc_coupon_list, .column-coupon_code {
 	overflow: hidden;
 	zoom: 1;
 	clear: both;
+	.code {
+		margin-right: 6px;
+	}
+	li.code {
+		margin: 0 6px 12px 0 !important;
+	}
+	.code, .code a, .code span {
+		&:before, &:after {
+			content: "";
+			display: block;
+			position: absolute;
+			width: 8px;
+			height: 4px;
+			background: #f7f7f7;
+			-webkit-border-radius:2px;
+			-moz-border-radius:2px;
+			-o-border-radius:2px;
+			border-radius:2px;
+			-moz-box-shadow: 0 2px 0 0 rgba(255,255,255,0.3), inset 0 2px 0 0 rgba(0,0,0,0.1);
+			-webkit-box-shadow: 0 2px 0 0 rgba(255,255,255,0.3), inset 0 2px 0 0 rgba(0,0,0,0.1);
+			box-shadow: 0 2px 0 0 rgba(255,255,255,0.3), inset 0 2px 0 0 rgba(0,0,0,0.1);
+		}
+	}
+	.code {
+		overflow: hidden;
+		vertical-align: middle;
+		margin: 0 8px 0 0;
+
+		background: #ececec;
+		color: #21759A;
+		text-shadow: 0 1px 0 #ddd;
+
+		padding: 2px;
+		position: relative;
+		float: left;
+		line-height: 1em;
+		-moz-box-shadow: 0 2px 0 0 #dddddd;
+		-webkit-box-shadow: 0 2px 0 0 #dddddd;
+		box-shadow: 0 2px 0 0 #dddddd;
+		font-weight: bold;
+
+		&:before {
+			bottom: 5px;
+			left: 0;
+			margin: 0 0 0 -4px;
+		}
+		&:after {
+			top: 5px;
+			left: 0;
+			margin: 0 0 0 -4px;
+		}
+		a, span {
+			float: left;
+			padding: 0 4px;
+			color: #21759A;
+			&:before {
+				bottom: 5px;
+				right: 0;
+				margin: 0 -4px 0 0;
+			}
+			&:after {
+				content: "";
+				top: 5px;
+				right: 0;
+				margin: 0 -4px 0 0;
+			}
+			span {
+				border: 1px dashed #ccc;
+				padding: .5em 6px;
+				-webkit-border-radius:2px;
+				-moz-border-radius:2px;
+				-o-border-radius:2px;
+				border-radius:2px;
+				&:before {
+					top: 50%;
+					left: 0;
+					margin: -2px 0 0 -4px;
+				}
+				&:after {
+					top: 50%;
+					right: 0;
+					margin: -2px -4px 0 0;
+				}
+			}
+		}
+
+		&:hover {
+			background: #975e83;
+			color: #fff;
+			text-shadow: 0 1px 0 #5a324b;
+			a, span {
+				color: #fff;
+				span {
+					border: 1px dashed #bb82a7;
+				}
+			}
+		}
+	}
 }
 ul.wc_coupon_list_block {
 	margin: 0;
@@ -303,7 +401,7 @@ ul.wc_coupon_list_block {
 
 /* Orders */
 .button.wc-reload {
-	@include ir();
+	.ir;
 	padding:0;
 	-webkit-border-radius:100%;
 	border-radius:100%;
@@ -311,7 +409,7 @@ ul.wc_coupon_list_block {
 	width:24px !important;
 	display: inline-block;
 	&:after {
-		@include icon( "\e031" );
+		.icon( "\e031" );
 		line-height: 22px;
 	}
 }
@@ -518,7 +616,7 @@ ul.wc_coupon_list_block {
 		background: #fff;
 		padding: 12px;
 		background:#f8f8f8;
-		@include clearfix();
+		.clearfix;
 		line-height: 2em;
 		text-align: right;
 		p {
@@ -587,7 +685,7 @@ ul.wc_coupon_list_block {
 			}
 		}
 		.refunded-total {
-			color: $red;
+			color: @red;
 		}
 	}
 	.refund-actions {
@@ -806,33 +904,33 @@ ul.wc_coupon_list_block {
 
 		tr.fee {
 			.thumb div {
-				@include ir();
+				.ir();
 				font-size: 14px;
 				margin: 6px;
 				&:before {
-					@include icon( "\e007" );
+					.icon( "\e007" );
 					color: #bbbbbb;
 				}
 			}
 		}
 		tr.refund {
 			.thumb div {
-				@include ir();
+				.ir();
 				font-size: 14px;
 				margin: 6px;
 				&:before {
-					@include icon( "\e014" );
+					.icon( "\e014" );
 					color: #bbbbbb;
 				}
 			}
 		}
 		tr.shipping {
 			.thumb div {
-				@include ir();
+				.ir();
 				font-size: 14px;
 				margin: 6px;
 				&:before {
-					@include icon( "\e01a" );
+					.icon( "\e01a" );
 					color: #bbbbbb;
 				}
 			}
@@ -843,13 +941,13 @@ ul.wc_coupon_list_block {
 		th.line_tax, td.line_tax {
 			padding: 8px 16px 8px 8px;
 			.delete-order-tax {
-				@include ir();
+				.ir;
 				font-size: 12px;
 				visibility: hidden;
 				float: right;
 				margin: 2px -16px 0 0;
 				&:before {
-					@include icon( "\e013" );
+					.icon( "\e013" );
 					color:white;
 					background-color: #000;
 					-webkit-border-radius:100%;
@@ -858,8 +956,8 @@ ul.wc_coupon_list_block {
 					box-shadow:0 1px 2px rgba(0,0,0,0.2);
 				}
 				&:hover:before {
-					border-color: $red;
-					background-color: $red;
+					border-color: @red;
+					background-color: @red;
 				}
 			}
 			&:hover {
@@ -870,7 +968,7 @@ ul.wc_coupon_list_block {
 		}
 		small.refunded {
 			display: block;
-			color: $red;
+			color: @red;
 			white-space: nowrap;
 		}
 	}
@@ -878,11 +976,11 @@ ul.wc_coupon_list_block {
 
 .wc-order-items-editable {
 	.edit-order-item {
-		@include ir();
+		.ir;
 		display: inline-block;
 		margin: 0 .5em 0 0;
 		&:before {
-			@include icon;
+			.icon;
 			content: "\e603";
 			color: #999;
 		}
@@ -894,17 +992,17 @@ ul.wc_coupon_list_block {
 	}
 	.delete-order-item,
 	.delete_refund {
-		@include ir();
+		.ir;
 		display: inline-block;
 		margin: 0;
 		&:before {
-			@include icon;
+			.icon;
 			content: "\e013";
 			color: #999;
 		}
 		&:hover {
 			&:before {
-				color: $red;
+				color: @red;
 			}
 		}
 	}
@@ -1030,23 +1128,23 @@ ul.wc_coupon_list_block {
 		width:45px;
 		text-align: center;
 		mark {
-			@include ir();
+			.ir;
 			background: none;
 			font-size: 1.4em;
 			margin: 0 auto;
 		}
 		mark.pending, mark.completed, mark.on-hold, mark.failed, mark.cancelled, mark.processing, mark.refunded {
 			&:after {
-				@include icon;
+				.icon;
 			}
 		}
 		mark.pending:after {
 			content: "\e012";
-			color: $orange;
+			color: @orange;
 		}
 		mark.completed:after {
 			content: "\e015";
-			color: $blue;
+			color: @blue;
 		}
 		mark.on-hold:after {
 			content: "\e033";
@@ -1058,7 +1156,7 @@ ul.wc_coupon_list_block {
 		}
 		mark.cancelled:after {
 			content: "\e013";
-			color: $red;
+			color: @red;
 		}
 		mark.processing:after {
 			content: "\e011";
@@ -1075,34 +1173,34 @@ ul.wc_coupon_list_block {
 }
 .column-customer_message {
 	.note-on {
-		@include ir();
+		.ir;
 		margin:0 auto;
 		color: #999;
 		&:after {
-			@include icon( "\e026" );
+			.icon( "\e026" );
 			line-height: 16px;
 		}
 	}
 }
 .column-order_notes {
 	.note-on {
-		@include ir();
+		.ir;
 		margin:0 auto;
 		color: #999;
 		&:after {
-			@include icon( "\e027" );
+			.icon( "\e027" );
 			line-height: 16px;
 		}
 	}
 }
 .order_actions {
 	.processing, .complete, .view {
-		@include ir();
+		.ir;
 		padding:0 !important;
 		height: 2em !important;
 		width:2em;
 		&:after {
-			@include icon;
+			.icon;
 			line-height: 1.85;
 		}
 	}
@@ -1117,13 +1215,13 @@ ul.wc_coupon_list_block {
 	}
 }
 .user_actions {
-	.edit, .link, .view, .refresh {
-		@include ir();
+	.edit, .link, .view {
+		.ir;
 		padding:0 !important;
 		height: 2em !important;
 		width:2em;
 		&:after {
-			@include icon;
+			.icon;
 			line-height: 1.85;
 		}
 	}
@@ -1135,9 +1233,6 @@ ul.wc_coupon_list_block {
 	}
 	.view:after {
 		content: "\e010";
-	}
-	.refresh:after {
-		content: "\e031";
 	}
 }
 
@@ -1152,12 +1247,12 @@ ul.wc_coupon_list_block {
 	.attribute-actions {
 		width:2em;
 		.configure-terms {
-			@include ir();
+			.ir;
 			padding:0 !important;
 			height: 2em !important;
 			width:2em;
 			&:after {
-				@include icon("\e01c");
+				.icon("\e01c");
 				line-height: 1.85;
 			}
 		}
@@ -1188,7 +1283,7 @@ ul.order_notes {
 			}
 		}
 		a.delete_note {
-			color: $red
+			color: @red
 		}
 		.note_content:after {
 		  content: "";
@@ -1278,10 +1373,10 @@ table.wp-list-table {
 		text-align: left !important;
 	}
 	span.wc-image, span.wc-featured, span.wc-type {
-		@include ir();
+		.ir;
 		margin:0 auto;
 		&:before {
-			@include icon( "\e00c" );
+			.icon( "\e00c" );
 		}
 	}
 	span.wc-featured {
@@ -1308,10 +1403,10 @@ table.wp-list-table {
 		}
 	}
 	span.product-type {
-		@include ir();
+		.ir;
 		font-size:1.2em;
 		&:before {
-			@include icon( "\e006" );
+			.icon( "\e006" );
 		}
 		&.grouped:before {
 			content: "\e002";
@@ -1331,7 +1426,7 @@ table.wp-list-table {
 	}
 	mark.instock {
 		font-weight: bold;
-		color: $green;
+		color: @green;
 		background: transparent none;
 		line-height: 1;
 	}
@@ -1342,11 +1437,11 @@ table.wp-list-table {
 		line-height: 1;
 	}
 	.order-notes_head, .notes_head, .status_head {
-		@include ir();
+		.ir;
 		margin:0 auto;
 
 		&:after {
-			@include icon;
+			.icon;
 		}
 	}
 	.order-notes_head:after {
@@ -1382,7 +1477,7 @@ table.wp-list-table {
 /* Settings */
 mark.notice {
 	background: #fff;
-	color: $red;
+	color: @red;
 	margin: 0 0 0 10px;
 }
 a.export_rates, a.import_rates {
@@ -1394,7 +1489,7 @@ a.export_rates, a.import_rates {
 table.wc_tax_rates, table.wc_input_table {
 	width: 100%;
 	span.tips {
-		color: $blue;
+		color: @blue;
 	}
 	td {
 		padding: 0;
@@ -1535,12 +1630,12 @@ img.help_tip {
 
 .status-enabled, .status-disabled {
 	font-size:1.4em;
-	@include ir();
+	.ir;
 }
 .status-enabled {
 	&:before {
-		@include icon( "\e015" );
-		color: $woocommerce;
+		.icon( "\e015" );
+		color: @woocommerce;
 	}
 }
 
@@ -1589,7 +1684,7 @@ img.help_tip {
 		}
 		span.help_tip {
 			cursor: help;
-			color: $blue;
+			color: @blue;
 		}
 		th {
 			position: relative;
@@ -1723,7 +1818,7 @@ img.help_tip {
 		#product_images_container {
 			padding: 0 0 0 9px;
 			ul {
-				@include clearfix();
+				.clearfix;
 				margin: 0;
 				padding: 0;
 				li.image, li.add, li.wc-metabox-sortable-placeholder {
@@ -1750,7 +1845,7 @@ img.help_tip {
 					border: 3px dashed #dddddd;
 					position: relative;
 					&:after {
-						@include icon( "\e00c" );
+						.icon( "\e00c" );
 						font-size:2.618em;
 						line-height: 72px;
 						color: #ddd;
@@ -1777,19 +1872,19 @@ img.help_tip {
 							}
 						}
 						a.view {
-							@include ir();
+							.ir;
 							font-size:1.4em;
 							&:before {
-								@include icon( "\e00c" );
+								.icon( "\e00c" );
 								background-color: #000;
 								color: #fff;
 							}
 						}
 						a.delete {
-							@include ir();
+							.ir;
 							font-size:1.4em;
 							&:before {
-								@include icon( "\e013" );
+								.icon( "\e013" );
 								color:white;
 								background-color: #000;
 								-webkit-border-radius:100%;
@@ -1797,7 +1892,7 @@ img.help_tip {
 								box-shadow:0 1px 2px rgba(0,0,0,0.2);
 							}
 							&:hover:before {
-								background-color: $red;
+								background-color: @red;
 							}
 						}
 					}
@@ -1926,7 +2021,7 @@ img.help_tip {
 				border-bottom: 1px solid #f5f5f5;
 				border-top: 1px solid #eaeaea;
 				&:before {
-					@include iconbefore( "\e028" );
+					.iconbefore( "\e028" );
 				}
 			}
 
@@ -2020,7 +2115,7 @@ img.help_tip {
 		}
 
 		.add.button:before {
-			@include iconbefore( "\e007" );
+			.iconbefore( "\e007" );
 		}
 	}
 	h4.wc-settings-sub-title {
@@ -2119,15 +2214,15 @@ img.help_tip {
 					cursor: pointer;
 				}
 				.delete {
-					@include ir();
+					.ir;
 					&:before {
-						@include icon;
+						.icon;
 						content: "\e013";
 						color: #999;
 					}
 					&:hover {
 						&:before {
-							color: $red;
+							color: @red;
 						}
 					}
 				}
@@ -2189,7 +2284,7 @@ img.help_tip {
 		.req {
 			font-weight: bold;
 			font-style: normal;
-			color: $red;
+			color: @red;
 		}
 	}
 	.description {
@@ -2447,7 +2542,7 @@ img.help_tip {
 		line-height: 22px;
 		text-decoration: none;
 		&:before {
-			@include iconbefore( "\e036" );
+			.iconbefore( "\e036" );
 			font-size: .8em;
 			color: #999;
 		}
@@ -2740,7 +2835,7 @@ img.ui-datepicker-trigger { vertical-align: middle; margin-top: -1px; cursor: po
 				display: block;
 				text-decoration: none;
 				&:before {
-					@include iconbefore( "\e00a" );
+					.iconbefore( "\e00a" );
 					margin-right:4px;
 				}
 			}
@@ -2828,7 +2923,7 @@ img.ui-datepicker-trigger { vertical-align: middle; margin-top: -1px; cursor: po
 					border-right-width: 0;
 					padding: 10px;
 					margin:0;
-					color: $blue;
+					color: @blue;
 					border-top-width:0;
 					background-image: -webkit-gradient(linear,left bottom,left top,from(#ececec),to(#f9f9f9));
 					background-image: -webkit-linear-gradient(bottom,#ececec,#f9f9f9);
@@ -2836,7 +2931,7 @@ img.ui-datepicker-trigger { vertical-align: middle; margin-top: -1px; cursor: po
 					background-image: -o-linear-gradient(bottom,#ececec,#f9f9f9);
 					background-image: linear-gradient(to top,#ececec,#f9f9f9);
 					&.section_title:hover {
-						color:$red;
+						color:@red;
 					}
 				}
 				.section_title {
@@ -2844,7 +2939,7 @@ img.ui-datepicker-trigger { vertical-align: middle; margin-top: -1px; cursor: po
 					span {
 						display: block;
 						&:after {
-							@include iconafter( "\e035" );
+							.iconafter( "\e035" );
 							float: right;
 							font-size:.9em;
 							line-height: 1.618;
@@ -2942,7 +3037,7 @@ img.ui-datepicker-trigger { vertical-align: middle; margin-top: -1px; cursor: po
 				&:hover {
 					box-shadow:
 						inset 0 -1px 0 0 #dfdfdf,
-						inset 300px 0 0 rgba(156, 93, 144, 0.1);
+						inset 300px 0 0 fade(#9c5d90,10%);
 					border-right: 5px solid #9c5d90 !important;
 					padding-left:1.5em;
 					color: #9c5d90;
@@ -3027,12 +3122,12 @@ img.ui-datepicker-trigger { vertical-align: middle; margin-top: -1px; cursor: po
 	.column-wc_actions {
 		a.edit,
 		a.view {
-			@include ir();
+			.ir;
 			padding:0 !important;
 			height: 2em !important;
 			width:2em;
 			&:after {
-				@include icon;
+				.icon;
 				line-height: 1.85;
 			}
 		}
@@ -3253,7 +3348,7 @@ table.bar_chart {
 	}
 }
 
-@import 'chosen';
+@import 'chosen.less';
 
 .chosen-container-single .chosen-single {
 	abbr {

@@ -3,10 +3,10 @@
  * Plugin Name: WooCommerce
  * Plugin URI: http://www.woothemes.com/woocommerce/
  * Description: An e-commerce toolkit that helps you sell anything. Beautifully.
- * Version: 2.2.4
+ * Version: 2.2.5
  * Author: WooThemes
  * Author URI: http://woothemes.com
- * Requires at least: 4.0
+ * Requires at least: 3.8
  * Tested up to: 4.0
  *
  * Text Domain: woocommerce
@@ -33,7 +33,7 @@ final class WooCommerce {
 	/**
 	 * @var string
 	 */
-	public $version = '2.2.4';
+	public $version = '2.2.5';
 
 	/**
 	 * @var WooCommerce The single instance of the class
@@ -355,16 +355,6 @@ final class WooCommerce {
 
 		// Set up localisation
 		$this->load_plugin_textdomain();
-
-		// Template debug mode
-		if ( ! defined( 'WC_TEMPLATE_DEBUG_MODE' ) ) {
-			$status_options = get_option( 'woocommerce_status_options', array() );
-			if ( ! empty( $status_options['template_debug_mode'] ) && current_user_can( 'manage_options' ) ) {
-				define( 'WC_TEMPLATE_DEBUG_MODE', true );
-			} else {
-				define( 'WC_TEMPLATE_DEBUG_MODE', false );
-			}
-		}
 
 		// Load class instances
 		$this->product_factory = new WC_Product_Factory();                      // Product Factory to create new product instances

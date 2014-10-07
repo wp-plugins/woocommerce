@@ -31,14 +31,6 @@ foreach ( $items as $item_id => $item ) :
 				echo ' (#' . $_product->get_sku() . ')';
 			}
 
-			// allow other plugins to add additional product information here
-			do_action( 'woocommerce_order_item_meta_start', $item_id, $item, $order );
-
-			// Variation
-			if ( $item_meta->meta ) {
-				echo '<br/><small>' . nl2br( $item_meta->display( true, true ) ) . '</small>';
-			}
-
 			// File URLs
 			if ( $show_download_links && is_object( $_product ) && $_product->exists() && $_product->is_downloadable() ) {
 
@@ -58,8 +50,10 @@ foreach ( $items as $item_id => $item ) :
 				}
 			}
 
-			// allow other plugins to add additional product information here
-			do_action( 'woocommerce_order_item_meta_end', $item_id, $item, $order );
+			// Variation
+			if ( $item_meta->meta ) {
+				echo '<br/><small>' . nl2br( $item_meta->display( true, true ) ) . '</small>';
+			}
 
 		?></td>
 		<td style="text-align:left; vertical-align:middle; border: 1px solid #eee;"><?php echo $item['qty'] ;?></td>

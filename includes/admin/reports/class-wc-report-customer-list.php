@@ -51,16 +51,6 @@ class WC_Report_Customer_List extends WP_List_Table {
 			echo '<div class="updated"><p>' . sprintf( _n( '%s previous order linked', '%s previous orders linked', $linked, 'woocommerce' ), $linked ) . '</p></div>';
 		}
 
-		if ( ! empty( $_GET['refresh'] ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'refresh' ) ) {
-			$user_id = absint( $_GET['refresh'] );
-			$user    = get_user_by( 'id', $user_id );
-
-			delete_user_meta( $user_id, '_money_spent' );
-			delete_user_meta( $user_id, '_order_count' );
-
-			echo '<div class="updated"><p>' . sprintf( __( 'Refreshed stats for %s', 'woocommerce' ), $user->display_name ) . '</p></div>';
-		}
-
 		echo '<form method="post" id="woocommerce_customers">';
 
 		$this->search_box( __( 'Search customers', 'woocommerce' ), 'customer_search' );
@@ -132,7 +122,7 @@ class WC_Report_Customer_List extends WP_List_Table {
 						WHERE   meta.meta_key       = '_customer_user'
 						AND     meta.meta_value     = $user->ID
 						AND     posts.post_type     IN ('" . implode( "','", wc_get_order_types( 'reports' ) ) . "')
-						AND     posts.post_status   IN ( 'wc-completed', 'wc-processing' )
+						AND     posts.post_status   = 'wc-completed'
 						AND     meta2.meta_key      = '_order_total'
 					" );
 
@@ -152,7 +142,7 @@ class WC_Report_Customer_List extends WP_List_Table {
 
 						WHERE   meta.meta_key       = '_customer_user'
 						AND     posts.post_type     IN ('" . implode( "','", wc_get_order_types( 'order-count' ) ) . "')
-						AND     posts.post_status   IN ('" . implode( "','", array_keys( wc_get_order_statuses() ) )  . "')
+						AND     posts.post_status   = 'wc-completed'
 						AND     meta_value          = $user->ID
 					" );
 
@@ -169,7 +159,7 @@ class WC_Report_Customer_List extends WP_List_Table {
 					'post_type'      => 'shop_order',
 					'orderby'        => 'date',
 					'order'          => 'desc',
-					'post_status'    => array( 'wc-completed', 'wc-processing' ),
+					'post_status'    => array_keys( wc_get_order_statuses() ),
 					'meta_query' => array(
 						array(
 							'key'     => '_customer_user',
@@ -194,12 +184,6 @@ class WC_Report_Customer_List extends WP_List_Table {
 
 						$actions = array();
 
-						$actions['refresh'] = array(
-							'url'       => wp_nonce_url( add_query_arg( 'refresh', $user->ID ), 'refresh' ),
-							'name'      => __( 'Refresh stats', 'woocommerce' ),
-							'action'    => "refresh"
-						);
-
 						$actions['edit'] = array(
 							'url'       => admin_url( 'user-edit.php?user_id=' . $user->ID ),
 							'name'      => __( 'Edit', 'woocommerce' ),
@@ -214,8 +198,8 @@ class WC_Report_Customer_List extends WP_List_Table {
 
 						$order_ids = get_posts( array(
 							'posts_per_page' => 1,
-							'post_type'   => wc_get_order_types(),
-							'post_status' => array_keys( wc_get_order_statuses() ),
+							'post_type'      => wc_get_order_types(),
+							'post_status'    => array_keys( wc_get_order_statuses() ),
 							'meta_query' => array(
 								array(
 									'key'     => '_customer_user',
@@ -231,6 +215,7 @@ class WC_Report_Customer_List extends WP_List_Table {
 						) );
 
 						if ( $order_ids ) {
+
 							$actions['link'] = array(
 								'url'       => wp_nonce_url( add_query_arg( 'link_orders', $user->ID ), 'link_orders' ),
 								'name'      => __( 'Link previous orders', 'woocommerce' ),
@@ -261,7 +246,7 @@ class WC_Report_Customer_List extends WP_List_Table {
 			'email'           => __( 'Email', 'woocommerce' ),
 			'location'        => __( 'Location', 'woocommerce' ),
 			'orders'          => __( 'Orders', 'woocommerce' ),
-			'spent'           => __( 'Money Spent', 'woocommerce' ),
+			'spent'           => __( 'Spent', 'woocommerce' ),
 			'last_order'      => __( 'Last order', 'woocommerce' ),
 			'user_actions'    => __( 'Actions', 'woocommerce' )
 		);
@@ -311,7 +296,7 @@ class WC_Report_Customer_List extends WP_List_Table {
 		 */
 		$admin_users = new WP_User_Query(
 			array(
-				'role'   => 'administrator1',
+				'role'   => 'administrator',
 				'fields' => 'ID'
 			)
 		);

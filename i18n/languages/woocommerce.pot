@@ -2,9 +2,9 @@
 # This file is distributed under the same license as the WooCommerce package.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce 2.2.4 Frontend\n"
+"Project-Id-Version: WooCommerce 2.2.5 Frontend\n"
 "Report-Msgid-Bugs-To: https://github.com/woothemes/woocommerce/issues\n"
-"POT-Creation-Date: 2014-10-02 12:55:11+00:00\n"
+"POT-Creation-Date: 2014-10-07 14:56:45+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -4751,42 +4751,42 @@ msgstr ""
 msgid "Backordered"
 msgstr ""
 
-#: includes/abstracts/abstract-wc-order.php:1615
+#: includes/abstracts/abstract-wc-order.php:1611
 msgid "&nbsp;<small>%svia %s</small>"
 msgstr ""
 
-#: includes/abstracts/abstract-wc-order.php:1620
+#: includes/abstracts/abstract-wc-order.php:1616
 #: includes/abstracts/abstract-wc-product.php:887
 #: includes/abstracts/abstract-wc-product.php:893
-#: includes/class-wc-cart.php:1443 includes/class-wc-product-variation.php:296
+#: includes/class-wc-cart.php:1443 includes/class-wc-product-variation.php:294
 msgid "Free!"
 msgstr ""
 
-#: includes/abstracts/abstract-wc-order.php:1682
+#: includes/abstracts/abstract-wc-order.php:1678
 msgid "Cart Subtotal:"
 msgstr ""
 
-#: includes/abstracts/abstract-wc-order.php:1689
+#: includes/abstracts/abstract-wc-order.php:1685
 msgid "Cart Discount:"
 msgstr ""
 
-#: includes/abstracts/abstract-wc-order.php:1696
+#: includes/abstracts/abstract-wc-order.php:1692
 msgid "Shipping:"
 msgstr ""
 
-#: includes/abstracts/abstract-wc-order.php:1749
+#: includes/abstracts/abstract-wc-order.php:1745
 msgid "Order Discount:"
 msgstr ""
 
-#: includes/abstracts/abstract-wc-order.php:1756
+#: includes/abstracts/abstract-wc-order.php:1752
 msgid "Payment Method:"
 msgstr ""
 
-#: includes/abstracts/abstract-wc-order.php:1762
+#: includes/abstracts/abstract-wc-order.php:1758
 msgid "Order Total:"
 msgstr ""
 
-#: includes/abstracts/abstract-wc-order.php:1782
+#: includes/abstracts/abstract-wc-order.php:1778
 #: includes/wc-cart-functions.php:252
 msgid "(Includes %s)"
 msgstr ""
@@ -4795,16 +4795,16 @@ msgstr ""
 msgid "WooCommerce"
 msgstr ""
 
-#: includes/abstracts/abstract-wc-order.php:2080
+#: includes/abstracts/abstract-wc-order.php:2076
 msgid "Order status changed from %s to %s."
 msgstr ""
 
-#: includes/abstracts/abstract-wc-order.php:2343
+#: includes/abstracts/abstract-wc-order.php:2339
 #: includes/class-wc-ajax.php:1167 includes/class-wc-ajax.php:1168
 msgid "Item #%s stock reduced from %s to %s."
 msgstr ""
 
-#: includes/abstracts/abstract-wc-order.php:2353
+#: includes/abstracts/abstract-wc-order.php:2349
 msgid "Order item stock reduced successfully."
 msgstr ""
 
@@ -4831,7 +4831,7 @@ msgstr ""
 
 #: includes/abstracts/abstract-wc-product.php:472
 #: includes/class-wc-product-simple.php:50
-#: includes/class-wc-product-variation.php:197
+#: includes/class-wc-product-variation.php:202
 msgid "Add to cart"
 msgstr ""
 
@@ -4842,49 +4842,49 @@ msgstr ""
 #: includes/abstracts/abstract-wc-product.php:562
 #: includes/abstracts/abstract-wc-product.php:573
 #: includes/abstracts/abstract-wc-product.php:595
-#: includes/class-wc-ajax.php:627 includes/class-wc-product-variation.php:508
-#: includes/class-wc-product-variation.php:518
-#: includes/class-wc-product-variation.php:534
+#: includes/class-wc-ajax.php:627 includes/class-wc-product-variation.php:512
+#: includes/class-wc-product-variation.php:522
+#: includes/class-wc-product-variation.php:538
 msgid "In stock"
 msgstr ""
 
 #: includes/abstracts/abstract-wc-product.php:567
-#: includes/class-wc-product-variation.php:512
+#: includes/class-wc-product-variation.php:516
 msgid "Only %s left in stock"
 msgstr ""
 
 #: includes/abstracts/abstract-wc-product.php:570
 #: includes/abstracts/abstract-wc-product.php:581
-#: includes/class-wc-product-variation.php:515
-#: includes/class-wc-product-variation.php:525
+#: includes/class-wc-product-variation.php:519
+#: includes/class-wc-product-variation.php:529
 msgid "(can be backordered)"
 msgstr ""
 
 #: includes/abstracts/abstract-wc-product.php:578
-#: includes/class-wc-product-variation.php:522
+#: includes/class-wc-product-variation.php:526
 msgid "%s in stock"
 msgstr ""
 
 #: includes/abstracts/abstract-wc-product.php:590
-#: includes/class-wc-product-variation.php:531 templates/cart/cart.php:74
+#: includes/class-wc-product-variation.php:535 templates/cart/cart.php:72
 msgid "Available on backorder"
 msgstr ""
 
 #: includes/abstracts/abstract-wc-product.php:600
 #: includes/abstracts/abstract-wc-product.php:606
-#: includes/class-wc-ajax.php:628 includes/class-wc-product-variation.php:537
-#: includes/class-wc-product-variation.php:541
+#: includes/class-wc-ajax.php:628 includes/class-wc-product-variation.php:541
+#: includes/class-wc-product-variation.php:545
 msgid "Out of stock"
 msgstr ""
 
 #: includes/abstracts/abstract-wc-product.php:1021
-#: templates/single-product/rating.php:26
+#: templates/single-product/rating.php:23
 msgid "Rated %s out of 5"
 msgstr ""
 
 #: includes/abstracts/abstract-wc-product.php:1023
-#: templates/single-product/rating.php:28
-#: templates/single-product/review.php:30
+#: templates/single-product/rating.php:25
+#: templates/single-product/review.php:27
 msgid "out of 5"
 msgstr ""
 
@@ -5281,7 +5281,7 @@ msgstr ""
 #: includes/api/v1/class-wc-api-products.php:461
 #: includes/api/v1/class-wc-api-products.php:462
 #: includes/wc-product-functions.php:267
-#: templates/single-product/product-image.php:40
+#: templates/single-product/product-image.php:38
 msgid "Placeholder"
 msgstr ""
 
@@ -5470,7 +5470,7 @@ msgstr ""
 
 #: includes/class-wc-ajax.php:1238
 #: includes/widgets/class-wc-widget-product-categories.php:41
-#: templates/single-product-reviews.php:65
+#: templates/single-product-reviews.php:62
 msgid "Name"
 msgstr ""
 
@@ -5494,7 +5494,7 @@ msgstr ""
 msgid "Refund failed"
 msgstr ""
 
-#: includes/class-wc-cache-helper.php:137
+#: includes/class-wc-cache-helper.php:143
 msgid ""
 "In order for <strong>database caching</strong> to work with WooCommerce you "
 "must add <code>_wc_session_</code> to the \"Ignored Query Strings\" option "
@@ -5548,8 +5548,8 @@ msgid ""
 msgstr ""
 
 #: includes/class-wc-cart.php:851 includes/class-wc-cart.php:875
-#: includes/class-wc-frontend-scripts.php:239 includes/wc-cart-functions.php:98
-#: templates/cart/mini-cart.php:68
+#: includes/class-wc-frontend-scripts.php:188 includes/wc-cart-functions.php:98
+#: templates/cart/mini-cart.php:65
 msgid "View Cart"
 msgstr ""
 
@@ -5601,7 +5601,7 @@ msgid "is a required field."
 msgstr ""
 
 #: includes/class-wc-checkout.php:437 includes/class-wc-form-handler.php:97
-#: includes/shortcodes/class-wc-shortcode-cart.php:27
+#: includes/shortcodes/class-wc-shortcode-cart.php:43
 msgid "Please enter a valid postcode/ZIP."
 msgstr ""
 
@@ -5704,7 +5704,7 @@ msgid "State / County"
 msgstr ""
 
 #: includes/class-wc-countries.php:537 includes/class-wc-countries.php:538
-#: templates/cart/shipping-calculator.php:82
+#: templates/cart/shipping-calculator.php:78
 msgid "Postcode / Zip"
 msgstr ""
 
@@ -5857,8 +5857,8 @@ msgstr ""
 msgid "You must be logged in to download files."
 msgstr ""
 
-#: includes/class-wc-download-handler.php:80 templates/global/form-login.php:39
-#: templates/myaccount/form-login.php:28 templates/myaccount/form-login.php:47
+#: includes/class-wc-download-handler.php:80 templates/global/form-login.php:35
+#: templates/myaccount/form-login.php:27 templates/myaccount/form-login.php:46
 msgid "Login"
 msgstr ""
 
@@ -6051,26 +6051,26 @@ msgstr ""
 msgid "Anti-spam field was filled in."
 msgstr ""
 
-#: includes/class-wc-frontend-scripts.php:197
+#: includes/class-wc-frontend-scripts.php:149
 msgid "Please select a rating"
 msgstr ""
 
-#: includes/class-wc-frontend-scripts.php:217
+#: includes/class-wc-frontend-scripts.php:168
 #: includes/wc-template-functions.php:1623
 msgid "required"
 msgstr ""
 
-#: includes/class-wc-frontend-scripts.php:247
+#: includes/class-wc-frontend-scripts.php:196
 msgid ""
 "Sorry, no products matched your selection. Please choose a different "
 "combination."
 msgstr ""
 
-#: includes/class-wc-frontend-scripts.php:248
+#: includes/class-wc-frontend-scripts.php:197
 msgid "Sorry, this product is unavailable. Please choose a different combination."
 msgstr ""
 
-#: includes/class-wc-frontend-scripts.php:254
+#: includes/class-wc-frontend-scripts.php:204
 msgid "Select an option&hellip;"
 msgstr ""
 
@@ -6282,14 +6282,14 @@ msgstr ""
 msgid "Products"
 msgstr ""
 
-#: includes/class-wc-post-types.php:227 templates/cart/cart.php:27
-#: templates/checkout/form-pay.php:20 templates/checkout/review-order.php:21
-#: templates/emails/admin-new-order.php:27
-#: templates/emails/customer-completed-order.php:27
-#: templates/emails/customer-invoice.php:31
-#: templates/emails/customer-note.php:31
-#: templates/emails/customer-processing-order.php:27
-#: templates/order/order-details.php:21
+#: includes/class-wc-post-types.php:227 templates/cart/cart.php:25
+#: templates/checkout/form-pay.php:17 templates/checkout/review-order.php:18
+#: templates/emails/admin-new-order.php:22
+#: templates/emails/customer-completed-order.php:23
+#: templates/emails/customer-invoice.php:27
+#: templates/emails/customer-note.php:27
+#: templates/emails/customer-processing-order.php:23
+#: templates/order/order-details.php:18
 msgid "Product"
 msgstr ""
 
@@ -6302,7 +6302,7 @@ msgid "Add New Product"
 msgstr ""
 
 #: includes/class-wc-post-types.php:231 includes/class-wc-post-types.php:278
-#: includes/class-wc-post-types.php:335 templates/myaccount/my-address.php:45
+#: includes/class-wc-post-types.php:337 templates/myaccount/my-address.php:45
 msgid "Edit"
 msgstr ""
 
@@ -6395,99 +6395,99 @@ msgstr ""
 msgid "Refunds"
 msgstr ""
 
-#: includes/class-wc-post-types.php:330
+#: includes/class-wc-post-types.php:332
 msgid "Coupons"
 msgstr ""
 
-#: includes/class-wc-post-types.php:331 templates/cart/cart.php:119
+#: includes/class-wc-post-types.php:333 templates/cart/cart.php:117
 msgid "Coupon"
 msgstr ""
 
-#: includes/class-wc-post-types.php:333
+#: includes/class-wc-post-types.php:335
 msgid "Add Coupon"
 msgstr ""
 
-#: includes/class-wc-post-types.php:334
+#: includes/class-wc-post-types.php:336
 msgid "Add New Coupon"
 msgstr ""
 
-#: includes/class-wc-post-types.php:336
+#: includes/class-wc-post-types.php:338
 msgid "Edit Coupon"
 msgstr ""
 
-#: includes/class-wc-post-types.php:337
+#: includes/class-wc-post-types.php:339
 msgid "New Coupon"
 msgstr ""
 
-#: includes/class-wc-post-types.php:338
+#: includes/class-wc-post-types.php:340
 msgid "View Coupons"
 msgstr ""
 
-#: includes/class-wc-post-types.php:339
+#: includes/class-wc-post-types.php:341
 msgid "View Coupon"
 msgstr ""
 
-#: includes/class-wc-post-types.php:340
+#: includes/class-wc-post-types.php:342
 msgid "Search Coupons"
 msgstr ""
 
-#: includes/class-wc-post-types.php:341
+#: includes/class-wc-post-types.php:343
 msgid "No Coupons found"
 msgstr ""
 
-#: includes/class-wc-post-types.php:342
+#: includes/class-wc-post-types.php:344
 msgid "No Coupons found in trash"
 msgstr ""
 
-#: includes/class-wc-post-types.php:343
+#: includes/class-wc-post-types.php:345
 msgid "Parent Coupon"
 msgstr ""
 
-#: includes/class-wc-post-types.php:345
+#: includes/class-wc-post-types.php:347
 msgid "This is where you can add new coupons that customers can use in your store."
 msgstr ""
 
-#: includes/class-wc-post-types.php:367
+#: includes/class-wc-post-types.php:369
 msgid "Webhooks"
 msgstr ""
 
-#: includes/class-wc-post-types.php:396
+#: includes/class-wc-post-types.php:398
 msgid "Pending payment <span class=\"count\">(%s)</span>"
 msgid_plural "Pending payment <span class=\"count\">(%s)</span>"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-wc-post-types.php:404
+#: includes/class-wc-post-types.php:406
 msgid "Processing <span class=\"count\">(%s)</span>"
 msgid_plural "Processing <span class=\"count\">(%s)</span>"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-wc-post-types.php:412
+#: includes/class-wc-post-types.php:414
 msgid "On hold <span class=\"count\">(%s)</span>"
 msgid_plural "On hold <span class=\"count\">(%s)</span>"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-wc-post-types.php:420
+#: includes/class-wc-post-types.php:422
 msgid "Completed <span class=\"count\">(%s)</span>"
 msgid_plural "Completed <span class=\"count\">(%s)</span>"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-wc-post-types.php:428
+#: includes/class-wc-post-types.php:430
 msgid "Cancelled <span class=\"count\">(%s)</span>"
 msgid_plural "Cancelled <span class=\"count\">(%s)</span>"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-wc-post-types.php:436
+#: includes/class-wc-post-types.php:438
 msgid "Refunded <span class=\"count\">(%s)</span>"
 msgid_plural "Refunded <span class=\"count\">(%s)</span>"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-wc-post-types.php:444
+#: includes/class-wc-post-types.php:446
 msgid "Failed <span class=\"count\">(%s)</span>"
 msgid_plural "Failed <span class=\"count\">(%s)</span>"
 msgstr[0] ""
@@ -6502,7 +6502,7 @@ msgid "View products"
 msgstr ""
 
 #: includes/class-wc-product-simple.php:50
-#: includes/class-wc-product-variation.php:197
+#: includes/class-wc-product-variation.php:202
 msgid "Read More"
 msgstr ""
 
@@ -6510,17 +6510,17 @@ msgstr ""
 msgid "Select options"
 msgstr ""
 
-#: includes/class-wc-product-variable.php:562
+#: includes/class-wc-product-variable.php:555
 msgid ""
 "This variable product has no active variations so cannot be published. "
 "Changing status to draft."
 msgstr ""
 
-#: includes/class-wc-product-variation.php:640
+#: includes/class-wc-product-variation.php:649
 msgid "%s &ndash; %s%s"
 msgstr ""
 
-#: includes/class-wc-shortcodes.php:983
+#: includes/class-wc-shortcodes.php:980
 msgid ""
 "Use $args[\"posts_per_page\"] instead. Deprecated argument will be removed "
 "in WC 2.2."
@@ -7625,8 +7625,8 @@ msgstr ""
 #: includes/shipping/free-shipping/class-wc-shipping-free-shipping.php:104
 #: includes/shipping/international-delivery/class-wc-shipping-international-delivery.php:117
 #: includes/shipping/international-delivery/class-wc-shipping-international-delivery.php:125
-#: templates/order/order-details.php:129 templates/order/order-details.php:144
-#: templates/single-product/meta.php:26
+#: templates/order/order-details.php:120 templates/order/order-details.php:135
+#: templates/single-product/meta.php:23
 msgid "N/A"
 msgstr ""
 
@@ -7808,7 +7808,7 @@ msgid ""
 "order themselves."
 msgstr ""
 
-#: includes/shortcodes/class-wc-shortcode-cart.php:42
+#: includes/shortcodes/class-wc-shortcode-cart.php:58
 msgid "Shipping costs updated."
 msgstr ""
 
@@ -7818,7 +7818,7 @@ msgstr ""
 
 #: includes/shortcodes/class-wc-shortcode-checkout.php:91
 #: includes/shortcodes/class-wc-shortcode-my-account.php:111
-#: templates/checkout/thankyou.php:30
+#: templates/checkout/thankyou.php:28
 msgid "My Account"
 msgstr ""
 
@@ -7835,26 +7835,26 @@ msgid "Sorry, this order is invalid and cannot be paid for."
 msgstr ""
 
 #: includes/shortcodes/class-wc-shortcode-checkout.php:131
-#: templates/checkout/thankyou.php:40
-#: templates/emails/customer-completed-order.php:22
-#: templates/emails/customer-invoice.php:26
-#: templates/emails/customer-note.php:26
-#: templates/emails/customer-processing-order.php:22
+#: templates/checkout/thankyou.php:38
+#: templates/emails/customer-completed-order.php:18
+#: templates/emails/customer-invoice.php:22
+#: templates/emails/customer-note.php:22
+#: templates/emails/customer-processing-order.php:18
 msgid "Order:"
 msgstr ""
 
 #: includes/shortcodes/class-wc-shortcode-checkout.php:135
-#: templates/checkout/thankyou.php:44
+#: templates/checkout/thankyou.php:42
 msgid "Date:"
 msgstr ""
 
 #: includes/shortcodes/class-wc-shortcode-checkout.php:139
-#: templates/checkout/thankyou.php:48
+#: templates/checkout/thankyou.php:46
 msgid "Total:"
 msgstr ""
 
 #: includes/shortcodes/class-wc-shortcode-checkout.php:144
-#: templates/checkout/thankyou.php:53
+#: templates/checkout/thankyou.php:51
 msgid "Payment method:"
 msgstr ""
 
@@ -8166,11 +8166,11 @@ msgid ""
 "the new WooCommerce post_status instead, <a href=\"%s\">read more...</a>"
 msgstr ""
 
-#: includes/wc-order-functions.php:483
+#: includes/wc-order-functions.php:492
 msgid "Unpaid order cancelled - time limit reached."
 msgstr ""
 
-#: includes/wc-order-functions.php:578
+#: includes/wc-order-functions.php:587
 msgid "Refund &ndash; %s"
 msgstr ""
 
@@ -8241,8 +8241,8 @@ msgid "Sort by price: high to low"
 msgstr ""
 
 #: includes/wc-template-functions.php:1015
-#: templates/checkout/form-shipping.php:58
-#: templates/single-product/tabs/additional-information.php:16
+#: templates/checkout/form-shipping.php:55
+#: templates/single-product/tabs/additional-information.php:17
 msgid "Additional Information"
 msgstr ""
 
@@ -8261,7 +8261,7 @@ msgid "Order Again"
 msgstr ""
 
 #: includes/wc-template-functions.php:1673
-#: templates/cart/shipping-calculator.php:30
+#: templates/cart/shipping-calculator.php:26
 msgid "Select a country&hellip;"
 msgstr ""
 
@@ -8270,7 +8270,7 @@ msgid "Update country"
 msgstr ""
 
 #: includes/wc-template-functions.php:1717
-#: templates/cart/shipping-calculator.php:54
+#: templates/cart/shipping-calculator.php:50
 msgid "Select a state&hellip;"
 msgstr ""
 
@@ -8523,12 +8523,12 @@ msgstr ""
 msgid "Date"
 msgstr ""
 
-#: includes/widgets/class-wc-widget-products.php:56 templates/cart/cart.php:28
-#: templates/emails/admin-new-order.php:29
-#: templates/emails/customer-completed-order.php:29
-#: templates/emails/customer-invoice.php:33
-#: templates/emails/customer-note.php:33
-#: templates/emails/customer-processing-order.php:29
+#: includes/widgets/class-wc-widget-products.php:56 templates/cart/cart.php:26
+#: templates/emails/admin-new-order.php:24
+#: templates/emails/customer-completed-order.php:25
+#: templates/emails/customer-invoice.php:29
+#: templates/emails/customer-note.php:29
+#: templates/emails/customer-processing-order.php:25
 msgid "Price"
 msgstr ""
 
@@ -8596,233 +8596,233 @@ msgstr ""
 msgid "Top Rated Products"
 msgstr ""
 
-#: templates/cart/cart-empty.php:18
+#: templates/cart/cart-empty.php:16
 msgid "Your cart is currently empty."
 msgstr ""
 
-#: templates/cart/cart-empty.php:22
+#: templates/cart/cart-empty.php:20
 msgid "Return To Shop"
 msgstr ""
 
-#: templates/cart/cart-shipping.php:20
+#: templates/cart/cart-shipping.php:16
 msgid "Shipping #%d"
 msgstr ""
 
-#: templates/cart/cart-shipping.php:22
+#: templates/cart/cart-shipping.php:18
 msgid "Shipping and Handling"
 msgstr ""
 
-#: templates/cart/cart-shipping.php:59
+#: templates/cart/cart-shipping.php:55
 msgid "Please use the shipping calculator to see available shipping methods."
 msgstr ""
 
-#: templates/cart/cart-shipping.php:63
+#: templates/cart/cart-shipping.php:59
 msgid ""
 "Please continue to the checkout and enter your full address to see if there "
 "are any available shipping methods."
 msgstr ""
 
-#: templates/cart/cart-shipping.php:67
+#: templates/cart/cart-shipping.php:63
 msgid "Please fill in your details to see available shipping methods."
 msgstr ""
 
-#: templates/cart/cart-shipping.php:76 templates/cart/cart-shipping.php:82
+#: templates/cart/cart-shipping.php:72 templates/cart/cart-shipping.php:78
 msgid ""
 "There doesn&lsquo;t seem to be any available shipping methods. Please "
 "double check your address, or contact us if you need any help."
 msgstr ""
 
-#: templates/cart/cart-shipping.php:97
+#: templates/cart/cart-shipping.php:93
 msgid "Shipping"
 msgstr ""
 
-#: templates/cart/cart-totals.php:19
+#: templates/cart/cart-totals.php:16
 msgid "Cart Totals"
 msgstr ""
 
-#: templates/cart/cart-totals.php:24 templates/checkout/review-order.php:54
+#: templates/cart/cart-totals.php:21 templates/checkout/review-order.php:51
 msgid "Cart Subtotal"
 msgstr ""
 
-#: templates/cart/cart-totals.php:78 templates/checkout/review-order.php:108
+#: templates/cart/cart-totals.php:75 templates/checkout/review-order.php:105
 msgid "Order Total"
 msgstr ""
 
-#: templates/cart/cart-totals.php:90
+#: templates/cart/cart-totals.php:87
 msgid " (taxes estimated for %s)"
 msgstr ""
 
-#: templates/cart/cart-totals.php:93
+#: templates/cart/cart-totals.php:90
 msgid ""
 "Note: Shipping and taxes are estimated%s and will be updated during "
 "checkout based on your billing and shipping information."
 msgstr ""
 
-#: templates/cart/cart.php:29 templates/emails/admin-new-order.php:28
-#: templates/emails/customer-completed-order.php:28
-#: templates/emails/customer-invoice.php:32
-#: templates/emails/customer-note.php:32
-#: templates/emails/customer-processing-order.php:28
+#: templates/cart/cart.php:27 templates/emails/admin-new-order.php:23
+#: templates/emails/customer-completed-order.php:24
+#: templates/emails/customer-invoice.php:28
+#: templates/emails/customer-note.php:28
+#: templates/emails/customer-processing-order.php:24
 msgid "Quantity"
 msgstr ""
 
-#: templates/cart/cart.php:30 templates/checkout/review-order.php:22
-#: templates/myaccount/my-orders.php:35 templates/order/order-details.php:22
+#: templates/cart/cart.php:28 templates/checkout/review-order.php:19
+#: templates/myaccount/my-orders.php:35 templates/order/order-details.php:19
 msgid "Total"
 msgstr ""
 
-#: templates/cart/cart.php:47
+#: templates/cart/cart.php:45
 msgid "Remove this item"
 msgstr ""
 
-#: templates/cart/cart.php:119 templates/checkout/form-coupon.php:25
+#: templates/cart/cart.php:117 templates/checkout/form-coupon.php:23
 msgid "Coupon code"
 msgstr ""
 
-#: templates/cart/cart.php:119 templates/checkout/form-coupon.php:29
+#: templates/cart/cart.php:117 templates/checkout/form-coupon.php:27
 msgid "Apply Coupon"
 msgstr ""
 
-#: templates/cart/cart.php:126
+#: templates/cart/cart.php:124
 msgid "Update Cart"
 msgstr ""
 
-#: templates/cart/cart.php:126
+#: templates/cart/cart.php:124
 msgid "Proceed to Checkout"
 msgstr ""
 
-#: templates/cart/cross-sells.php:40
+#: templates/cart/cross-sells.php:38
 msgid "You may be interested in&hellip;"
 msgstr ""
 
-#: templates/cart/mini-cart.php:55
+#: templates/cart/mini-cart.php:52
 msgid "No products in the cart."
 msgstr ""
 
-#: templates/cart/mini-cart.php:63
+#: templates/cart/mini-cart.php:60
 msgid "Subtotal"
 msgstr ""
 
-#: templates/cart/mini-cart.php:69
+#: templates/cart/mini-cart.php:66
 msgid "Checkout"
 msgstr ""
 
-#: templates/cart/shipping-calculator.php:24
+#: templates/cart/shipping-calculator.php:20
 msgid "Calculate Shipping"
 msgstr ""
 
-#: templates/cart/shipping-calculator.php:47
-#: templates/cart/shipping-calculator.php:53
-#: templates/cart/shipping-calculator.php:65
+#: templates/cart/shipping-calculator.php:43
+#: templates/cart/shipping-calculator.php:49
+#: templates/cart/shipping-calculator.php:61
 msgid "State / county"
 msgstr ""
 
-#: templates/cart/shipping-calculator.php:74
+#: templates/cart/shipping-calculator.php:70
 msgid "City"
 msgstr ""
 
-#: templates/cart/shipping-calculator.php:87
+#: templates/cart/shipping-calculator.php:83
 msgid "Update Totals"
 msgstr ""
 
-#: templates/checkout/cart-errors.php:18
+#: templates/checkout/cart-errors.php:16
 msgid ""
 "There are some issues with the items in your cart (shown above). Please go "
 "back to the cart page and resolve these issues before checking out."
 msgstr ""
 
-#: templates/checkout/cart-errors.php:22
+#: templates/checkout/cart-errors.php:20
 msgid "Return To Cart"
 msgstr ""
 
-#: templates/checkout/form-billing.php:18
+#: templates/checkout/form-billing.php:15
 msgid "Billing &amp; Shipping"
 msgstr ""
 
-#: templates/checkout/form-billing.php:22
+#: templates/checkout/form-billing.php:19
 msgid "Billing Details"
 msgstr ""
 
-#: templates/checkout/form-billing.php:41
+#: templates/checkout/form-billing.php:38
 msgid "Create an account?"
 msgstr ""
 
-#: templates/checkout/form-billing.php:52
+#: templates/checkout/form-billing.php:49
 msgid ""
 "Create an account by entering the information below. If you are a returning "
 "customer please login at the top of the page."
 msgstr ""
 
-#: templates/checkout/form-checkout.php:20
+#: templates/checkout/form-checkout.php:18
 msgid "You must be logged in to checkout."
 msgstr ""
 
-#: templates/checkout/form-checkout.php:51
+#: templates/checkout/form-checkout.php:49
 msgid "Your order"
 msgstr ""
 
-#: templates/checkout/form-coupon.php:18
+#: templates/checkout/form-coupon.php:16
 msgid "Have a coupon?"
 msgstr ""
 
-#: templates/checkout/form-coupon.php:18
+#: templates/checkout/form-coupon.php:16
 msgid "Click here to enter your code"
 msgstr ""
 
-#: templates/checkout/form-login.php:18
+#: templates/checkout/form-login.php:14
 msgid "Returning customer?"
 msgstr ""
 
-#: templates/checkout/form-login.php:19
+#: templates/checkout/form-login.php:15
 msgid "Click here to login"
 msgstr ""
 
-#: templates/checkout/form-login.php:26
+#: templates/checkout/form-login.php:22
 msgid ""
 "If you have shopped with us before, please enter your details in the boxes "
 "below. If you are a new customer please proceed to the Billing &amp; "
 "Shipping section."
 msgstr ""
 
-#: templates/checkout/form-pay.php:21
+#: templates/checkout/form-pay.php:18
 msgid "Qty"
 msgstr ""
 
-#: templates/checkout/form-pay.php:22
+#: templates/checkout/form-pay.php:19
 msgid "Totals"
 msgstr ""
 
-#: templates/checkout/form-pay.php:55
+#: templates/checkout/form-pay.php:52
 msgid "Payment"
 msgstr ""
 
-#: templates/checkout/form-pay.php:80
+#: templates/checkout/form-pay.php:77
 msgid ""
 "Sorry, it seems that there are no available payment methods for your "
 "location. Please contact us if you require assistance or wish to make "
 "alternate arrangements."
 msgstr ""
 
-#: templates/checkout/form-pay.php:90
+#: templates/checkout/form-pay.php:87
 msgid "Pay for order"
 msgstr ""
 
-#: templates/checkout/form-shipping.php:32
+#: templates/checkout/form-shipping.php:29
 msgid "Ship to a different address?"
 msgstr ""
 
-#: templates/checkout/review-order.php:153
+#: templates/checkout/review-order.php:150
 msgid "Please fill in your details above to see available payment methods."
 msgstr ""
 
-#: templates/checkout/review-order.php:155
+#: templates/checkout/review-order.php:152
 msgid ""
 "Sorry, it seems that there are no available payment methods for your state. "
 "Please contact us if you require assistance or wish to make alternate "
 "arrangements."
 msgstr ""
 
-#: templates/checkout/review-order.php:166
+#: templates/checkout/review-order.php:163
 msgid ""
 "Since your browser does not support JavaScript, or it is disabled, please "
 "ensure you click the <em>Update Totals</em> button before placing your "
@@ -8830,155 +8830,155 @@ msgid ""
 "do so."
 msgstr ""
 
-#: templates/checkout/review-order.php:166
+#: templates/checkout/review-order.php:163
 msgid "Update totals"
 msgstr ""
 
-#: templates/checkout/review-order.php:173
+#: templates/checkout/review-order.php:170
 msgid "Place order"
 msgstr ""
 
-#: templates/checkout/review-order.php:182
+#: templates/checkout/review-order.php:179
 msgid ""
 "I&rsquo;ve read and accept the <a href=\"%s\" target=\"_blank\">terms &amp; "
 "conditions</a>"
 msgstr ""
 
-#: templates/checkout/thankyou.php:18
+#: templates/checkout/thankyou.php:16
 msgid ""
 "Unfortunately your order cannot be processed as the originating "
 "bank/merchant has declined your transaction."
 msgstr ""
 
-#: templates/checkout/thankyou.php:22
+#: templates/checkout/thankyou.php:20
 msgid "Please attempt your purchase again or go to your account page."
 msgstr ""
 
-#: templates/checkout/thankyou.php:24
+#: templates/checkout/thankyou.php:22
 msgid "Please attempt your purchase again."
 msgstr ""
 
-#: templates/checkout/thankyou.php:28 templates/myaccount/my-orders.php:68
+#: templates/checkout/thankyou.php:26 templates/myaccount/my-orders.php:68
 msgid "Pay"
 msgstr ""
 
-#: templates/checkout/thankyou.php:36 templates/checkout/thankyou.php:67
+#: templates/checkout/thankyou.php:34 templates/checkout/thankyou.php:65
 msgid "Thank you. Your order has been received."
 msgstr ""
 
-#: templates/emails/admin-new-order.php:18
-#: templates/emails/plain/admin-new-order.php:16
+#: templates/emails/admin-new-order.php:13
+#: templates/emails/plain/admin-new-order.php:13
 msgid "You have received an order from %s. Their order is as follows:"
 msgstr ""
 
-#: templates/emails/admin-new-order.php:22
+#: templates/emails/admin-new-order.php:17
 msgid "Order: %s"
 msgstr ""
 
-#: templates/emails/admin-new-order.php:55
-#: templates/emails/customer-completed-order.php:55
-#: templates/emails/customer-note.php:59
-#: templates/emails/customer-processing-order.php:55
-#: templates/emails/plain/admin-new-order.php:42
-#: templates/order/order-details.php:104
+#: templates/emails/admin-new-order.php:50
+#: templates/emails/customer-completed-order.php:51
+#: templates/emails/customer-note.php:55
+#: templates/emails/customer-processing-order.php:51
+#: templates/emails/plain/admin-new-order.php:39
+#: templates/order/order-details.php:95
 msgid "Customer details"
 msgstr ""
 
-#: templates/emails/admin-new-order.php:58
-#: templates/emails/customer-completed-order.php:58
-#: templates/emails/customer-note.php:62
-#: templates/emails/customer-processing-order.php:58
+#: templates/emails/admin-new-order.php:53
+#: templates/emails/customer-completed-order.php:54
+#: templates/emails/customer-note.php:58
+#: templates/emails/customer-processing-order.php:54
+#: templates/emails/plain/admin-new-order.php:42
+#: templates/emails/plain/customer-completed-order.php:41
+#: templates/emails/plain/customer-note.php:49
+#: templates/emails/plain/customer-processing-order.php:41
+#: templates/order/order-details.php:99
+msgid "Email:"
+msgstr ""
+
+#: templates/emails/admin-new-order.php:56
+#: templates/emails/customer-completed-order.php:57
+#: templates/emails/customer-note.php:61
+#: templates/emails/customer-processing-order.php:57
 #: templates/emails/plain/admin-new-order.php:45
 #: templates/emails/plain/customer-completed-order.php:44
 #: templates/emails/plain/customer-note.php:52
 #: templates/emails/plain/customer-processing-order.php:44
-#: templates/order/order-details.php:108
-msgid "Email:"
-msgstr ""
-
-#: templates/emails/admin-new-order.php:61
-#: templates/emails/customer-completed-order.php:61
-#: templates/emails/customer-note.php:65
-#: templates/emails/customer-processing-order.php:61
-#: templates/emails/plain/admin-new-order.php:48
-#: templates/emails/plain/customer-completed-order.php:47
-#: templates/emails/plain/customer-note.php:55
-#: templates/emails/plain/customer-processing-order.php:47
 msgid "Tel:"
 msgstr ""
 
-#: templates/emails/customer-completed-order.php:18
-#: templates/emails/plain/customer-completed-order.php:16
+#: templates/emails/customer-completed-order.php:14
+#: templates/emails/plain/customer-completed-order.php:13
 msgid ""
 "Hi there. Your recent order on %s has been completed. Your order details "
 "are shown below for your reference:"
 msgstr ""
 
-#: templates/emails/customer-invoice.php:20
-#: templates/emails/plain/customer-invoice.php:17
+#: templates/emails/customer-invoice.php:16
+#: templates/emails/plain/customer-invoice.php:14
 msgid ""
 "An order has been created for you on %s. To pay for this order please use "
 "the following link: %s"
 msgstr ""
 
-#: templates/emails/customer-invoice.php:20
+#: templates/emails/customer-invoice.php:16
 msgid "pay"
 msgstr ""
 
-#: templates/emails/customer-new-account.php:18
-#: templates/emails/plain/customer-new-account.php:16
+#: templates/emails/customer-new-account.php:14
+#: templates/emails/plain/customer-new-account.php:13
 msgid "Thanks for creating an account on %s. Your username is <strong>%s</strong>."
 msgstr ""
 
-#: templates/emails/customer-new-account.php:22
+#: templates/emails/customer-new-account.php:18
 msgid "Your password has been automatically generated: <strong>%s</strong>"
 msgstr ""
 
-#: templates/emails/customer-new-account.php:26
-#: templates/emails/plain/customer-new-account.php:21
+#: templates/emails/customer-new-account.php:22
+#: templates/emails/plain/customer-new-account.php:18
 msgid ""
 "You can access your account area to view your orders and change your "
 "password here: %s."
 msgstr ""
 
-#: templates/emails/customer-note.php:18
-#: templates/emails/plain/customer-note.php:16
+#: templates/emails/customer-note.php:14
+#: templates/emails/plain/customer-note.php:13
 msgid "Hello, a note has just been added to your order:"
 msgstr ""
 
-#: templates/emails/customer-note.php:22
-#: templates/emails/plain/customer-note.php:24
+#: templates/emails/customer-note.php:18
+#: templates/emails/plain/customer-note.php:21
 msgid "For your reference, your order details are shown below."
 msgstr ""
 
-#: templates/emails/customer-processing-order.php:18
-#: templates/emails/plain/customer-processing-order.php:16
+#: templates/emails/customer-processing-order.php:14
+#: templates/emails/plain/customer-processing-order.php:13
 msgid ""
 "Your order has been received and is now being processed. Your order details "
 "are shown below for your reference:"
 msgstr ""
 
-#: templates/emails/customer-reset-password.php:18
-#: templates/emails/plain/customer-reset-password.php:16
+#: templates/emails/customer-reset-password.php:14
+#: templates/emails/plain/customer-reset-password.php:13
 msgid "Someone requested that the password be reset for the following account:"
 msgstr ""
 
-#: templates/emails/customer-reset-password.php:19
-#: templates/emails/plain/customer-reset-password.php:18
+#: templates/emails/customer-reset-password.php:15
+#: templates/emails/plain/customer-reset-password.php:15
 msgid "Username: %s"
 msgstr ""
 
-#: templates/emails/customer-reset-password.php:20
-#: templates/emails/plain/customer-reset-password.php:19
+#: templates/emails/customer-reset-password.php:16
+#: templates/emails/plain/customer-reset-password.php:16
 msgid "If this was a mistake, just ignore this email and nothing will happen."
 msgstr ""
 
-#: templates/emails/customer-reset-password.php:21
-#: templates/emails/plain/customer-reset-password.php:20
+#: templates/emails/customer-reset-password.php:17
+#: templates/emails/plain/customer-reset-password.php:17
 msgid "To reset your password, visit the following address:"
 msgstr ""
 
-#: templates/emails/customer-reset-password.php:24
+#: templates/emails/customer-reset-password.php:20
 msgid "Click here to reset your password"
 msgstr ""
 
@@ -8996,47 +8996,47 @@ msgstr ""
 msgid "Product Image"
 msgstr ""
 
-#: templates/emails/email-order-items.php:52
+#: templates/emails/email-order-items.php:44
 #: templates/emails/plain/email-order-items.php:47
 msgid "Download %d"
 msgstr ""
 
-#: templates/emails/email-order-items.php:54
+#: templates/emails/email-order-items.php:46
 #: templates/emails/plain/email-order-items.php:49
 msgid "Download"
 msgstr ""
 
-#: templates/emails/plain/admin-new-order.php:22
-#: templates/emails/plain/customer-completed-order.php:22
-#: templates/emails/plain/customer-invoice.php:23
-#: templates/emails/plain/customer-note.php:30
-#: templates/emails/plain/customer-processing-order.php:22
+#: templates/emails/plain/admin-new-order.php:19
+#: templates/emails/plain/customer-completed-order.php:19
+#: templates/emails/plain/customer-invoice.php:20
+#: templates/emails/plain/customer-note.php:27
+#: templates/emails/plain/customer-processing-order.php:19
 msgid "Order number: %s"
 msgstr ""
 
-#: templates/emails/plain/admin-new-order.php:23
+#: templates/emails/plain/admin-new-order.php:20
 msgid "Order link: %s"
 msgstr ""
 
-#: templates/emails/plain/admin-new-order.php:24
-#: templates/emails/plain/customer-completed-order.php:23
-#: templates/emails/plain/customer-invoice.php:24
-#: templates/emails/plain/customer-note.php:31
-#: templates/emails/plain/customer-processing-order.php:23
+#: templates/emails/plain/admin-new-order.php:21
+#: templates/emails/plain/customer-completed-order.php:20
+#: templates/emails/plain/customer-invoice.php:21
+#: templates/emails/plain/customer-note.php:28
+#: templates/emails/plain/customer-processing-order.php:20
 msgid "Order date: %s"
 msgstr ""
 
-#: templates/emails/plain/admin-new-order.php:24
+#: templates/emails/plain/admin-new-order.php:21
 msgid "jS F Y"
 msgstr ""
 
-#: templates/emails/plain/customer-completed-order.php:41
-#: templates/emails/plain/customer-note.php:49
-#: templates/emails/plain/customer-processing-order.php:41
+#: templates/emails/plain/customer-completed-order.php:38
+#: templates/emails/plain/customer-note.php:46
+#: templates/emails/plain/customer-processing-order.php:38
 msgid "Your details"
 msgstr ""
 
-#: templates/emails/plain/customer-new-account.php:19
+#: templates/emails/plain/customer-new-account.php:16
 msgid "Your password is <strong>%s</strong>."
 msgstr ""
 
@@ -9072,138 +9072,138 @@ msgstr ""
 msgid "Page"
 msgstr ""
 
-#: templates/global/form-login.php:26
-#: templates/myaccount/form-lost-password.php:24
+#: templates/global/form-login.php:22
+#: templates/myaccount/form-lost-password.php:23
 msgid "Username or email"
 msgstr ""
 
-#: templates/global/form-login.php:30 templates/myaccount/form-login.php:39
-#: templates/myaccount/form-login.php:89
+#: templates/global/form-login.php:26 templates/myaccount/form-login.php:38
+#: templates/myaccount/form-login.php:88
 msgid "Password"
 msgstr ""
 
-#: templates/global/form-login.php:42 templates/myaccount/form-login.php:49
+#: templates/global/form-login.php:38 templates/myaccount/form-login.php:48
 msgid "Remember me"
 msgstr ""
 
-#: templates/global/form-login.php:46 templates/myaccount/form-login.php:53
+#: templates/global/form-login.php:42 templates/myaccount/form-login.php:52
 msgid "Lost your password?"
 msgstr ""
 
-#: templates/loop/no-products-found.php:17
+#: templates/loop/no-products-found.php:14
 msgid "No products were found matching your selection."
 msgstr ""
 
-#: templates/loop/result-count.php:30
+#: templates/loop/result-count.php:28
 msgid "Showing the single result"
 msgstr ""
 
-#: templates/loop/result-count.php:32
+#: templates/loop/result-count.php:30
 msgid "Showing all %d results"
 msgstr ""
 
-#: templates/loop/sale-flash.php:19 templates/single-product/sale-flash.php:19
+#: templates/loop/sale-flash.php:16 templates/single-product/sale-flash.php:16
 msgid "Sale!"
 msgstr ""
 
-#: templates/myaccount/form-add-payment-method.php:41
+#: templates/myaccount/form-add-payment-method.php:40
 msgid ""
 "Sorry, it seems that there are no payment methods which support adding a "
 "new payment method. Please contact us if you require assistance or wish to "
 "make alternate arrangements."
 msgstr ""
 
-#: templates/myaccount/form-add-payment-method.php:49
+#: templates/myaccount/form-add-payment-method.php:48
 msgid "Add Payment Method"
 msgstr ""
 
-#: templates/myaccount/form-edit-account.php:23
+#: templates/myaccount/form-edit-account.php:22
 msgid "First name"
 msgstr ""
 
-#: templates/myaccount/form-edit-account.php:27
+#: templates/myaccount/form-edit-account.php:26
 msgid "Last name"
 msgstr ""
 
-#: templates/myaccount/form-edit-account.php:31
-#: templates/myaccount/form-login.php:82
+#: templates/myaccount/form-edit-account.php:30
+#: templates/myaccount/form-login.php:81
 msgid "Email address"
 msgstr ""
 
-#: templates/myaccount/form-edit-account.php:36
+#: templates/myaccount/form-edit-account.php:35
 msgid "Password Change"
 msgstr ""
 
-#: templates/myaccount/form-edit-account.php:39
+#: templates/myaccount/form-edit-account.php:38
 msgid "Current Password (leave blank to leave unchanged)"
 msgstr ""
 
-#: templates/myaccount/form-edit-account.php:43
+#: templates/myaccount/form-edit-account.php:42
 msgid "New Password (leave blank to leave unchanged)"
 msgstr ""
 
-#: templates/myaccount/form-edit-account.php:47
+#: templates/myaccount/form-edit-account.php:46
 msgid "Confirm New Password"
 msgstr ""
 
-#: templates/myaccount/form-edit-account.php:57
+#: templates/myaccount/form-edit-account.php:56
 msgid "Save changes"
 msgstr ""
 
 #: templates/myaccount/form-edit-address.php:16
 #: templates/myaccount/my-address.php:19 templates/myaccount/my-address.php:25
-#: templates/order/order-details.php:125
+#: templates/order/order-details.php:116
 msgid "Billing Address"
 msgstr ""
 
 #: templates/myaccount/form-edit-address.php:16
-#: templates/myaccount/my-address.php:20 templates/order/order-details.php:140
+#: templates/myaccount/my-address.php:20 templates/order/order-details.php:131
 msgid "Shipping Address"
 msgstr ""
 
-#: templates/myaccount/form-edit-address.php:45
+#: templates/myaccount/form-edit-address.php:44
 msgid "Save Address"
 msgstr ""
 
-#: templates/myaccount/form-login.php:35
+#: templates/myaccount/form-login.php:34
 msgid "Username or email address"
 msgstr ""
 
-#: templates/myaccount/form-login.php:66 templates/myaccount/form-login.php:103
+#: templates/myaccount/form-login.php:65 templates/myaccount/form-login.php:102
 msgid "Register"
 msgstr ""
 
-#: templates/myaccount/form-login.php:75
+#: templates/myaccount/form-login.php:74
 msgid "Username"
 msgstr ""
 
-#: templates/myaccount/form-login.php:96
+#: templates/myaccount/form-login.php:95
 msgid "Anti-spam"
 msgstr ""
 
-#: templates/myaccount/form-lost-password.php:22
+#: templates/myaccount/form-lost-password.php:21
 msgid ""
 "Lost your password? Please enter your username or email address. You will "
 "receive a link to create a new password via email."
 msgstr ""
 
-#: templates/myaccount/form-lost-password.php:28
+#: templates/myaccount/form-lost-password.php:27
 msgid "Enter a new password below."
 msgstr ""
 
-#: templates/myaccount/form-lost-password.php:31
+#: templates/myaccount/form-lost-password.php:30
 msgid "New password"
 msgstr ""
 
-#: templates/myaccount/form-lost-password.php:35
+#: templates/myaccount/form-lost-password.php:34
 msgid "Re-enter new password"
 msgstr ""
 
-#: templates/myaccount/form-lost-password.php:46
+#: templates/myaccount/form-lost-password.php:45
 msgid "Reset Password"
 msgstr ""
 
-#: templates/myaccount/form-lost-password.php:46
+#: templates/myaccount/form-lost-password.php:45
 msgid "Save"
 msgstr ""
 
@@ -9266,209 +9266,209 @@ msgstr ""
 msgid "View"
 msgstr ""
 
-#: templates/myaccount/view-order.php:20
+#: templates/myaccount/view-order.php:19
 msgid ""
 "Order <mark class=\"order-number\">%s</mark> was placed on <mark "
 "class=\"order-date\">%s</mark> and is currently <mark "
 "class=\"order-status\">%s</mark>."
 msgstr ""
 
-#: templates/myaccount/view-order.php:24 templates/order/tracking.php:25
+#: templates/myaccount/view-order.php:23 templates/order/tracking.php:23
 msgid "Order Updates"
 msgstr ""
 
-#: templates/myaccount/view-order.php:30 templates/order/tracking.php:31
+#: templates/myaccount/view-order.php:29 templates/order/tracking.php:29
 msgid "l jS \\o\\f F Y, h:ia"
 msgstr ""
 
-#: templates/order/form-tracking.php:20
+#: templates/order/form-tracking.php:17
 msgid ""
 "To track your order please enter your Order ID in the box below and press "
 "return. This was given to you on your receipt and in the confirmation email "
 "you should have received."
 msgstr ""
 
-#: templates/order/form-tracking.php:22
+#: templates/order/form-tracking.php:19
 msgid "Order ID"
 msgstr ""
 
-#: templates/order/form-tracking.php:22
+#: templates/order/form-tracking.php:19
 msgid "Found in your order confirmation email."
 msgstr ""
 
-#: templates/order/form-tracking.php:23
+#: templates/order/form-tracking.php:20
 msgid "Billing Email"
 msgstr ""
 
-#: templates/order/form-tracking.php:23
+#: templates/order/form-tracking.php:20
 msgid "Email you used during checkout."
 msgstr ""
 
-#: templates/order/form-tracking.php:26
+#: templates/order/form-tracking.php:23
 msgid "Track"
 msgstr ""
 
-#: templates/order/order-details.php:17
+#: templates/order/order-details.php:14
 msgid "Order Details"
 msgstr ""
 
-#: templates/order/order-details.php:58
+#: templates/order/order-details.php:52
 msgid "Download file%s"
 msgstr ""
 
-#: templates/order/order-details.php:109
+#: templates/order/order-details.php:100
 msgid "Telephone:"
 msgstr ""
 
-#: templates/order/tracking.php:14
+#: templates/order/tracking.php:12
 msgid "Order %s which was made %s has the status &ldquo;%s&rdquo;"
 msgstr ""
 
-#: templates/order/tracking.php:14
+#: templates/order/tracking.php:12
 msgid "ago"
 msgstr ""
 
-#: templates/order/tracking.php:16
+#: templates/order/tracking.php:14
 msgid "and was completed"
 msgstr ""
 
-#: templates/order/tracking.php:16
+#: templates/order/tracking.php:14
 msgid " ago"
 msgstr ""
 
-#: templates/single-product/add-to-cart/variable.php:28
+#: templates/single-product/add-to-cart/variable.php:25
 msgid "Choose an option"
 msgstr ""
 
-#: templates/single-product/add-to-cart/variable.php:76
+#: templates/single-product/add-to-cart/variable.php:73
 msgid "Clear selection"
 msgstr ""
 
-#: templates/single-product/add-to-cart/variable.php:106
+#: templates/single-product/add-to-cart/variable.php:103
 msgid "This product is currently out of stock and unavailable."
 msgstr ""
 
-#: templates/single-product/meta.php:26
+#: templates/single-product/meta.php:23
 msgid "SKU:"
 msgstr ""
 
-#: templates/single-product/meta.php:30
+#: templates/single-product/meta.php:27
 msgid "Category:"
 msgid_plural "Categories:"
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/single-product/meta.php:32
+#: templates/single-product/meta.php:29
 msgid "Tag:"
 msgid_plural "Tags:"
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/single-product/product-attributes.php:29
+#: templates/single-product/product-attributes.php:28
 msgid "Weight"
 msgstr ""
 
-#: templates/single-product/product-attributes.php:36
+#: templates/single-product/product-attributes.php:35
 msgid "Dimensions"
 msgstr ""
 
-#: templates/single-product/rating.php:31
+#: templates/single-product/rating.php:28
 msgid "%s customer review"
 msgid_plural "%s customer reviews"
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/single-product/related.php:42
+#: templates/single-product/related.php:40
 msgid "Related Products"
 msgstr ""
 
-#: templates/single-product/review.php:29
+#: templates/single-product/review.php:26
 msgid "Rated %d out of 5"
 msgstr ""
 
-#: templates/single-product/review.php:37
+#: templates/single-product/review.php:34
 msgid "Your comment is awaiting approval"
 msgstr ""
 
-#: templates/single-product/review.php:46
+#: templates/single-product/review.php:43
 msgid "verified owner"
 msgstr ""
 
-#: templates/single-product/tabs/description.php:16
+#: templates/single-product/tabs/description.php:14
 msgid "Product Description"
 msgstr ""
 
-#: templates/single-product/up-sells.php:43
+#: templates/single-product/up-sells.php:39
 msgid "You may also like&hellip;"
 msgstr ""
 
-#: templates/single-product-reviews.php:24
+#: templates/single-product-reviews.php:21
 msgid "%s review for %s"
 msgid_plural "%s reviews for %s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/single-product-reviews.php:26
+#: templates/single-product-reviews.php:23
 msgid "Reviews"
 msgstr ""
 
-#: templates/single-product-reviews.php:47
+#: templates/single-product-reviews.php:44
 msgid "There are no reviews yet."
 msgstr ""
 
-#: templates/single-product-reviews.php:60
+#: templates/single-product-reviews.php:57
 msgid "Add a review"
 msgstr ""
 
-#: templates/single-product-reviews.php:60
+#: templates/single-product-reviews.php:57
 msgid "Be the first to review"
 msgstr ""
 
-#: templates/single-product-reviews.php:61
+#: templates/single-product-reviews.php:58
 msgid "Leave a Reply to %s"
 msgstr ""
 
-#: templates/single-product-reviews.php:67
+#: templates/single-product-reviews.php:64
 msgid "Email"
 msgstr ""
 
-#: templates/single-product-reviews.php:70
+#: templates/single-product-reviews.php:67
 msgid "Submit"
 msgstr ""
 
-#: templates/single-product-reviews.php:76
+#: templates/single-product-reviews.php:73
 msgid "Your Rating"
 msgstr ""
 
-#: templates/single-product-reviews.php:77
+#: templates/single-product-reviews.php:74
 msgid "Rate&hellip;"
 msgstr ""
 
-#: templates/single-product-reviews.php:78
+#: templates/single-product-reviews.php:75
 msgid "Perfect"
 msgstr ""
 
-#: templates/single-product-reviews.php:79
+#: templates/single-product-reviews.php:76
 msgid "Good"
 msgstr ""
 
-#: templates/single-product-reviews.php:80
+#: templates/single-product-reviews.php:77
 msgid "Average"
 msgstr ""
 
-#: templates/single-product-reviews.php:81
+#: templates/single-product-reviews.php:78
 msgid "Not that bad"
 msgstr ""
 
-#: templates/single-product-reviews.php:82
+#: templates/single-product-reviews.php:79
 msgid "Very Poor"
 msgstr ""
 
-#: templates/single-product-reviews.php:86
+#: templates/single-product-reviews.php:83
 msgid "Your Review"
 msgstr ""
 
-#: templates/single-product-reviews.php:95
+#: templates/single-product-reviews.php:92
 msgid "Only logged in customers who have purchased this product may leave a review."
 msgstr ""
 
@@ -9598,7 +9598,7 @@ msgctxt "Admin menu name"
 msgid "Orders"
 msgstr ""
 
-#: includes/class-wc-post-types.php:332
+#: includes/class-wc-post-types.php:334
 msgctxt "Admin menu name"
 msgid "Coupons"
 msgstr ""
@@ -9628,37 +9628,37 @@ msgctxt "slug"
 msgid "uncategorized"
 msgstr ""
 
-#: includes/class-wc-post-types.php:391 includes/wc-order-functions.php:25
+#: includes/class-wc-post-types.php:393 includes/wc-order-functions.php:25
 msgctxt "Order status"
 msgid "Pending payment"
 msgstr ""
 
-#: includes/class-wc-post-types.php:399 includes/wc-order-functions.php:26
+#: includes/class-wc-post-types.php:401 includes/wc-order-functions.php:26
 msgctxt "Order status"
 msgid "Processing"
 msgstr ""
 
-#: includes/class-wc-post-types.php:407 includes/wc-order-functions.php:27
+#: includes/class-wc-post-types.php:409 includes/wc-order-functions.php:27
 msgctxt "Order status"
 msgid "On hold"
 msgstr ""
 
-#: includes/class-wc-post-types.php:415 includes/wc-order-functions.php:28
+#: includes/class-wc-post-types.php:417 includes/wc-order-functions.php:28
 msgctxt "Order status"
 msgid "Completed"
 msgstr ""
 
-#: includes/class-wc-post-types.php:423 includes/wc-order-functions.php:29
+#: includes/class-wc-post-types.php:425 includes/wc-order-functions.php:29
 msgctxt "Order status"
 msgid "Cancelled"
 msgstr ""
 
-#: includes/class-wc-post-types.php:431 includes/wc-order-functions.php:30
+#: includes/class-wc-post-types.php:433 includes/wc-order-functions.php:30
 msgctxt "Order status"
 msgid "Refunded"
 msgstr ""
 
-#: includes/class-wc-post-types.php:439 includes/wc-order-functions.php:31
+#: includes/class-wc-post-types.php:441 includes/wc-order-functions.php:31
 msgctxt "Order status"
 msgid "Failed"
 msgstr ""
@@ -9676,7 +9676,7 @@ msgctxt "Tax status"
 msgid "None"
 msgstr ""
 
-#: includes/wc-core-functions.php:75 includes/wc-order-functions.php:578
+#: includes/wc-core-functions.php:75 includes/wc-order-functions.php:587
 msgctxt "Order date parsed by strftime"
 msgid "%b %d, %Y @ %I:%M %p"
 msgstr ""
@@ -9706,12 +9706,12 @@ msgctxt "by comment author"
 msgid "by %1$s"
 msgstr ""
 
-#: templates/global/quantity-input.php:15
+#: templates/global/quantity-input.php:12
 msgctxt "Product quantity input tooltip"
 msgid "Qty"
 msgstr ""
 
-#: templates/loop/result-count.php:34
+#: templates/loop/result-count.php:32
 msgctxt "%1$d = first, %2$d = last, %3$d = total"
 msgid "Showing %1$d&ndash;%2$d of %3$d results"
 msgstr ""

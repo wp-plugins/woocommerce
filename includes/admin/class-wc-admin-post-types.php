@@ -181,7 +181,7 @@ class WC_Admin_Post_Types {
 
 		switch ( $column ) {
 			case 'thumb' :
-				echo '<a href="' . get_edit_post_link( $post->ID ) . '">' . $the_product->get_image( 'thumbnail' ) . '</a>';
+				echo '<a href="' . get_edit_post_link( $post->ID ) . '">' . $the_product->get_image() . '</a>';
 				break;
 			case 'name' :
 				$edit_link        = get_edit_post_link( $post->ID );
@@ -357,16 +357,12 @@ class WC_Admin_Post_Types {
 				$post_type_object = get_post_type_object( $post->post_type );
 				$can_edit_post = current_user_can( $post_type_object->cap->edit_post, $post->ID );
 
-				echo '<a href="' . esc_attr( $edit_link ) . '">' . esc_html( $title ). '</a>';
+				echo '<div class="code tips" data-tip="' . __( 'Edit coupon', 'woocommerce' ) . '"><a href="' . esc_attr( $edit_link ) . '"><span>' . esc_html( $title ). '</span></a></div>';
 
 				_post_states( $post );
 
 				// Get actions
 				$actions = array();
-
-				if ( current_user_can( $post_type_object->cap->edit_post, $post->ID ) ) {
-					$actions['edit'] = '<a href="' . admin_url( sprintf( $post_type_object->_edit_link . '&amp;action=edit', $post->ID ) ) . '">' . __( 'Edit', 'woocommerce' ) . '</a>';
-				}
 
 				if ( current_user_can( $post_type_object->cap->delete_post, $post->ID ) ) {
 					if ( 'trash' == $post->post_status )
@@ -1699,11 +1695,11 @@ class WC_Admin_Post_Types {
 	 * @return void
 	 */
 	public function disable_autosave(){
-		global $post;
+	    global $post;
 
-		if ( $post && in_array( get_post_type( $post->ID ), wc_get_order_types( 'order-meta-boxes' ) ) ) {
-			wp_dequeue_script( 'autosave' );
-		}
+	    if ( $post && get_post_type( $post->ID ) === 'shop_order' ) {
+	        wp_dequeue_script( 'autosave' );
+	    }
 	}
 
 	/**
