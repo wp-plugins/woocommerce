@@ -275,6 +275,11 @@ class WC_AJAX {
 			ob_start();
 			wc_print_notices();
 			$messages = ob_get_clean();
+
+			// Wrap messages if not empty
+			if ( ! empty( $messages ) ) {
+				$messages = '<div class="woocommerce-error-ajax">' . $messages . '</div>';
+			}
 		}
 
 		// Setup data
