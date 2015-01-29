@@ -410,14 +410,18 @@ class WC_Admin_Post_Types {
 				else
 					echo '&ndash;';
 			break;
-			case "usage" :
-				$usage_count = absint( get_post_meta( $post->ID, 'usage_count', true ) );
-				$usage_limit = esc_html( get_post_meta($post->ID, 'usage_limit', true) );
+			case 'usage' :
+			$usage_count = absint( get_post_meta( $post->ID, 'usage_count', true ) );
+			if( $usage_count ) {
+				$usage_count = sprintf( '<a href="%s">%s</a>', admin_url( sprintf( 'edit.php?s=%s&post_status=all&post_type=shop_order', esc_html( $post->post_title ) ) ), $usage_count );
+			}
+			$usage_limit = esc_html( get_post_meta( $post->ID, 'usage_limit', true ) );
 
-				if ( $usage_limit )
-					printf( __( '%s / %s', 'woocommerce' ), $usage_count, $usage_limit );
-				else
-					printf( __( '%s / &infin;', 'woocommerce' ), $usage_count );
+			if ( $usage_limit ) {
+				printf( __( '%s / %s', 'woocommerce' ), $usage_count, $usage_limit );
+			} else {
+				printf( __( '%s / &infin;', 'woocommerce' ), $usage_count );
+			}
 			break;
 			case "expiry_date" :
 				$expiry_date = get_post_meta($post->ID, 'expiry_date', true);
@@ -711,8 +715,8 @@ class WC_Admin_Post_Types {
 		$class            = ( isset( $wp_query->query['orderby'] ) && $wp_query->query['orderby'] == 'menu_order title' ) ? 'current' : '';
 		$query_string     = remove_query_arg(array( 'orderby', 'order' ));
 		$query_string     = add_query_arg( 'orderby', urlencode('menu_order title'), $query_string );
-		$query_string     = add_query_arg( 'order', urlencode('ASC'), $query_string );
-		$views['byorder'] = '<a href="'. $query_string . '" class="' . esc_attr( $class ) . '">' . __( 'Sort Products', 'woocommerce' ) . '</a>';
+		$query_string     = add_query_arg( 'order', urlencode( 'ASC' ), $query_string );
+		$views['byorder'] = '<a href="' . esc_url( $query_string ) . '" class="' . esc_attr( $class ) . '">' . __( 'Sort Products', 'woocommerce' ) . '</a>';
 
 		return $views;
 	}
