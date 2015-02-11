@@ -2,17 +2,20 @@
 /**
  * Single Product Rating
  *
- * @author 		WooThemes
- * @package 	WooCommerce/Templates
- * @version     2.1.0
+ * @author      WooThemes
+ * @package     WooCommerce/Templates
+ * @version     2.2.6
  */
 
-if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly
+}
 
 global $product;
 
-if ( get_option( 'woocommerce_enable_review_rating' ) === 'no' )
+if ( get_option( 'woocommerce_enable_review_rating' ) === 'no' ) {
 	return;
+}
 
 $count   = $product->get_rating_count();
 $average = $product->get_average_rating();
@@ -25,7 +28,7 @@ if ( $count > 0 ) : ?>
 				<strong itemprop="ratingValue" class="rating"><?php echo esc_html( $average ); ?></strong> <?php _e( 'out of 5', 'woocommerce' ); ?>
 			</span>
 		</div>
-		<a href="#reviews" class="woocommerce-review-link" rel="nofollow">(<?php printf( _n( '%s customer review', '%s customer reviews', $count, 'woocommerce' ), '<span itemprop="ratingCount" class="count">' . $count . '</span>' ); ?>)</a>
+		<?php if ( comments_open() ) : ?><a href="#reviews" class="woocommerce-review-link" rel="nofollow">(<?php printf( _n( '%s customer review', '%s customer reviews', $count, 'woocommerce' ), '<span itemprop="ratingCount" class="count">' . $count . '</span>' ); ?>)</a><?php endif ?>
 	</div>
 
 <?php endif; ?>

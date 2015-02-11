@@ -76,8 +76,10 @@ class WC_API_Reports extends WC_API_Resource {
 		// check user permissions
 		$check = $this->validate_request();
 
-		if ( is_wp_error( $check ) )
+		// check for WP_Error
+		if ( is_wp_error( $check ) ) {
 			return $check;
+		}
 
 		// set date filtering
 		$this->setup_report( $filter );
@@ -88,29 +90,32 @@ class WC_API_Reports extends WC_API_Resource {
 				'_order_total' => array(
 					'type'     => 'meta',
 					'function' => 'SUM',
-					'name'     => 'sales'
-				),
-				'_order_tax' => array(
-					'type'            => 'meta',
-					'function'        => 'SUM',
-					'name'            => 'tax'
-				),
-				'_order_shipping_tax' => array(
-					'type'            => 'meta',
-					'function'        => 'SUM',
-					'name'            => 'shipping_tax'
+					'name'     => 'total_sales'
 				),
 				'_order_shipping' => array(
 					'type'     => 'meta',
 					'function' => 'SUM',
-					'name'     => 'shipping'
+					'name'     => 'total_shipping'
 				),
+				'_order_tax' => array(
+					'type'            => 'meta',
+					'function'        => 'SUM',
+					'name'            => 'total_tax'
+				),
+				'_order_shipping_tax' => array(
+					'type'            => 'meta',
+					'function'        => 'SUM',
+					'name'            => 'total_shipping_tax'
+				),
+
 				'ID' => array(
 					'type'     => 'post_data',
 					'function' => 'COUNT',
 					'name'     => 'order_count'
 				)
 			),
+			'order_types'  => wc_get_order_types( 'sales-reports' ),
+			'order_status' => array( 'completed', 'processing', 'on-hold', 'refunded' ),
 			'filter_range' => true,
 		) );
 
@@ -272,7 +277,7 @@ class WC_API_Reports extends WC_API_Resource {
 				case 'day' :
 					$time = date( 'Y-m-d', strtotime( "+{$i} DAY", $this->report->start_date ) );
 					break;
-				case 'month' :
+				default :
 					$time = date( 'Y-m', strtotime( "+{$i} MONTH", $this->report->start_date ) );
 					break;
 			}
@@ -302,8 +307,9 @@ class WC_API_Reports extends WC_API_Resource {
 
 			$time = ( 'day' === $this->report->chart_groupby ) ? date( 'Y-m-d', strtotime( $order->post_date ) ) : date( 'Y-m', strtotime( $order->post_date ) );
 
-			if ( ! isset( $period_totals[ $time ] ) )
+			if ( ! isset( $period_totals[ $time ] ) ) {
 				continue;
+			}
 
 			$period_totals[ $time ]['sales']    = wc_format_decimal( $order->total_sales, 2 );
 			$period_totals[ $time ]['orders']   = (int) $order->total_orders;
@@ -316,8 +322,9 @@ class WC_API_Reports extends WC_API_Resource {
 
 			$time = ( 'day' === $this->report->chart_groupby ) ? date( 'Y-m-d', strtotime( $order_item->post_date ) ) : date( 'Y-m', strtotime( $order_item->post_date ) );
 
-			if ( ! isset( $period_totals[ $time ] ) )
+			if ( ! isset( $period_totals[ $time ] ) ) {
 				continue;
+			}
 
 			$period_totals[ $time ]['items'] = (int) $order_item->order_item_count;
 		}
@@ -327,19 +334,21 @@ class WC_API_Reports extends WC_API_Resource {
 
 			$time = ( 'day' === $this->report->chart_groupby ) ? date( 'Y-m-d', strtotime( $discount->post_date ) ) : date( 'Y-m', strtotime( $discount->post_date ) );
 
-			if ( ! isset( $period_totals[ $time ] ) )
+			if ( ! isset( $period_totals[ $time ] ) ) {
 				continue;
+			}
 
 			$period_totals[ $time ]['discount'] = wc_format_decimal( $discount->discount_amount, 2 );
 		}
 
 		$sales_data = array(
-			'total_sales'       => wc_format_decimal( $totals->sales, 2 ),
-			'average_sales'     => wc_format_decimal( $totals->sales / ( $this->report->chart_interval + 1 ), 2 ),
+			'total_sales'       => wc_format_decimal( $totals->total_sales, 2 ),
+			'net_sales'         => wc_format_decimal( $totals->total_sales - $totals->total_shipping - $totals->total_tax - $totals->total_shipping_tax, 2 ),
+			'average_sales'     => wc_format_decimal( $totals->total_sales / ( $this->report->chart_interval + 1 ), 2 ),
 			'total_orders'      => (int) $totals->order_count,
 			'total_items'       => $total_items,
-			'total_tax'         => wc_format_decimal( $totals->tax + $totals->shipping_tax, 2 ),
-			'total_shipping'    => wc_format_decimal( $totals->shipping, 2 ),
+			'total_tax'         => wc_format_decimal( $totals->total_tax + $totals->total_shipping_tax, 2 ),
+			'total_shipping'    => wc_format_decimal( $totals->total_shipping, 2 ),
 			'total_discount'    => is_null( $total_discount ) ? wc_format_decimal( 0.00, 2 ) : wc_format_decimal( $total_discount, 2 ),
 			'totals_grouped_by' => $this->report->chart_groupby,
 			'totals'            => $period_totals,

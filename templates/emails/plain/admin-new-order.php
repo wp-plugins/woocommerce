@@ -6,11 +6,14 @@
  * @package 	WooCommerce/Templates/Emails/Plain
  * @version 	2.0.0
  */
-if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly
+}
 
 echo $email_heading . "\n\n";
 
-echo sprintf( __( 'You have received an order from %s. Their order is as follows:', 'woocommerce' ), $order->billing_first_name . ' ' . $order->billing_last_name ) . "\n\n";
+echo sprintf( __( 'You have received an order from %s. The order is as follows:', 'woocommerce' ), $order->billing_first_name . ' ' . $order->billing_last_name ) . "\n\n";
 
 echo "****************************************************\n\n";
 
@@ -36,15 +39,7 @@ echo "\n****************************************************\n\n";
 
 do_action( 'woocommerce_email_after_order_table', $order, $sent_to_admin, $plain_text );
 
-echo __( 'Customer details', 'woocommerce' ) . "\n";
-
-if ( $order->billing_email )
-	echo __( 'Email:', 'woocommerce' ); echo $order->billing_email . "\n";
-
-if ( $order->billing_phone )
-	echo __( 'Tel:', 'woocommerce' ); ?> <?php echo $order->billing_phone . "\n";
-
-wc_get_template( 'emails/plain/email-addresses.php', array( 'order' => $order ) );
+do_action( 'woocommerce_email_customer_details', $order, $sent_to_admin, $plain_text );
 
 echo "\n****************************************************\n\n";
 

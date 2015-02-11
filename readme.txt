@@ -1,10 +1,10 @@
 === WooCommerce - excelling eCommerce ===
-Contributors: woothemes, mikejolley, jameskoster, claudiosanches
+Contributors: woothemes, mikejolley, jameskoster, claudiosanches, barrykooij
 Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, affiliate, store, sales, sell, shop, shopping, cart, checkout, configurable, variable, widgets, reports, download, downloadable, digital, inventory, stock, reports, shipping, tax
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.8
 Tested up to: 4.1
-Stable tag: 2.2.11
+Stable tag: 2.3.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -54,6 +54,10 @@ WordPress.org is home to many cool free extensions for WooCommerce made by other
 
 [Search WordPress.org for WooCommerce](http://wordpress.org/extend/plugins/search.php?q=woocommerce) to see everything that is available.
 
+= Storefront - the official WooCommerce theme =
+
+Storefront is an intuitive & flexible, free WordPress theme built by WooThemes. It offers deep integration with WooCommerce and several of the most popular WooCommerce extensions. If you're looking for a theme for your next WooCommerce project, we highly recommend you check out [Storefront](http://www.woothemes.com/storefront/) and it's own suite of [extensions](http://www.woothemes.com/product-category/storefront-extensions/)!
+
 = Get involved =
 
 Developers can contribute to the source code on the [WooCommerce GitHub Repository](https://github.com/woothemes/woocommerce/blob/master/CONTRIBUTING.md).
@@ -93,7 +97,7 @@ WooCommerce comes with some dummy data you can use to see how products look; eit
 
 = Where can I find WooCommerce documentation and user guides? =
 
-For help setting up and configuring WooCommerce please refer to our [user guide](http://docs.woothemes.com/document/woocommerce/)
+For help setting up and configuring WooCommerce please refer to our [user guide](http://docs.woothemes.com/documentation/plugins/woocommerce/getting-started/)
 
 For extending or theming WooCommerce, see our [codex](http://docs.woothemes.com/documentation/plugins/woocommerce/woocommerce-codex/).
 
@@ -105,7 +109,7 @@ For help with premium add-ons from WooThemes, use [our helpdesk](http://support.
 
 = Will WooCommerce work with my theme? =
 
-Yes; WooCommerce will work with any theme, but may require some styling to make it match nicely. Please see our [codex](http://docs.woothemes.com/documentation/plugins/woocommerce/woocommerce-codex/) for help.
+Yes; WooCommerce will work with any theme, but may require some styling to make it match nicely. Please see our [codex](http://docs.woothemes.com/documentation/plugins/woocommerce/woocommerce-codex/) for help. If you're looking for a theme with built in WooCommerce integration we recommend [Storefront](http://www.woothemes.com/storefront/).
 
 = Where can I request new features, eCommerce themes and extensions? =
 
@@ -114,6 +118,10 @@ You can vote on and request new features and extensions in our [WooIdeas board](
 = Where can I report bugs or contribute to the project? =
 
 Bugs can be reported either in our support forum or preferably on the [WooCommerce GitHub repository](https://github.com/woothemes/woocommerce/issues).
+
+= Where can I found the Rest API documentation? =
+
+You can find the documentation of our REST API on the [WooCommerce REST API Docs](http://woothemes.github.io/woocommerce-rest-api-docs/).
 
 = WooCommerce is awesome! Can I contribute? =
 
@@ -129,6 +137,58 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 6. A product archive (grid).
 
 == Changelog ==
+
+= 2.3.0 - 11/02/2015 =
+* Feature - Option to geo-locate the customer's inital location.
+* Feature - Display taxes in store based on the customer location, rather than the shop base.
+* Feature - Made tax importer expand postcode ranges.
+* Feature - Print styles for reports.
+* Feature - Remove products from the cart in the widget.
+* Feature - Bulk edit sales schedule on variations.
+* Feature - Fresh new frontend / email design.
+* Feature - Undo link in message when removing products from the cart.
+* Feature - Compatibility with Twenty Fifteen default theme.
+* Feature - Added 'top freebies' to product report.
+* Feature - Added numeric sort for attributes.
+* Feature - Added support for some Jetpack features: Omnisearch, Publicize and Markdown editor.
+* Feature - UI for adding Webhooks.
+* Feature - Show Gross and Net totals in reports.
+* Refactor - Removed deprecated methods from WC_Frontend_Scripts and rewrote script registration and localization to run once.
+* Refactor - Routing all email functionality through one send() method.
+* Refactor - Replaced existing email css inliner with Emogrifier.
+* Refactor - get_product_search_form().
+* Refactor - Improved the Shipping Class field in products quick edit and bulk edit.
+* Refactor - Removed style settings in favour of separate plugin.
+* Refactor - Removed quantity increment/decrement buttons in favour of separate plugin.
+* Feature - Added link on purchased products list on orders screen.
+* Fix - When 'hide out of stock products' is disabled, out of stock variations / attributes are now visible.
+* Fix - Fix cart coupon on-sale checks for variations.
+* Tweak - Double the default product image dimensions.
+* Tweak - Added refunds to Sales by Date report.
+* Tweak - Updated prevent_caching() method to work if a cart/checkout page isn't set.
+* Tweak - When user tries to download a file and isn't logged in, send them to the account page with a notice.
+* Tweak - Logic in wc_paying_customer to only increase for 'simple' orders.
+* Tweak - Added tool to refresh stats to customer list.
+* Tweak - Recent order table on my account is responsive.
+* Tweak - Drop WC tables in wpmu_drop_tables (for multisite).
+* Tweak - Moved 'Proceed to checkout' button on cart to beneath totals.
+* Tweak - Improved 'responsiveness' of product data tabs on add/edit product screen.
+* Tweak - Added 'stupidtable' script to allow order item sorting on the order screen (by name, cost, qty).
+* Tweak - In the cart, add variation selected data to the permalink.
+* Dev - API - Look up product by sku.
+* Dev - API - New parent_id param for products API.
+* Dev - API - Sales data in API now matches sales data in WooCommerce reports page.
+* Dev - API - Added 'net_sales' data to reports.
+* Dev - API - catalog_visibility is set to visible by default in products API.
+* Dev - API - Added new filter to query for specific products by ID: /products?filter[in]
+* Dev - Made template debug mode set WC_TEMPLATE_DEBUG_MODE constant and remove all overrides for all template loading functions.
+* Dev - Switched to .scss from .less for all styles.
+* Dev - Included bourbon for scss mixins.
+* Dev - Decoupled the order summary and payments area. Both are updated independently via ajax fragments and can be moved around via actions. TEMPLATES OVERRIDING THESE TEMPLATES WILL NEED TO UPDATE THEIR FILES.
+* Dev - Moved WC_Cart::get_cart_from_session() and dependencies to a later hook (was init, now wp_loaded).
+* Dev - Migrated away from CHOSEN to SELECT2. Chosen is still registered in case 3rd parties try to enqueue.
+* Localisation - Add Ukrainian currency and symbol.
+* Localisation - Greece regions.
 
 = 2.2.11 - 29/01/2015 =
 * Add - URL in Usage/Limit column in Coupons table to query for orders.
@@ -1153,5 +1213,5 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 
 == Upgrade Notice ==
 
-= 2.2.4 =
-2.2 is a major update. Test extensions and your theme prior to updating, ensure extensions are up to date and 2.2 compatible, and ensure that you keep backups. Developers should catch up with [develop.woothemes.com](http://develop.woothemes.com/) to see what has been happening in core.
+= 2.3.0 =
+2.3.0 is a major update so it is important that you make backups, test extensions and your theme prior to updating, and ensure extensions are 2.3 compatible. Developers should catch up with [develop.woothemes.com](http://develop.woothemes.com/) to see what has been happening in core.

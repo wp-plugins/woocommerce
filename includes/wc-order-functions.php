@@ -34,6 +34,16 @@ function wc_get_order_statuses() {
 }
 
 /**
+ * See if a string is an order status.
+ * @param  string $maybe_status Status, including any wc- prefix
+ * @return bool
+ */
+function wc_is_order_status( $maybe_status ) {
+	$order_statuses = wc_get_order_statuses();
+	return isset( $order_statuses[ $maybe_status ] );
+}
+
+/**
  * Main function for returning orders, uses the WC_Order_Factory class.
  *
  * @since  2.2
@@ -522,7 +532,8 @@ function wc_processing_order_count() {
  * @param int $post_id (default: 0)
  */
 function wc_delete_shop_order_transients( $post_id = 0 ) {
-	$post_id = absint( $post_id );
+	$post_id             = absint( $post_id );
+	$transients_to_clear = array();
 
 	// Clear report transients
 	$reports = WC_Admin_Reports::get_reports();
@@ -555,11 +566,11 @@ function wc_ship_to_billing_address_only() {
 /**
  * Create a new order refund programmatically
  *
- * Returns a new refund object on success which can then be used to add additonal data.
+ * Returns a new refund object on success which can then be used to add additional data.
  *
  * @since 2.2
  * @param array $args
- * @return WC_Order_Refund on success, WP_Error on failure
+ * @return WC_Order_Refund|WP_Error
  */
 function wc_create_refund( $args = array() ) {
 	$default_args = array(
@@ -670,6 +681,8 @@ function wc_create_refund( $args = array() ) {
 
 		// Set total to total refunded which may vary from order items
 		$refund->set_total( wc_format_decimal( $args['amount'] ) * -1, 'total' );
+
+		do_action( 'woocommerce_refund_created', $refund_id );
 	}
 
 	// Clear transients
