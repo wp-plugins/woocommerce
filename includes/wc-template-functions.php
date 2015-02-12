@@ -70,21 +70,6 @@ function wc_template_redirect() {
 add_action( 'template_redirect', 'wc_template_redirect' );
 
 /**
- * Enables template debug mode
- */
-function wc_template_debug_mode() {
-	if ( ! defined( 'WC_TEMPLATE_DEBUG_MODE' ) ) {
-		$status_options = get_option( 'woocommerce_status_options', array() );
-		if ( ! empty( $status_options['template_debug_mode'] ) && current_user_can( 'manage_options' ) ) {
-			define( 'WC_TEMPLATE_DEBUG_MODE', true );
-		} else {
-			define( 'WC_TEMPLATE_DEBUG_MODE', false );
-		}
-	}
-}
-add_action( 'after_setup_theme', 'wc_template_debug_mode', 20 );
-
-/**
  * When the_post is called, put product data into a global.
  *
  * @param mixed $post
@@ -964,7 +949,7 @@ if ( ! function_exists( 'woocommerce_default_product_tabs' ) ) {
 		// Reviews tab - shows comments
 		if ( comments_open() ) {
 			$tabs['reviews'] = array(
-				'title'    => sprintf( __( 'Reviews (%d)', 'woocommerce' ), $product->get_rating_count() ),
+				'title'    => sprintf( __( 'Reviews (%d)', 'woocommerce' ), $product->get_review_count() ),
 				'priority' => 30,
 				'callback' => 'comments_template'
 			);

@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, affiliate
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.8
 Tested up to: 4.1
-Stable tag: 2.3.1
+Stable tag: 2.3.2
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -137,6 +137,16 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 6. A product archive (grid).
 
 == Changelog ==
+
+= 2.3.2 - 12/02/2015 =
+* Fix - Item meta removal query in order class.
+* Fix - Pass correct shipping cost to PayPal.
+* Fix - Flat rate extra costs when costs are an array.
+* Fix - When ratings are required for reviews, ensure validation is performed if the rating element is removed from DOM.
+* Fix - When updating shipping in cart, keep shipping calculator in DOM.
+* Fix - WC_TEMPLATE_DEBUG_MODE in admin.
+* Fix - Average product rating when ratings are not required.
+* Fix - attribute_public option.
 
 = 2.3.1 - 11/02/2015 =
 * Fix - When the geolocation database cannot download, ensure the correct method is used to log the error.
