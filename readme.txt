@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, affiliate
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 3.8
 Tested up to: 4.1
-Stable tag: 2.3.2
+Stable tag: 2.3.3
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -137,6 +137,15 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 6. A product archive (grid).
 
 == Changelog ==
+
+= 2.3.3 - 12/02/2015 =
+* Fix - Potential notice with preg_match wildcard search, if used incorrectly.
+* Fix - Typo in get_from_name method.
+* Fix - Fix errors during checkout when mb_convert_encoding() is not supported.
+* Fix - Change hooks used to output post columns - fixes columns after quick edit.
+* Fix - Only apply product/cat coupon checks for cart to cart coupons.
+* Fix - Query in uninstall script.
+* Tweak - Only run the uninstaller if the "Uninstall on Delete" option is checked in system status.
 
 = 2.3.2 - 12/02/2015 =
 * Fix - Item meta removal query in order class.
@@ -1232,5 +1241,5 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 
 == Upgrade Notice ==
 
-= 2.3.1 =
+= 2.3.3 =
 2.3.0 is a major update so it is important that you make backups, test extensions and your theme prior to updating, and ensure extensions are 2.3 compatible. Developers should catch up with [develop.woothemes.com](http://develop.woothemes.com/) to see what has been happening in core.
