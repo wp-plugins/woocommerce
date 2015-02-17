@@ -38,7 +38,6 @@ class WC_Geolocation {
 	private static $geoip_apis = array(
 		'freegeoip'        => 'https://freegeoip.net/json/%s',
 		'telize'           => 'http://www.telize.com/geoip/%s',
-		'ip-api'           => 'http://ip-api.com/json/%s',
 		'geoip-api.meteor' => 'http://geoip-api.meteor.com/lookup/%s'
 	);
 
@@ -140,10 +139,16 @@ class WC_Geolocation {
 	 * Update geoip database. Adapted from https://wordpress.org/plugins/geoip-detect/.
 	 */
 	public static function update_database() {
+		$logger = new WC_Logger();
+
+		if ( ! is_callable( 'gzopen' ) ) {
+			$logger->add( 'geolocation', 'Server does not support gzopen' );
+			return;
+		}
+
 		require_once( ABSPATH . 'wp-admin/includes/file.php' );
 
 		$tmp_database = download_url( self::GEOLITE_DB );
-		$logger       = new WC_Logger();
 
 		if ( ! is_wp_error( $tmp_database ) ) {
 			$gzhandle = @gzopen( $tmp_database, 'r' );
@@ -202,10 +207,6 @@ class WC_Geolocation {
 
 				if ( ! is_wp_error( $response ) && $response['body'] ) {
 					switch ( $service_name ) {
-						case 'ip-api' :
-							$data         = json_decode( $response['body'] );
-							$country_code = isset( $data->countryCode ) ? $data->countryCode : '';
-						break;
 						case 'geoip-api.meteor' :
 							$data         = json_decode( $response['body'] );
 							$country_code = isset( $data->country ) ? $data->country : '';
