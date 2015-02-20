@@ -388,10 +388,8 @@ function wc_get_customer_available_downloads( $customer_id ) {
 	$results = $wpdb->get_results( $wpdb->prepare( "
 		SELECT permissions.*
 		FROM {$wpdb->prefix}woocommerce_downloadable_product_permissions as permissions
-		LEFT JOIN {$wpdb->posts} as posts ON permissions.order_id = posts.ID
 		WHERE user_id = %d
 		AND permissions.order_id > 0
-		AND posts.post_status IN ( '" . implode( "','", array_keys( wc_get_order_statuses() ) ) . "' )
 		AND
 			(
 				permissions.downloads_remaining > 0
@@ -404,16 +402,22 @@ function wc_get_customer_available_downloads( $customer_id ) {
 				OR
 				permissions.access_expires >= %s
 			)
-		GROUP BY permissions.download_id
 		ORDER BY permissions.order_id, permissions.product_id, permissions.permission_id;
 		", $customer_id, date( 'Y-m-d', current_time( 'timestamp' ) ) ) );
 
 	if ( $results ) {
+		
+		$looped_downloads = array();
 		foreach ( $results as $result ) {
 			if ( ! $order || $order->id != $result->order_id ) {
 				// new order
 				$order    = wc_get_order( $result->order_id );
 				$_product = null;
+			}
+
+			// Make sure the order exists for this download
+			if ( ! $order ) {
+				continue;
 			}
 
 			// Downloads permitted?
@@ -435,6 +439,13 @@ function wc_get_customer_available_downloads( $customer_id ) {
 			}
 
 			$download_file = $_product->get_file( $result->download_id );
+			
+			// Check if the file has been already added to the downloads list
+			if ( in_array( $download_file, $looped_downloads ) ) {
+				continue;
+			}
+
+			array_push( $looped_downloads, $download_file );
 
 			// Download name will be 'Product Name' for products with a single downloadable file, and 'Product Name - File X' for products with multiple files
 			$download_name = apply_filters(

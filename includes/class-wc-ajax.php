@@ -65,7 +65,8 @@ class WC_AJAX {
 			'term_ordering'                                    => false,
 			'product_ordering'                                 => false,
 			'refund_line_items'                                => false,
-			'delete_refund'                                    => false
+			'delete_refund'                                    => false,
+			'rated'                                            => false
 		);
 
 		foreach ( $ajax_events as $ajax_event => $nopriv ) {
@@ -1528,7 +1529,7 @@ class WC_AJAX {
 	 * @param string $x (default: '')
 	 * @param string $post_types (default: array('product'))
 	 */
-	public static function json_search_products( $x = '', $post_types = array('product') ) {
+	public static function json_search_products( $x = '', $post_types = array( 'product' ) ) {
 		ob_start();
 
 		check_ajax_referer( 'search-products', 'security' );
@@ -1607,7 +1608,7 @@ class WC_AJAX {
 			foreach ( $posts as $post ) {
 				$product = wc_get_product( $post );
 
-				$found_products[ $post ] = $product->get_formatted_name();
+				$found_products[ $post ] = rawurldecode( $product->get_formatted_name() );
 			}
 		}
 
@@ -1625,7 +1626,7 @@ class WC_AJAX {
 	 * @see WC_AJAX::json_search_products()
 	 */
 	public static function json_search_products_and_variations() {
-		self::json_search_products( '', array('product', 'product_variation') );
+		self::json_search_products( '', array( 'product', 'product_variation' ) );
 	}
 
 	/**
@@ -1967,6 +1968,14 @@ class WC_AJAX {
 			wp_delete_post( $refund_id );
 		}
 
+		die();
+	}
+
+	/**
+	 * Triggered when clicking the rating footer.
+	 */
+	public static function rated() {
+		update_option( 'woocommerce_admin_footer_text_rated', 1 );
 		die();
 	}
 }
