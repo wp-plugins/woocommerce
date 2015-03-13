@@ -32,8 +32,6 @@ add_filter( 'woocommerce_add_to_cart_validation', 'wc_protected_product_add_to_c
 
 /**
  * Clears the cart session when called
- *
- * @return void
  */
 function wc_empty_cart() {
 	if ( ! isset( WC()->cart ) || WC()->cart == '' ) {
@@ -43,34 +41,27 @@ function wc_empty_cart() {
 }
 
 /**
- * Load the cart upon login
+ * Load the persistent cart
  *
  * @param string $user_login
  * @param WP_User $user
+ * @deprecated 2.3
  */
 function wc_load_persistent_cart( $user_login, $user ) {
-
-	if ( ! $user ) {
+	if ( ! $user || ! ( $saved_cart = get_user_meta( $user->ID, '_woocommerce_persistent_cart', true ) ) ) {
 		return;
 	}
 
-	$saved_cart = get_user_meta( $user->ID, '_woocommerce_persistent_cart', true );
-
-	if ( $saved_cart ) {
-		if ( empty( WC()->session->cart ) || ! is_array( WC()->session->cart ) || sizeof( WC()->session->cart ) == 0 ) {
-			WC()->session->cart = $saved_cart['cart'];
-		}
+	if ( empty( WC()->session->cart ) || ! is_array( WC()->session->cart ) || sizeof( WC()->session->cart ) === 0 ) {
+		WC()->session->cart = $saved_cart['cart'];
 	}
 }
-add_action( 'wp_login', 'wc_load_persistent_cart', 1, 2 );
-
 
 /**
  * Add to cart messages.
  *
  * @access public
  * @param int|array $product_id
- * @return void
  */
 function wc_add_to_cart_message( $product_id ) {
 
@@ -82,7 +73,7 @@ function wc_add_to_cart_message( $product_id ) {
 			$titles[] = get_the_title( $id );
 		}
 
-		$added_text = sprintf( __( 'Added &quot;%s&quot; to your cart.', 'woocommerce' ), join( __( '&quot; and &quot;', 'woocommerce' ), array_filter( array_merge( array( join( '&quot;, &quot;', array_slice( $titles, 0, -1 ) ) ), array_slice( $titles, -1 ) ) ) ) );
+		$added_text = sprintf( __( 'Added %s to your cart.', 'woocommerce' ), wc_format_list_of_items( $titles ) );
 
 	} else {
 		$added_text = sprintf( __( '&quot;%s&quot; was successfully added to your cart.', 'woocommerce' ), get_the_title( $product_id ) );
@@ -102,6 +93,15 @@ function wc_add_to_cart_message( $product_id ) {
 	endif;
 
 	wc_add_notice( apply_filters( 'wc_add_to_cart_message', $message, $product_id ) );
+}
+
+/**
+ * Comma separate a list of item names, and replace final comma with 'and'
+ * @param  array $items
+ * @return string
+ */
+function wc_format_list_of_items( $items ) {
+	return '&quot;' . join( __( '&quot; and &quot;', 'woocommerce' ), array_filter( array_merge( array( implode( '&quot;, &quot;', array_slice( $items, 0, -1 ) ) ), array_slice( $items, -1 ) ) ) ) . '&quot;';
 }
 
 /**
@@ -218,8 +218,7 @@ function wc_cart_totals_coupon_html( $coupon ) {
 
     // get rid of empty array elements
     $value = array_filter( $value );
-
-	$value = implode( ', ', $value ) . ' <a href="' . esc_url( add_query_arg( 'remove_coupon', $coupon->code, defined( 'WOOCOMMERCE_CHECKOUT' ) ? WC()->cart->get_checkout_url() : WC()->cart->get_cart_url() ) ) . '" class="woocommerce-remove-coupon" data-coupon="' . esc_attr( $coupon->code ) . '">' . __( '[Remove]', 'woocommerce' ) . '</a>';
+	$value = implode( ', ', $value ) . ' <a href="' . esc_url( add_query_arg( 'remove_coupon', urlencode( $coupon->code ), defined( 'WOOCOMMERCE_CHECKOUT' ) ? WC()->cart->get_checkout_url() : WC()->cart->get_cart_url() ) ) . '" class="woocommerce-remove-coupon" data-coupon="' . esc_attr( $coupon->code ) . '">' . __( '[Remove]', 'woocommerce' ) . '</a>';
 
 	echo apply_filters( 'woocommerce_cart_totals_coupon_html', $value, $coupon );
 }
@@ -231,7 +230,7 @@ function wc_cart_totals_coupon_html( $coupon ) {
  * @return void
  */
 function wc_cart_totals_order_total_html() {
-	echo '<strong>' . WC()->cart->get_total() . '</strong> ';
+	$value = '<strong>' . WC()->cart->get_total() . '</strong> ';
 
 	// If prices are tax inclusive, show taxes here
 	if ( wc_tax_enabled() && WC()->cart->tax_display_cart == 'incl' ) {
@@ -244,9 +243,12 @@ function wc_cart_totals_order_total_html() {
 			$tax_string_array[] = sprintf( '%s %s', wc_price( WC()->cart->get_taxes_total( true, true ) ), WC()->countries->tax_or_vat() );
 		}
 
-		if ( ! empty( $tax_string_array ) )
-			echo '<small class="includes_tax">' . sprintf( __( '(Includes %s)', 'woocommerce' ), implode( ', ', $tax_string_array ) ) . '</small>';
+		if ( ! empty( $tax_string_array ) ) {
+			$value .= '<small class="includes_tax">' . sprintf( __( '(Includes %s)', 'woocommerce' ), implode( ', ', $tax_string_array ) ) . '</small>';
+		}
 	}
+
+	echo apply_filters( 'woocommerce_cart_totals_order_total_html', $value );
 }
 
 /**

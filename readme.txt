@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, affiliate
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 4.0
 Tested up to: 4.1
-Stable tag: 2.3.5
+Stable tag: 2.3.6
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -137,6 +137,35 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 6. A product archive (grid).
 
 == Changelog ==
+
+= 2.3.6 - 13/03/2015 =
+* Fix - Removal of coupons containing spaces.
+* Fix - Unclosed div in profile page.
+* Fix - Export report CSV.
+* Fix - Settings API - allow multiselect fields to be emptied.
+* Fix - Saving an order needs to save the discount amount ex. tax like the cart.
+* Fix - Order again with custom attributes.
+* Fix - Prevent potential XSS within tooltips.
+* Fix - Paypal debug option.
+* Fix - Removed $q->query['wc_query'] = 'product_query' which broke redirects (#7703). Use $q->get('wc_query') instead.
+* Fix - Sanitize tax_rate_id when saving taxes in the backend to prevent potential SQL injection.
+* Tweak - Show discounts inc. tax when showing order totals inc. tax.
+* Tweak - Use 30 days instead of year for transients to avoid bugs in memcache plugins.
+* Tweak - Add reports menu item if user can access reports but not the main WC section.
+* Tweak - Improve grouped product quantity inputs.
+* Tweak - Load the persistant cart if cart is empty.
+* Tweak - Prevent cart being cleared when accessing the login page.
+* Tweak - Shipping calculator - Made state/postcode respect country locale like checkout.
+* Tweak - Move default customer location to general settings tab.
+* Tweak - Only run save_category_fields for product_cat taxonomy.
+* Tweak - Improved message when variation attributes are missing.
+* Tweak - Allow wc_attribute_label to support product-level attribute names.
+* Tweak - Added the option to not round the line total.
+* Tweak - Improved coupon percent calculation for fixed discounts.
+* Tweak - Show calculate total when shipping is needed, but shipping is hidden.
+* Tweak - Cart total labels.
+* Tweak - Increase wc_get_weight precision.
+* Dev - API - reports/sales now also returns total refunds.
 
 = 2.3.5 - 20/02/2015 =
 * Fix - Plain text address formatting.
@@ -1281,5 +1310,5 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 
 == Upgrade Notice ==
 
-= 2.3.5 =
+= 2.3.0 =
 2.3.0 is a major update so it is important that you make backups, test extensions and your theme prior to updating, and ensure extensions are 2.3 compatible. Developers should catch up with [develop.woothemes.com](http://develop.woothemes.com/) to see what has been happening in core.

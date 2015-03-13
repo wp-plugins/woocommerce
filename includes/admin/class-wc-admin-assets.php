@@ -45,7 +45,7 @@ class WC_Admin_Assets {
 
 			// Admin styles for WC pages only
 			wp_enqueue_style( 'woocommerce_admin_styles', WC()->plugin_url() . '/assets/css/admin.css', array(), WC_VERSION );
-			wp_enqueue_style( 'jquery-ui-style', '//ajax.googleapis.com/ajax/libs/jqueryui/' . $jquery_version . '/themes/smoothness/jquery-ui.css', array(), WC_VERSION );
+			wp_enqueue_style( 'jquery-ui-style', '//code.jquery.com/ui/' . $jquery_version . '/themes/smoothness/jquery-ui.css', array(), $jquery_version );
 			wp_enqueue_style( 'wp-color-picker' );
 		}
 
@@ -53,7 +53,7 @@ class WC_Admin_Assets {
 			wp_enqueue_style( 'woocommerce_admin_dashboard_styles', WC()->plugin_url() . '/assets/css/dashboard.css', array(), WC_VERSION );
 		}
 
-		if ( in_array( $screen->id, array( 'woocommerce_page_wc-reports' ) ) ) {
+		if ( in_array( $screen->id, array( 'woocommerce_page_wc-reports', 'toplevel_page_wc-reports' ) ) ) {
 			wp_enqueue_style( 'woocommerce_admin_print_reports_styles', WC()->plugin_url() . '/assets/css/reports-print.css', array(), WC_VERSION, 'print' );
 		}
 
@@ -98,7 +98,7 @@ class WC_Admin_Assets {
 		// Select2 is the replacement for chosen
 		wp_register_script( 'select2', WC()->plugin_url() . '/assets/js/select2/select2' . $suffix . '.js', array( 'jquery' ), '3.5.2' );
 		wp_register_script( 'wc-enhanced-select', WC()->plugin_url() . '/assets/js/admin/wc-enhanced-select' . $suffix . '.js', array( 'jquery', 'select2' ), WC_VERSION );
-		wp_localize_script( 'select2', 'wc_select_params', array(
+		wp_localize_script( 'wc-enhanced-select', 'wc_enhanced_select_params', array(
 			'i18n_matches_1'            => _x( 'One result is available, press enter to select it.', 'enhanced select', 'woocommerce' ),
 			'i18n_matches_n'            => _x( '%qty% results are available, use up and down arrow keys to navigate.', 'enhanced select', 'woocommerce' ),
 			'i18n_no_matches'           => _x( 'No matches found', 'enhanced select', 'woocommerce' ),
@@ -111,11 +111,9 @@ class WC_Admin_Assets {
 			'i18n_selection_too_long_n' => _x( 'You can only select %qty% items', 'enhanced select', 'woocommerce' ),
 			'i18n_load_more'            => _x( 'Loading more results&hellip;', 'enhanced select', 'woocommerce' ),
 			'i18n_searching'            => _x( 'Searching&hellip;', 'enhanced select', 'woocommerce' ),
-		) );
-		wp_localize_script( 'wc-enhanced-select', 'wc_enhanced_select_params', array(
-			'ajax_url'                         => admin_url( 'admin-ajax.php' ),
-			'search_products_nonce'            => wp_create_nonce( 'search-products' ),
-			'search_customers_nonce'           => wp_create_nonce( 'search-customers' )
+			'ajax_url'                  => admin_url( 'admin-ajax.php' ),
+			'search_products_nonce'     => wp_create_nonce( 'search-products' ),
+			'search_customers_nonce'    => wp_create_nonce( 'search-customers' )
 		) );
 
 		// Accounting
@@ -259,8 +257,6 @@ class WC_Admin_Assets {
 				'rounding_precision'            => WC_ROUNDING_PRECISION,
 				'tax_rounding_mode'             => WC_TAX_ROUNDING_MODE,
 				'product_types'                 => array_map( 'sanitize_title', get_terms( 'product_type', array( 'hide_empty' => false, 'fields' => 'names' ) ) ),
-				'default_attribute_visibility'  => apply_filters( 'default_attribute_visibility', false ),
-				'default_attribute_variation'   => apply_filters( 'default_attribute_variation', false ),
 				'i18n_download_permission_fail' => __( 'Could not grant access - the user may already have permission for this file or billing email is not set. Ensure the billing email is set, and the order has been saved.', 'woocommerce' ),
 				'i18n_permission_revoke'        => __( 'Are you sure you want to revoke access to this download?', 'woocommerce' ),
 				'i18n_tax_rate_already_exists'  => __( 'You cannot add the same tax rate twice!', 'woocommerce' ),
@@ -293,7 +289,7 @@ class WC_Admin_Assets {
 		}
 
 		// Reports Pages
-		if ( in_array( $screen->id, apply_filters( 'woocommerce_reports_screen_ids', array( $wc_screen_id . '_page_wc-reports', 'dashboard' ) ) ) ) {
+		if ( in_array( $screen->id, apply_filters( 'woocommerce_reports_screen_ids', array( $wc_screen_id . '_page_wc-reports', 'toplevel_page_wc-reports', 'dashboard' ) ) ) ) {
 			wp_enqueue_script( 'wc-reports', WC()->plugin_url() . '/assets/js/admin/reports' . $suffix . '.js', array( 'jquery', 'jquery-ui-datepicker' ), WC_VERSION );
 			wp_enqueue_script( 'flot', WC()->plugin_url() . '/assets/js/admin/jquery.flot' . $suffix . '.js', array( 'jquery' ), WC_VERSION );
 			wp_enqueue_script( 'flot-resize', WC()->plugin_url() . '/assets/js/admin/jquery.flot.resize' . $suffix . '.js', array( 'jquery', 'flot' ), WC_VERSION );

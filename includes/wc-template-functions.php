@@ -1337,7 +1337,7 @@ if ( ! function_exists( 'woocommerce_products_will_display' ) ) {
 			}
 		}
 
-		set_transient( $transient_name, $products_will_display, YEAR_IN_SECONDS );
+		set_transient( $transient_name, $products_will_display, DAY_IN_SECONDS * 30 );
 
 		return $products_will_display;
 	}
@@ -1527,7 +1527,7 @@ if ( ! function_exists( 'woocommerce_form_field' ) ) {
 	 * Outputs a checkout/address form field.
 	 *
 	 * @subpackage	Forms
-	 * @param mixed $key
+	 * @param string $key
 	 * @param mixed $args
 	 * @param string $value (default: null)
 	 * @todo This function needs to be broken up in smaller pieces
@@ -1552,6 +1552,7 @@ if ( ! function_exists( 'woocommerce_form_field' ) ) {
 		);
 
 		$args = wp_parse_args( $args, $defaults );
+		$args = apply_filters( 'woocommerce_form_field_args', $args, $key, $value );
 
 		if ( ( ! empty( $args['clear'] ) ) ) {
 			$after = '<div class="clear"></div>';
@@ -1769,8 +1770,16 @@ if ( ! function_exists( 'woocommerce_form_field' ) ) {
 				$options = $field = '';
 
 				if ( ! empty( $args['options'] ) ) {
-					foreach ( $args['options'] as $option_key => $option_text )
+					foreach ( $args['options'] as $option_key => $option_text ) {
+						if ( "" === $option_key ) {
+							// If we have a blank option, select2 needs a placeholder
+							if ( empty( $args['placeholder'] ) ) {
+								$args['placeholder'] = $option_text ? $option_text : __( 'Choose an option', 'woocommerce' );
+							}
+							$custom_attributes[] = 'data-allow_clear="true"';
+						}
 						$options .= '<option value="' . esc_attr( $option_key ) . '" '. selected( $value, $option_key, false ) . '>' . esc_attr( $option_text ) .'</option>';
+					}
 
 					$field = '<p class="form-row ' . esc_attr( implode( ' ', $args['class'] ) ) .'" id="' . esc_attr( $args['id'] ) . '_field">';
 
@@ -1778,7 +1787,7 @@ if ( ! function_exists( 'woocommerce_form_field' ) ) {
 						$field .= '<label for="' . esc_attr( $args['id'] ) . '" class="' . esc_attr( implode( ' ', $args['label_class'] ) ) .'">' . $args['label']. $required . '</label>';
 					}
 
-					$field .= '<select name="' . esc_attr( $key ) . '" id="' . esc_attr( $args['id'] ) . '" class="select '.esc_attr( implode( ' ', $args['input_class'] ) ) .'" ' . implode( ' ', $custom_attributes ) . '>
+					$field .= '<select name="' . esc_attr( $key ) . '" id="' . esc_attr( $args['id'] ) . '" class="select '.esc_attr( implode( ' ', $args['input_class'] ) ) .'" ' . implode( ' ', $custom_attributes ) . ' placeholder="' . esc_attr( $args['placeholder'] ) . '">
 							' . $options . '
 						</select>';
 
@@ -1810,10 +1819,12 @@ if ( ! function_exists( 'woocommerce_form_field' ) ) {
 				break;
 			default :
 
-				$field = apply_filters( 'woocommerce_form_field_' . $args['type'], '', $key, $args, $value );
+				$field = '';
 
 				break;
 		}
+
+		$field = apply_filters( 'woocommerce_form_field_' . $args['type'], $field, $key, $args, $value );
 
 		if ( $args['return'] ) {
 			return $field;

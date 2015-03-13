@@ -425,7 +425,7 @@ class WC_AJAX {
 		$attribute     = array(
 			'name'         => $taxonomy,
 			'value'        => '',
-			'is_visible'   => 1,
+			'is_visible'   => apply_filters( 'woocommerce_attribute_default_visibility', 1 ),
 			'is_variation' => 0,
 			'is_taxonomy'  => $taxonomy ? 1 : 0
 		);
@@ -452,7 +452,7 @@ class WC_AJAX {
 		check_ajax_referer( 'add-attribute', 'security' );
 
 		$taxonomy = esc_attr( $_POST['taxonomy'] );
-		$term     = stripslashes( $_POST['term'] );
+		$term     = wc_clean( $_POST['term'] );
 
 		if ( taxonomy_exists( $taxonomy ) ) {
 
@@ -463,10 +463,11 @@ class WC_AJAX {
 					'error' => $result->get_error_message()
 				) );
 			} else {
+				$term = get_term_by( 'id', $result['term_id'], $taxonomy );
 				wp_send_json( array(
-					'term_id' => $result['term_id'],
-					'name'    => $term,
-					'slug'    => sanitize_title( $term ),
+					'term_id' => $term->term_id,
+					'name'    => $term->name,
+					'slug'    => $term->slug
 				) );
 			}
 		}
@@ -1482,7 +1483,7 @@ class WC_AJAX {
 
 		check_ajax_referer( 'add-order-note', 'security' );
 
-		$post_id   = (int) $_POST['post_id'];
+		$post_id   = absint( $_POST['post_id'] );
 		$note      = wp_kses_post( trim( stripslashes( $_POST['note'] ) ) );
 		$note_type = $_POST['note_type'];
 
@@ -1540,17 +1541,25 @@ class WC_AJAX {
 			die();
 		}
 
+		$args = array(
+			'post_type'      => $post_types,
+			'post_status'    => 'publish',
+			'posts_per_page' => -1,
+			's'              => $term,
+			'fields'         => 'ids'
+		);
+
 		if ( is_numeric( $term ) ) {
 
-			$args = array(
+			$args2 = array(
 				'post_type'      => $post_types,
 				'post_status'    => 'publish',
 				'posts_per_page' => -1,
-				'post__in'       => array(0, $term),
+				'post__in'       => array( 0, $term ),
 				'fields'         => 'ids'
 			);
 
-			$args2 = array(
+			$args3 = array(
 				'post_type'      => $post_types,
 				'post_status'    => 'publish',
 				'posts_per_page' => -1,
@@ -1558,7 +1567,7 @@ class WC_AJAX {
 				'fields'         => 'ids'
 			);
 
-			$args3 = array(
+			$args4 = array(
 				'post_type'      => $post_types,
 				'post_status'    => 'publish',
 				'posts_per_page' => -1,
@@ -1572,17 +1581,9 @@ class WC_AJAX {
 				'fields'         => 'ids'
 			);
 
-			$posts = array_unique( array_merge( get_posts( $args ), get_posts( $args2 ), get_posts( $args3 ) ) );
+			$posts = array_unique( array_merge( get_posts( $args ), get_posts( $args2 ), get_posts( $args3 ), get_posts( $args4 ) ) );
 
 		} else {
-
-			$args = array(
-				'post_type'      => $post_types,
-				'post_status'    => 'publish',
-				'posts_per_page' => -1,
-				's'              => $term,
-				'fields'         => 'ids'
-			);
 
 			$args2 = array(
 				'post_type'      => $post_types,
@@ -1864,7 +1865,7 @@ class WC_AJAX {
 			// Validate that the refund can occur
 			$order       = wc_get_order( $order_id );
 			$order_items = $order->get_items();
-			$max_refund  = $order->get_total() - $order->get_total_refunded();
+			$max_refund  = wc_format_decimal( $order->get_total() - $order->get_total_refunded() );
 
 			if ( ! $refund_amount || $max_refund < $refund_amount ) {
 				throw new exception( __( 'Invalid refund amount', 'woocommerce' ) );

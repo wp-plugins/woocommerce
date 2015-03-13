@@ -32,8 +32,6 @@
  * @property    string $shipping_country The country of the shipping address
  * @property    string $cart_discount Total amount of discount
  * @property    string $cart_discount_tax Total amount of discount applied to taxes
- * @property    string $order_shipping Total amoount of shipping
- * @property    string $order_shipping_tax Total amoount of shipping tax
  * @property    string $shipping_method_title < 2.1 was used for shipping method title. Now @deprecated.
  * @property    int $customer_user User ID who the order belongs to. 0 for guests.
  * @property    string $order_key Random key/password unqique to each order.
@@ -224,7 +222,6 @@ abstract class WC_Abstract_Order {
 
 		// Add variation meta
 		if ( ! empty( $args['variation'] ) ) {
-
 			foreach ( $args['variation'] as $key => $value ) {
 				wc_add_order_item_meta( $item_id, str_replace( 'attribute_', '', $key ), $value );
 			}
@@ -786,7 +783,7 @@ abstract class WC_Abstract_Order {
 			$fee_total += $item['line_total'];
 		}
 
-		$this->set_total( $cart_subtotal + $cart_subtotal_tax - $cart_total - $cart_total_tax, 'cart_discount' );
+		$this->set_total( $cart_subtotal - $cart_total, 'cart_discount' );
 		$this->set_total( $cart_subtotal_tax - $cart_total_tax, 'cart_discount_tax' );
 
 		$grand_total = round( $cart_total + $fee_total + $this->get_total_shipping() + $this->get_cart_tax() + $this->get_shipping_tax(), wc_get_price_decimals() );
@@ -1267,9 +1264,9 @@ abstract class WC_Abstract_Order {
 	 */
 	public function get_total_discount( $ex_tax = true ) {
 		if ( $ex_tax ) {
-			return apply_filters( 'woocommerce_order_amount_total_discount', (double) $this->cart_discount - (double) $this->cart_discount_tax, $this );
-		} else {
 			return apply_filters( 'woocommerce_order_amount_total_discount', (double) $this->cart_discount, $this );
+		} else {
+			return apply_filters( 'woocommerce_order_amount_total_discount', (double) $this->cart_discount + (double) $this->cart_discount_tax, $this );
 		}
 	}
 
@@ -1376,12 +1373,12 @@ abstract class WC_Abstract_Order {
 		if ( $inc_tax ) {
 			$price = ( $item['line_subtotal'] + $item['line_subtotal_tax'] ) / max( 1, $item['qty'] );
 		} else {
-			$price = ( $item['line_subtotal'] / $item['qty'] );
+			$price = ( $item['line_subtotal'] / max( 1, $item['qty'] ) );
 		}
 
 		$price = $round ? number_format( (float) $price, 2, '.', '' ) : $price;
 
-		return apply_filters( 'woocommerce_order_amount_item_subtotal', $price, $this, $item );
+		return apply_filters( 'woocommerce_order_amount_item_subtotal', $price, $this, $item, $inc_tax, $round );
 	}
 
 	/**
@@ -1402,7 +1399,7 @@ abstract class WC_Abstract_Order {
 
 		$price = $round ? round( $price, 2 ) : $price;
 
-		return apply_filters( 'woocommerce_order_amount_line_subtotal', $price, $this, $item );
+		return apply_filters( 'woocommerce_order_amount_line_subtotal', $price, $this, $item, $inc_tax, $round );
 	}
 
 	/**
@@ -1420,12 +1417,12 @@ abstract class WC_Abstract_Order {
 		if ( $inc_tax ) {
 			$price = ( $item['line_total'] + $item['line_tax'] ) / max( 1, $qty );
 		} else {
-			$price = $item['line_total'] / $qty;
+			$price = $item['line_total'] / max( 1, $qty );
 		}
 
 		$price = $round ? round( $price, 2 ) : $price;
 
-		return apply_filters( 'woocommerce_order_amount_item_total', $price, $this );
+		return apply_filters( 'woocommerce_order_amount_item_total', $price, $this, $item, $inc_tax, $round );
 	}
 
 	/**
@@ -1433,13 +1430,18 @@ abstract class WC_Abstract_Order {
 	 *
 	 * @param mixed $item
 	 * @param bool $inc_tax (default: false)
+	 * @param bool $round (default: true)
 	 * @return float
 	 */
-	public function get_line_total( $item, $inc_tax = false ) {
+	public function get_line_total( $item, $inc_tax = false, $round = true ) {
 
-		$line_total = $inc_tax ? round( $item['line_total'] + $item['line_tax'], 2 ) : round( $item['line_total'], 2 );
+		// Check if we need to add line tax to the line total
+		$line_total = $inc_tax ? $item['line_total'] + $item['line_tax'] : $item['line_total'];
 
-		return apply_filters( 'woocommerce_order_amount_line_total', $line_total, $this );
+		// Check if we need to round
+		$line_total = $round ? round( $line_total, 2 ) : $line_total;
+
+		return apply_filters( 'woocommerce_order_amount_line_total', $line_total, $this, $item, $inc_tax, $round );
 	}
 
 	/**
@@ -1668,7 +1670,7 @@ abstract class WC_Abstract_Order {
 		if ( ! $tax_display ) {
 			$tax_display = $this->tax_display_cart;
 		}
-		return apply_filters( 'woocommerce_order_discount_to_display', wc_price( $this->get_total_discount( $tax_display === 'excl' ), array( 'currency' => $this->get_order_currency() ) ), $this );
+		return apply_filters( 'woocommerce_order_discount_to_display', wc_price( $this->get_total_discount( $tax_display === 'excl' && $this->display_totals_ex_tax ), array( 'currency' => $this->get_order_currency() ) ), $this );
 	}
 
 	/**
@@ -1716,7 +1718,7 @@ abstract class WC_Abstract_Order {
 
 		if ( $subtotal = $this->get_subtotal_to_display( false, $tax_display ) ) {
 			$total_rows['cart_subtotal'] = array(
-				'label' => __( 'Cart Subtotal:', 'woocommerce' ),
+				'label' => __( 'Subtotal:', 'woocommerce' ),
 				'value'	=> $subtotal
 			);
 		}
@@ -1781,7 +1783,7 @@ abstract class WC_Abstract_Order {
 			}
 		}
 
-		if ( $this->get_total() > 0 ) {
+		if ( $this->get_total() > 0 && $this->payment_method_title ) {
 			$total_rows['payment_method'] = array(
 				'label' => __( 'Payment Method:', 'woocommerce' ),
 				'value' => $this->payment_method_title
@@ -1789,7 +1791,7 @@ abstract class WC_Abstract_Order {
 		}
 
 		$total_rows['order_total'] = array(
-			'label' => __( 'Order Total:', 'woocommerce' ),
+			'label' => __( 'Total:', 'woocommerce' ),
 			'value'	=> $this->get_formatted_order_total()
 		);
 
@@ -1880,7 +1882,6 @@ abstract class WC_Abstract_Order {
 		return $has_downloadable_item;
 	}
 
-
 	/**
 	 * Generates a URL so that a customer can pay for their (unpaid - pending) order. Pass 'true' for the checkout version which doesn't offer gateway choices.
 	 *
@@ -1904,7 +1905,6 @@ abstract class WC_Abstract_Order {
 		return apply_filters( 'woocommerce_get_checkout_payment_url', $pay_url, $this );
 	}
 
-
 	/**
 	 * Generates a URL for the thanks page (order received)
 	 *
@@ -1923,7 +1923,6 @@ abstract class WC_Abstract_Order {
 		return apply_filters( 'woocommerce_get_checkout_order_received_url', $order_received_url, $this );
 	}
 
-
 	/**
 	 * Generates a URL so that a customer can cancel their (unpaid - pending) order.
 	 *
@@ -1932,6 +1931,47 @@ abstract class WC_Abstract_Order {
 	 * @return string
 	 */
 	public function get_cancel_order_url( $redirect = '' ) {
+
+		// Get cancel endpoint
+		$cancel_endpoint = $this->get_cancel_endpoint();
+
+		return apply_filters( 'woocommerce_get_cancel_order_url', wp_nonce_url( add_query_arg( array(
+			'cancel_order' => 'true',
+			'order'        => $this->order_key,
+			'order_id'     => $this->id,
+			'redirect'     => $redirect
+		), $cancel_endpoint ), 'woocommerce-cancel_order' ) );
+	}
+
+	/**
+	 * Generates a raw (unescaped) cancel-order URL for use by payment gateways
+	 *
+	 * @param string $redirect
+	 *
+	 * @return string The unescaped cancel-order URL
+	 */
+	public function get_cancel_order_url_raw( $redirect = '' ) {
+
+		// Get cancel endpoint
+		$cancel_endpoint = $this->get_cancel_endpoint();
+
+		return apply_filters( 'woocommerce_get_cancel_order_url_raw', add_query_arg( array(
+			'cancel_order' => 'true',
+			'order'        => $this->order_key,
+			'order_id'     => $this->id,
+			'redirect'     => $redirect,
+			'_wpnonce'     => wp_create_nonce( 'woocommerce-cancel_order' )
+		), $cancel_endpoint ) );
+	}
+
+
+	/**
+	 * Helper method to return the cancel endpoint
+	 *
+	 * @return string the cancel endpoint; either the cart page or the home page
+	 */
+	public function get_cancel_endpoint() {
+
 		$cancel_endpoint = wc_get_page_permalink( 'cart' );
 		if ( ! $cancel_endpoint ) {
 			$cancel_endpoint = home_url();
@@ -1941,8 +1981,9 @@ abstract class WC_Abstract_Order {
 			$cancel_endpoint = trailingslashit( $cancel_endpoint );
 		}
 
-		return apply_filters('woocommerce_get_cancel_order_url', wp_nonce_url( add_query_arg( array( 'cancel_order' => 'true', 'order' => $this->order_key, 'order_id' => $this->id, 'redirect' => $redirect ), $cancel_endpoint ), 'woocommerce-cancel_order' ) );
+		return $cancel_endpoint;
 	}
+
 
 	/**
 	 * Generates a URL to view an order from the my account page
