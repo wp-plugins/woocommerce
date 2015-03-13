@@ -243,6 +243,8 @@ class WC_Product {
 
 			// Clear caches
 			wp_cache_delete( $this->id, 'post_meta' );
+			delete_transient( 'wc_low_stock_count' );
+			delete_transient( 'wc_outofstock_count' );
 			unset( $this->stock );
 
 			// Stock status
@@ -1050,7 +1052,7 @@ class WC_Product {
 				$average_rating = number_format( $ratings / $count, 2 );
 			}
 
-			set_transient( $transient_name, $average_rating, YEAR_IN_SECONDS );
+			set_transient( $transient_name, $average_rating, DAY_IN_SECONDS * 30 );
 		}
 
 		return $average_rating;
@@ -1082,7 +1084,7 @@ class WC_Product {
 				AND comment_approved = '1'
 			", $this->id ) . $where_meta_value );
 
-			set_transient( $transient_name, $count, YEAR_IN_SECONDS );
+			set_transient( $transient_name, $count, DAY_IN_SECONDS * 30 );
 		}
 
 		return $count;
@@ -1136,7 +1138,7 @@ class WC_Product {
 				AND comment_approved = '1'
 			", $this->id ) );
 
-			set_transient( $transient_name, $count, YEAR_IN_SECONDS );
+			set_transient( $transient_name, $count, DAY_IN_SECONDS * 30 );
 		}
 
 		return apply_filters( 'woocommerce_product_review_count', $count, $this );
@@ -1244,13 +1246,13 @@ class WC_Product {
 		$cats_array = array(0);
 
 		// Get tags
-		$terms = wp_get_post_terms( $this->id, 'product_tag' );
+		$terms = apply_filters( 'woocommerce_get_related_product_tag_terms', wp_get_post_terms( $this->id, 'product_tag' ), $this->id );
 		foreach ( $terms as $term ) {
 			$tags_array[] = $term->term_id;
 		}
 
 		// Get categories
-		$terms = wp_get_post_terms( $this->id, 'product_cat' );
+		$terms = apply_filters( 'woocommerce_get_related_product_cat_terms', wp_get_post_terms( $this->id, 'product_cat' ), $this->id );
 		foreach ( $terms as $term ) {
 			$cats_array[] = $term->term_id;
 		}
@@ -1309,7 +1311,7 @@ class WC_Product {
 			$max_related_posts_query           = $query;
 			$max_related_posts_query['fields'] = "SELECT COUNT(DISTINCT ID) FROM {$wpdb->posts} p";
 			$max_related_posts                 = absint( $wpdb->get_var( implode( ' ', apply_filters( 'woocommerce_product_max_related_posts_query', $max_related_posts_query, $this->id ) ) ) );
-			set_transient( $max_related_posts_transient_name, $max_related_posts, YEAR_IN_SECONDS );
+			set_transient( $max_related_posts_transient_name, $max_related_posts, DAY_IN_SECONDS * 30 );
 		}
 
 		// Generate limit

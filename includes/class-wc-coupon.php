@@ -623,7 +623,8 @@ class WC_Coupon {
 				$discount_percent = 0;
 
 				if ( WC()->cart->subtotal_ex_tax ) {
-					$discount_percent = ( $cart_item['data']->get_price_excluding_tax() * $cart_item['quantity'] ) / WC()->cart->subtotal_ex_tax;
+					// Uses price inc tax if prices include tax to work around https://github.com/woothemes/woocommerce/issues/7669
+					$discount_percent = ( $cart_item['data']->get_price() * $cart_item['quantity'] ) / ( wc_prices_include_tax() ? WC()->cart->subtotal : WC()->cart->subtotal_ex_tax );
 				}
 
 				$discount = min( ( $this->coupon_amount * $discount_percent ) / $cart_item['quantity'], $discounting_amount );
@@ -656,13 +657,19 @@ class WC_Coupon {
 	 * displays the message/error.
 	 *
 	 * @param int $msg_code Message/error code.
-	 * @return void
 	 */
 	public function add_coupon_message( $msg_code ) {
+
+		$msg = $msg_code < 200 ? $this->get_coupon_error( $msg_code ) : $this->get_coupon_message( $msg_code );
+
+		if ( ! $msg ) {
+			return;
+		}
+
 		if ( $msg_code < 200 ) {
-			wc_add_notice( $this->get_coupon_error( $msg_code ), 'error' );
+			wc_add_notice( $msg, 'error' );
 		} else {
-			wc_add_notice( $this->get_coupon_message( $msg_code ) );
+			wc_add_notice( $msg );
 		}
 	}
 

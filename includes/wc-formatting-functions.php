@@ -112,10 +112,10 @@ function wc_get_weight( $weight, $to_unit ) {
 				$weight *= 0.001;
 			break;
 			case 'lbs':
-				$weight *= 0.4536;
+				$weight *= 0.453592;
 			break;
 			case 'oz':
-				$weight *= 0.0283;
+				$weight *= 0.0283495;
 			break;
 		}
 
@@ -125,7 +125,7 @@ function wc_get_weight( $weight, $to_unit ) {
 				$weight *= 1000;
 			break;
 			case 'lbs':
-				$weight *= 2.2046;
+				$weight *= 2.20462;
 			break;
 			case 'oz':
 				$weight *= 35.274;
@@ -251,6 +251,24 @@ function wc_format_localized_decimal( $value ) {
  */
 function wc_clean( $var ) {
 	return sanitize_text_field( $var );
+}
+
+/**
+ * Sanitize a string destined to be a tooltip. Prevents XSS.
+ * @param string $var
+ * @return string
+ */
+function wc_sanitize_tooltip( $var ) {
+	return wp_kses( html_entity_decode( $var ), array(
+		'br'     => array(),
+		'em'     => array(),
+		'strong' => array(),
+		'span'   => array(),
+		'ul'     => array(),
+		'li'     => array(),
+		'ol'     => array(),
+		'p'      => array(),
+    ) );
 }
 
 /**
@@ -647,9 +665,9 @@ function wc_trim_string( $string, $chars = 200, $suffix = '...' ) {
  * Format content to display shortcodes
  *
  * @since  2.3.0
- * @param  string $string
+ * @param  string $raw_string
  * @return string
  */
-function wc_format_content( $string ) {
-	return do_shortcode( shortcode_unautop( wpautop( $string ) ) );
+function wc_format_content( $raw_string ) {
+	return apply_filters( 'woocommerce_format_content', do_shortcode( shortcode_unautop( wpautop( $raw_string ) ) ), $raw_string );
 }

@@ -202,19 +202,26 @@ class WC_Cart {
 		 * Get the cart data from the PHP session and store it in class variables.
 		 */
 		public function get_cart_from_session() {
-
 			// Load cart session data from session
 			foreach ( $this->cart_session_data as $key => $default ) {
 				$this->$key = WC()->session->get( $key, $default );
 			}
 
+			$update_cart_session         = false;
 			$this->removed_cart_contents = array_filter( WC()->session->get( 'removed_cart_contents', array() ) );
 			$this->applied_coupons       = array_filter( WC()->session->get( 'applied_coupons', array() ) );
 
-			// Load the cart
-			$cart = WC()->session->get( 'cart', array() );
+			/**
+			 * Load the cart object. This defaults to the persistant cart if null.
+			 */
+			$cart = WC()->session->get( 'cart', null );
 
-			$update_cart_session = false;
+			if ( is_null( $cart ) && ( $saved_cart = get_user_meta( get_current_user_id(), '_woocommerce_persistent_cart', true ) ) ) {
+				$cart                = $saved_cart['cart'];
+				$update_cart_session = true;
+			} elseif ( is_null( $cart ) ) {
+				$cart = array();
+			}
 
 			if ( is_array( $cart ) ) {
 				foreach ( $cart as $key => $values ) {
@@ -304,7 +311,7 @@ class WC_Cart {
 		 */
 		public function persistent_cart_update() {
 			update_user_meta( get_current_user_id(), '_woocommerce_persistent_cart', array(
-				'cart' => WC()->session->cart,
+				'cart' => WC()->session->get( 'cart' )
 			) );
 		}
 
@@ -1726,10 +1733,20 @@ class WC_Cart {
 		 * @return float discount amount
 		 */
 		public function get_coupon_discount_amount( $code, $ex_tax = true ) {
+			$discount_amount = isset( $this->coupon_discount_amounts[ $code ] ) ? $this->coupon_discount_amounts[ $code ] : 0;
+
 			if ( $ex_tax ) {
-				return isset( $this->coupon_discount_amounts[ $code ] ) ? $this->coupon_discount_amounts[ $code ] - $this->get_coupon_discount_tax_amount( $code ) : 0;
+				if ( $this->prices_include_tax ) {
+					return $discount_amount - $this->get_coupon_discount_tax_amount( $code );
+				} else {
+					return $discount_amount;
+				}
 			} else {
-				return isset( $this->coupon_discount_amounts[ $code ] ) ? $this->coupon_discount_amounts[ $code ] : 0;
+				if ( $this->prices_include_tax ) {
+					return $discount_amount;
+				} else {
+					return $discount_amount + $this->get_coupon_discount_tax_amount( $code );
+				}
 			}
 		}
 
@@ -1802,9 +1819,9 @@ class WC_Cart {
 							$total_discount     = $discount_amount * $values['quantity'];
 							$total_discount_tax = 0;
 
-							if ( $this->prices_include_tax ) {
+							if ( $this->prices_include_tax || $this->tax_display_cart === 'incl' ) {
 								$tax_rates           = WC_Tax::get_rates( $product->get_tax_class() );
-								$taxes               = WC_Tax::calc_tax( $discount_amount, $tax_rates, true );
+								$taxes               = WC_Tax::calc_tax( $discount_amount, $tax_rates, $this->prices_include_tax );
 								$total_discount_tax  = WC_Tax::get_tax_total( $taxes ) * $values['quantity'];
 							}
 
