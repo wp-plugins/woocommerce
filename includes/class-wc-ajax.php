@@ -39,7 +39,6 @@ class WC_AJAX {
 	 * Set AJAX defines.
 	 */
 	public static function define_ajax() {
-
 		if ( ! empty( $_GET['wc-ajax'] ) ) {
 			if ( ! defined( 'DOING_AJAX' ) ) {
 				define( 'DOING_AJAX', true );
@@ -47,6 +46,8 @@ class WC_AJAX {
 			if ( ! defined( 'WC_DOING_AJAX' ) ) {
 				define( 'WC_DOING_AJAX', true );
 			}
+			// Turn off display_errors during AJAX events to prevent malformed JSON
+			@ini_set( 'display_errors', 0 );
 		}
 	}
 
@@ -439,7 +440,7 @@ class WC_AJAX {
 			die();
 		}
 
-		$variation_id = $variable_product->get_matching_variation( $_POST );
+		$variation_id = $variable_product->get_matching_variation( stripslashes_deep( $_POST ) );
 
 		if ( $variation_id ) {
 			$variation = $variable_product->get_available_variation( $variation_id );
