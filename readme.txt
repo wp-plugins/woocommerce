@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, affiliate
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=paypal@woothemes.com&item_name=Donation+for+WooCommerce
 Requires at least: 4.0
 Tested up to: 4.3
-Stable tag: 2.4.3
+Stable tag: 2.4.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -158,6 +158,14 @@ Yes you can! Join in on our [GitHub repository](http://github.com/woothemes/wooc
 6. A product archive (grid).
 
 == Changelog ==
+
+= 2.4.4 - 14/08/2015 =
+* Fix - Ajax variation handling when 'any' attribute is set.
+* Fix - Run html_entity_decode over text attributes to fix problems with quote characters.
+* Fix - COD: remove shipping check if the cart is 100% virtual.
+* Tweak - Order variations by menu_order by fallback to ID.
+* Tweak - Include attribute archives support in the breadcrumbs.
+* Tweak - woocommerce_variable_children_args hook.
 
 = 2.4.3 - 12/08/2015 =
 * Fix - Query within wc_customer_bought_product().
